@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion Administrateur - e-Consulaire RDC{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <!-- Logo and Title -->
+        <div class="text-center mb-8 animate-fade-in">
+            <div class="glass rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                <i class="fas fa-user-shield text-4xl text-white"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">Administration</h1>
+            <p class="text-white/80">Espace réservé aux administrateurs du système</p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="glass-strong rounded-2xl p-8 animate-slide-up">
+            <form method="POST" class="space-y-6">
+                {{ form.hidden_tag() }}
+                
+                <!-- Email Field -->
+                <div class="space-y-2">
+                    <label for="email" class="block text-sm font-semibold text-white/90">
+                        <i class="fas fa-envelope mr-2"></i>Adresse Email
+                    </label>
+                    <div class="relative">
+                        {{ form.email(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="admin@diplomatie.gouv.cd") }}
+                        {% if form.email.errors %}
+                            <div class="absolute -bottom-6 left-0 text-red-400 text-xs">
+                                {% for error in form.email.errors %}
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="space-y-2 pt-2">
+                    <label for="password" class="block text-sm font-semibold text-white/90">
+                        <i class="fas fa-lock mr-2"></i>Mot de Passe
+                    </label>
+                    <div class="relative">
+                        {{ form.password(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="••••••••") }}
+                        <button type="button" onclick="togglePassword('password')" class="absolute right-3 top-3 text-white/60 hover:text-white">
+                            <i class="fas fa-eye" id="password-eye"></i>
+                        </button>
+                        {% if form.password.errors %}
+                            <div class="absolute -bottom-6 left-0 text-red-400 text-xs">
+                                {% for error in form.password.errors %}
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Remember Me -->
+                <div class="flex items-center pt-2">
+                    {{ form.remember_me(class="w-4 h-4 text-primary-600 bg-white/10 border-white/20 rounded focus:ring-primary-500 focus:ring-2") }}
+                    <label for="remember_me" class="ml-2 text-sm text-white/80">Se souvenir de moi</label>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn-glass w-full py-3 rounded-xl text-white font-semibold text-lg hover:shadow-lg transform transition-all duration-300 hover:-translate-y-1">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Se Connecter
+                </button>
+            </form>
+
+            <!-- Security Notice -->
+            <div class="mt-6 p-4 glass rounded-lg">
+                <div class="flex items-start space-x-3">
+                    <i class="fas fa-shield-alt text-yellow-400 mt-1"></i>
+                    <div>
+                        <h4 class="text-white font-semibold text-sm">Accès Sécurisé</h4>
+                        <p class="text-white/70 text-xs mt-1">
+                            Cet espace est protégé et surveillé. Toute tentative d'accès non autorisé sera signalée.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alternative Login Links -->
+            <div class="mt-8 text-center">
+                <p class="text-white/60 text-sm mb-4">Vous n'êtes pas administrateur ?</p>
+                <div class="flex space-x-4 justify-center">
+                    <a href="{{ url_for('auth.user_login') }}" class="text-white/80 hover:text-white text-sm underline">
+                        <i class="fas fa-users mr-1"></i>Citoyens
+                    </a>
+                    <a href="{{ url_for('auth.consulate_login') }}" class="text-white/80 hover:text-white text-sm underline">
+                        <i class="fas fa-building mr-1"></i>Diplomates
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-8 text-white/60 text-xs">
+            <p>&copy; 2025 République Démocratique du Congo</p>
+            <p>Ministère des Affaires Étrangères - Services Consulaires</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const eye = document.getElementById(fieldId + '-eye');
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        eye.classList.remove('fa-eye');
+        eye.classList.add('fa-eye-slash');
+    } else {
+        field.type = 'password';
+        eye.classList.remove('fa-eye-slash');
+        eye.classList.add('fa-eye');
+    }
+}
+</script>
+{% endblock %}

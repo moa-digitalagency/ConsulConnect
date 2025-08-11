@@ -11,62 +11,119 @@ from forms import (LoginForm, RegisterForm, ConsularCardForm, CareAttestationFor
                    LegalizationsForm, PassportForm, OtherDocumentsForm, ApplicationStatusForm)
 from utils import generate_pdf_document, send_notification_email, log_audit
 
+# Redirect root to user login by default
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return redirect(url_for('auth.user_login'))
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
+# Create auth blueprint for better organization
+from flask import Blueprint
+auth = Blueprint('auth', __name__)
+
+@auth.route('/login', methods=['GET', 'POST'])
+def user_login():
     if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
+        if current_user.role == 'usager':
+            return redirect(url_for('user_dashboard'))
+        return redirect(url_for('admin_dashboard'))
     
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and check_password_hash(user.password_hash, form.password.data):
-            if user.is_active:
+            if user.active and user.role == 'usager':
                 login_user(user, remember=form.remember_me.data)
                 user.last_login = datetime.utcnow()
                 db.session.commit()
                 
                 log_audit(user.id, 'login', 'user', user.id, 'User logged in')
-                
-                next_page = request.args.get('next')
-                if next_page:
-                    return redirect(next_page)
-                return redirect(url_for('dashboard'))
+                return redirect(url_for('user_dashboard'))
             else:
-                flash('Votre compte est désactivé.', 'error')
+                flash('Accès non autorisé pour ce type de compte.', 'error')
         else:
             flash('Email ou mot de passe incorrect.', 'error')
     
-    return render_template('auth/login.html', form=form)
+    return render_template('auth/user_login.html', form=form)
 
-@app.route('/register', methods=['GET', 'POST'])
+@auth.route('/admin', methods=['GET', 'POST'])
+def admin_login():
+    if current_user.is_authenticated:
+        if current_user.role in ['agent', 'superviseur']:
+            return redirect(url_for('admin_dashboard'))
+        return redirect(url_for('user_dashboard'))
+    
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and check_password_hash(user.password_hash, form.password.data):
+            if user.active and user.role in ['agent', 'superviseur']:
+                login_user(user, remember=form.remember_me.data)
+                user.last_login = datetime.utcnow()
+                db.session.commit()
+                
+                log_audit(user.id, 'admin_login', 'user', user.id, 'Admin logged in')
+                return redirect(url_for('admin_dashboard'))
+            else:
+                flash('Accès administrateur non autorisé.', 'error')
+        else:
+            flash('Email ou mot de passe incorrect.', 'error')
+    
+    return render_template('auth/admin_login.html', form=form)
+
+@auth.route('/consulate', methods=['GET', 'POST'])
+def consulate_login():
+    if current_user.is_authenticated:
+        if current_user.role == 'agent':
+            return redirect(url_for('consulate_dashboard'))
+        return redirect(url_for('admin_dashboard'))
+    
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and check_password_hash(user.password_hash, form.password.data):
+            if user.active and user.role == 'agent':
+                login_user(user, remember=form.remember_me.data)
+                user.last_login = datetime.utcnow()
+                db.session.commit()
+                
+                log_audit(user.id, 'consulate_login', 'user', user.id, 'Consulate staff logged in')
+                return redirect(url_for('consulate_dashboard'))
+            else:
+                flash('Accès consulaire non autorisé.', 'error')
+        else:
+            flash('Email ou mot de passe incorrect.', 'error')
+    
+    return render_template('auth/consulate_login.html', form=form)
+
+@auth.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('user_dashboard'))
     
     form = RegisterForm()
     if form.validate_on_submit():
-        user = User(
-            username=form.username.data,
-            email=form.email.data,
-            first_name=form.first_name.data,
-            last_name=form.last_name.data,
-            phone=form.phone.data,
-            password_hash=generate_password_hash(form.password.data),
-            language=form.language.data
-        )
+        user = User()
+        user.username = form.username.data
+        user.email = form.email.data
+        user.first_name = form.first_name.data
+        user.last_name = form.last_name.data
+        user.phone = form.phone.data
+        user.password_hash = generate_password_hash(form.password.data)
+        user.language = form.language.data
+        user.role = 'usager'  # Default role for new users
+        
         db.session.add(user)
         db.session.commit()
         
         log_audit(None, 'register', 'user', user.id, f'New user registered: {user.email}')
         
         flash('Inscription réussie! Vous pouvez maintenant vous connecter.', 'success')
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.user_login'))
     
     return render_template('auth/register.html', form=form)
+
+# Register the auth blueprint
+app.register_blueprint(auth)
 
 @app.route('/logout')
 @login_required
@@ -76,11 +133,13 @@ def logout():
     flash('Vous avez été déconnecté.', 'info')
     return redirect(url_for('index'))
 
-@app.route('/dashboard')
+@app.route('/user-dashboard')
 @login_required
-def dashboard():
-    if current_user.is_admin():
-        return redirect(url_for('admin_dashboard'))
+def user_dashboard():
+    if current_user.role != 'usager':
+        if current_user.role in ['agent', 'superviseur']:
+            return redirect(url_for('admin_dashboard'))
+        abort(403)
     
     # User dashboard
     applications = Application.query.filter_by(user_id=current_user.id).order_by(Application.created_at.desc()).all()
@@ -88,10 +147,16 @@ def dashboard():
     
     return render_template('dashboard/user.html', applications=applications, notifications=notifications)
 
-@app.route('/admin')
+@app.route('/admin-dashboard')
 @login_required
 def admin_dashboard():
     if not current_user.is_admin():
+        abort(403)
+
+@app.route('/consulate-dashboard')
+@login_required  
+def consulate_dashboard():
+    if current_user.role != 'agent':
         abort(403)
     
     # Statistics

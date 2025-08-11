@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion Diplomates - e-Consulaire RDC{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <!-- Logo and Title -->
+        <div class="text-center mb-8 animate-fade-in">
+            <div class="glass rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                <i class="fas fa-building text-4xl text-white"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">Corps Diplomatique</h1>
+            <p class="text-white/80">Espace réservé aux agents consulaires et diplomates</p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="glass-strong rounded-2xl p-8 animate-slide-up">
+            <form method="POST" class="space-y-6">
+                {{ form.hidden_tag() }}
+                
+                <!-- Employee ID Field -->
+                <div class="space-y-2">
+                    <label for="employee_id" class="block text-sm font-semibold text-white/90">
+                        <i class="fas fa-id-badge mr-2"></i>Numéro d'Agent
+                    </label>
+                    <div class="relative">
+                        <input type="text" id="employee_id" name="employee_id" 
+                               class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none" 
+                               placeholder="AGT-2025-XXXX" required>
+                    </div>
+                </div>
+
+                <!-- Email Field -->
+                <div class="space-y-2">
+                    <label for="email" class="block text-sm font-semibold text-white/90">
+                        <i class="fas fa-envelope mr-2"></i>Adresse Email Professionnelle
+                    </label>
+                    <div class="relative">
+                        {{ form.email(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="prenom.nom@diplomatie.gouv.cd") }}
+                        {% if form.email.errors %}
+                            <div class="absolute -bottom-6 left-0 text-red-400 text-xs">
+                                {% for error in form.email.errors %}
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="space-y-2 pt-2">
+                    <label for="password" class="block text-sm font-semibold text-white/90">
+                        <i class="fas fa-lock mr-2"></i>Mot de Passe
+                    </label>
+                    <div class="relative">
+                        {{ form.password(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="••••••••") }}
+                        <button type="button" onclick="togglePassword('password')" class="absolute right-3 top-3 text-white/60 hover:text-white">
+                            <i class="fas fa-eye" id="password-eye"></i>
+                        </button>
+                        {% if form.password.errors %}
+                            <div class="absolute -bottom-6 left-0 text-red-400 text-xs">
+                                {% for error in form.password.errors %}
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Two-Factor Authentication -->
+                <div class="space-y-2 pt-2">
+                    <label for="mfa_code" class="block text-sm font-semibold text-white/90">
+                        <i class="fas fa-mobile-alt mr-2"></i>Code d'Authentification (MFA)
+                    </label>
+                    <div class="relative">
+                        <input type="text" id="mfa_code" name="mfa_code" 
+                               class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none text-center tracking-widest" 
+                               placeholder="123456" maxlength="6">
+                        <div class="absolute right-3 top-3 text-white/60">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                    </div>
+                    <p class="text-white/60 text-xs">Utilisez votre application d'authentification (Google Authenticator, Authy, etc.)</p>
+                </div>
+
+                <!-- Remember Device -->
+                <div class="flex items-center pt-2">
+                    <input type="checkbox" id="remember_device" name="remember_device" class="w-4 h-4 text-primary-600 bg-white/10 border-white/20 rounded focus:ring-primary-500 focus:ring-2">
+                    <label for="remember_device" class="ml-2 text-sm text-white/80">Faire confiance à cet appareil (30 jours)</label>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn-glass w-full py-3 rounded-xl text-white font-semibold text-lg hover:shadow-lg transform transition-all duration-300 hover:-translate-y-1">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Accès Sécurisé
+                </button>
+            </form>
+
+            <!-- Security Features -->
+            <div class="mt-6 p-4 glass rounded-lg">
+                <div class="flex items-start space-x-3">
+                    <i class="fas fa-shield-alt text-green-400 mt-1"></i>
+                    <div>
+                        <h4 class="text-white font-semibold text-sm">Sécurité Renforcée</h4>
+                        <div class="text-white/70 text-xs mt-1 space-y-1">
+                            <p>• Authentification multi-facteurs obligatoire</p>
+                            <p>• Chiffrement de bout en bout</p>
+                            <p>• Audit complet des accès</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="mt-6 p-4 glass rounded-lg">
+                <h4 class="text-white font-semibold text-sm mb-3">
+                    <i class="fas fa-tasks mr-2"></i>Actions Rapides
+                </h4>
+                <div class="grid grid-cols-1 gap-2 text-xs text-white/70">
+                    <div class="flex items-center justify-between">
+                        <span><i class="fas fa-file-alt mr-2 text-congo-500"></i>Dossiers en attente</span>
+                        <span class="glass px-2 py-1 rounded text-white/90">12</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span><i class="fas fa-clock mr-2 text-congo-500"></i>Rendez-vous du jour</span>
+                        <span class="glass px-2 py-1 rounded text-white/90">8</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span><i class="fas fa-bell mr-2 text-congo-500"></i>Notifications</span>
+                        <span class="glass px-2 py-1 rounded text-white/90">5</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alternative Login Links -->
+            <div class="mt-8 text-center">
+                <p class="text-white/60 text-sm mb-4">Autres accès</p>
+                <div class="flex space-x-4 justify-center">
+                    <a href="{{ url_for('auth.admin_login') }}" class="text-white/80 hover:text-white text-sm underline">
+                        <i class="fas fa-user-shield mr-1"></i>Administration
+                    </a>
+                    <a href="{{ url_for('auth.user_login') }}" class="text-white/80 hover:text-white text-sm underline">
+                        <i class="fas fa-users mr-1"></i>Citoyens
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-8 text-white/60 text-xs">
+            <p>&copy; 2025 République Démocratique du Congo</p>
+            <p>Ministère des Affaires Étrangères - Services Consulaires</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const eye = document.getElementById(fieldId + '-eye');
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        eye.classList.remove('fa-eye');
+        eye.classList.add('fa-eye-slash');
+    } else {
+        field.type = 'password';
+        eye.classList.remove('fa-eye-slash');
+        eye.classList.add('fa-eye');
+    }
+}
+
+// Auto-format MFA code input
+document.getElementById('mfa_code').addEventListener('input', function(e) {
+    // Only allow numbers
+    this.value = this.value.replace(/[^0-9]/g, '');
+    
+    // Limit to 6 digits
+    if (this.value.length > 6) {
+        this.value = this.value.slice(0, 6);
+    }
+});
+
+// Auto-format employee ID
+document.getElementById('employee_id').addEventListener('input', function(e) {
+    let value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    
+    // Format as AGT-YYYY-XXXX
+    if (value.length <= 3) {
+        this.value = value;
+    } else if (value.length <= 7) {
+        this.value = value.slice(0, 3) + '-' + value.slice(3);
+    } else if (value.length <= 11) {
+        this.value = value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7);
+    } else {
+        this.value = value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7, 11);
+    }
+});
+</script>
+{% endblock %}

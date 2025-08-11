@@ -3,140 +3,259 @@
 {% block title %}Inscription - e-Consulaire RDC{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card shadow">
-            <div class="card-header bg-success text-white text-center">
-                <h4 class="mb-0">
-                    <i class="fas fa-user-plus me-2"></i>Créer un compte
-                </h4>
+<div class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-lg">
+        <!-- Logo and Title -->
+        <div class="text-center mb-8 animate-fade-in">
+            <div class="glass rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                <i class="fas fa-user-plus text-4xl text-white"></i>
             </div>
-            <div class="card-body p-4">
-                <form method="POST">
-                    {{ form.hidden_tag() }}
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            {{ form.first_name.label(class="form-label") }}
-                            {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else "")) }}
-                            {% if form.first_name.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.first_name.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            {{ form.last_name.label(class="form-label") }}
-                            {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else "")) }}
-                            {% if form.last_name.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.last_name.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form.username.label(class="form-label") }}
-                        {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else "")) }}
-                        {% if form.username.errors %}
-                            <div class="invalid-feedback">
-                                {% for error in form.username.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        <div class="form-text">Le nom d'utilisateur doit contenir entre 3 et 20 caractères.</div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form.email.label(class="form-label") }}
-                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
-                        {% if form.email.errors %}
-                            <div class="invalid-feedback">
-                                {% for error in form.email.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form.phone.label(class="form-label") }}
-                        {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else "")) }}
-                        {% if form.phone.errors %}
-                            <div class="invalid-feedback">
-                                {% for error in form.phone.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        <div class="form-text">Optionnel - Format international recommandé (+243...)</div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            {{ form.password.label(class="form-label") }}
-                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else "")) }}
-                            {% if form.password.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.password.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            {{ form.password2.label(class="form-label") }}
-                            {{ form.password2(class="form-control" + (" is-invalid" if form.password2.errors else "")) }}
-                            {% if form.password2.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.password2.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form.language.label(class="form-label") }}
-                        {{ form.language(class="form-select") }}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="acceptTerms" required>
-                            <label class="form-check-label" for="acceptTerms">
-                                J'accepte les <a href="#" class="text-decoration-none">conditions d'utilisation</a> 
-                                et la <a href="#" class="text-decoration-none">politique de confidentialité</a>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="d-grid">
-                        {{ form.submit(class="btn btn-success btn-lg") }}
-                    </div>
-                </form>
+            <h1 class="text-3xl font-bold text-white mb-2">Créer un Compte</h1>
+            <p class="text-white/80">Accédez aux services consulaires en ligne</p>
+        </div>
+
+        <!-- Registration Form -->
+        <div class="glass-strong rounded-2xl p-8 animate-slide-up">
+            <form method="POST" class="space-y-6">
+                {{ form.hidden_tag() }}
                 
-                <hr class="my-4">
-                
-                <div class="text-center">
-                    <p class="mb-0">
-                        Déjà un compte ?
-                        <a href="{{ url_for('login') }}" class="text-decoration-none">
-                            <i class="fas fa-sign-in-alt me-1"></i>Se connecter
-                        </a>
-                    </p>
+                <!-- Name Fields -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label for="first_name" class="block text-sm font-semibold text-white/90">
+                            <i class="fas fa-user mr-2"></i>Prénom
+                        </label>
+                        {{ form.first_name(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="Jean") }}
+                        {% if form.first_name.errors %}
+                            <div class="text-red-400 text-xs mt-1">
+                                {% for error in form.first_name.errors %}
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <label for="last_name" class="block text-sm font-semibold text-white/90">
+                            <i class="fas fa-user mr-2"></i>Nom
+                        </label>
+                        {{ form.last_name(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="Mukendi") }}
+                        {% if form.last_name.errors %}
+                            <div class="text-red-400 text-xs mt-1">
+                                {% for error in form.last_name.errors %}
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Username Field -->
+                <div class="space-y-2">
+                    <label for="username" class="block text-sm font-semibold text-white/90">
+                        <i class="fas fa-at mr-2"></i>Nom d'utilisateur
+                    </label>
+                    {{ form.username(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="jean.mukendi") }}
+                    {% if form.username.errors %}
+                        <div class="text-red-400 text-xs mt-1">
+                            {% for error in form.username.errors %}
+                                <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Email Field -->
+                <div class="space-y-2">
+                    <label for="email" class="block text-sm font-semibold text-white/90">
+                        <i class="fas fa-envelope mr-2"></i>Adresse Email
+                    </label>
+                    {{ form.email(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="jean.mukendi@exemple.com") }}
+                    {% if form.email.errors %}
+                        <div class="text-red-400 text-xs mt-1">
+                            {% for error in form.email.errors %}
+                                <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Phone Field -->
+                <div class="space-y-2">
+                    <label for="phone" class="block text-sm font-semibold text-white/90">
+                        <i class="fas fa-phone mr-2"></i>Numéro de Téléphone
+                    </label>
+                    {{ form.phone(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="+243 XX XXX XXXX") }}
+                    {% if form.phone.errors %}
+                        <div class="text-red-400 text-xs mt-1">
+                            {% for error in form.phone.errors %}
+                                <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Password Fields -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label for="password" class="block text-sm font-semibold text-white/90">
+                            <i class="fas fa-lock mr-2"></i>Mot de Passe
+                        </label>
+                        <div class="relative">
+                            {{ form.password(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="••••••••") }}
+                            <button type="button" onclick="togglePassword('password')" class="absolute right-3 top-3 text-white/60 hover:text-white">
+                                <i class="fas fa-eye" id="password-eye"></i>
+                            </button>
+                        </div>
+                        {% if form.password.errors %}
+                            <div class="text-red-400 text-xs mt-1">
+                                {% for error in form.password.errors %}
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="password2" class="block text-sm font-semibold text-white/90">
+                            <i class="fas fa-lock mr-2"></i>Confirmer
+                        </label>
+                        <div class="relative">
+                            {{ form.password2(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="••••••••") }}
+                            <button type="button" onclick="togglePassword('password2')" class="absolute right-3 top-3 text-white/60 hover:text-white">
+                                <i class="fas fa-eye" id="password2-eye"></i>
+                            </button>
+                        </div>
+                        {% if form.password2.errors %}
+                            <div class="text-red-400 text-xs mt-1">
+                                {% for error in form.password2.errors %}
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Language Field -->
+                <div class="space-y-2">
+                    <label for="language" class="block text-sm font-semibold text-white/90">
+                        <i class="fas fa-globe mr-2"></i>Langue Préférée
+                    </label>
+                    {{ form.language(class="input-glass w-full px-4 py-3 rounded-xl text-white focus:outline-none bg-white/10") }}
+                    {% if form.language.errors %}
+                        <div class="text-red-400 text-xs mt-1">
+                            {% for error in form.language.errors %}
+                                <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Terms and Conditions -->
+                <div class="flex items-start space-x-3 pt-2">
+                    <input type="checkbox" id="terms" name="terms" required class="w-4 h-4 text-primary-600 bg-white/10 border-white/20 rounded focus:ring-primary-500 focus:ring-2 mt-1">
+                    <label for="terms" class="text-sm text-white/80">
+                        J'accepte les <a href="#" class="text-white underline hover:text-white/80">conditions d'utilisation</a> 
+                        et la <a href="#" class="text-white underline hover:text-white/80">politique de confidentialité</a>
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn-glass w-full py-3 rounded-xl text-white font-semibold text-lg hover:shadow-lg transform transition-all duration-300 hover:-translate-y-1">
+                    <i class="fas fa-user-plus mr-2"></i>Créer mon Compte
+                </button>
+            </form>
+
+            <!-- Security Information -->
+            <div class="mt-6 p-4 glass rounded-lg">
+                <div class="flex items-start space-x-3">
+                    <i class="fas fa-shield-alt text-green-400 mt-1"></i>
+                    <div>
+                        <h4 class="text-white font-semibold text-sm">Sécurité et Confidentialité</h4>
+                        <div class="text-white/70 text-xs mt-1 space-y-1">
+                            <p>• Vos données sont chiffrées et sécurisées</p>
+                            <p>• Aucune information ne sera partagée sans votre consentement</p>
+                            <p>• Conformité avec les standards internationaux de sécurité</p>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <!-- Login Link -->
+            <div class="mt-6 text-center">
+                <p class="text-white/80 text-sm mb-3">Vous avez déjà un compte ?</p>
+                <a href="{{ url_for('auth.user_login') }}" class="text-white font-medium hover:text-white/80 underline">
+                    <i class="fas fa-sign-in-alt mr-1"></i>Se Connecter
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-8 text-white/60 text-xs">
+            <p>&copy; 2025 République Démocratique du Congo</p>
+            <p>Ministère des Affaires Étrangères - Services Consulaires</p>
         </div>
     </div>
 </div>
+
+<script>
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const eye = document.getElementById(fieldId + '-eye');
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        eye.classList.remove('fa-eye');
+        eye.classList.add('fa-eye-slash');
+    } else {
+        field.type = 'password';
+        eye.classList.remove('fa-eye-slash');
+        eye.classList.add('fa-eye');
+    }
+}
+
+// Phone number formatting
+document.getElementById('phone').addEventListener('input', function(e) {
+    let value = this.value.replace(/\D/g, '');
+    
+    // Format for Congo phone numbers
+    if (value.startsWith('243')) {
+        // International format: +243 XX XXX XXXX
+        if (value.length <= 3) {
+            this.value = '+' + value;
+        } else if (value.length <= 5) {
+            this.value = '+' + value.slice(0, 3) + ' ' + value.slice(3);
+        } else if (value.length <= 8) {
+            this.value = '+' + value.slice(0, 3) + ' ' + value.slice(3, 5) + ' ' + value.slice(5);
+        } else if (value.length <= 12) {
+            this.value = '+' + value.slice(0, 3) + ' ' + value.slice(3, 5) + ' ' + value.slice(5, 8) + ' ' + value.slice(8);
+        }
+    } else if (value.startsWith('0')) {
+        // Domestic format: 0XX XXX XXXX
+        if (value.length <= 3) {
+            this.value = value;
+        } else if (value.length <= 6) {
+            this.value = value.slice(0, 3) + ' ' + value.slice(3);
+        } else if (value.length <= 10) {
+            this.value = value.slice(0, 3) + ' ' + value.slice(3, 6) + ' ' + value.slice(6);
+        }
+    } else {
+        this.value = '+243 ' + value;
+    }
+});
+
+// Password strength indicator
+document.getElementById('password').addEventListener('input', function(e) {
+    const password = this.value;
+    let strength = 0;
+    
+    if (password.length >= 8) strength++;
+    if (password.match(/[a-z]/)) strength++;
+    if (password.match(/[A-Z]/)) strength++;
+    if (password.match(/[0-9]/)) strength++;
+    if (password.match(/[^a-zA-Z0-9]/)) strength++;
+    
+    // You could add visual strength indicator here
+});
+</script>
 {% endblock %}

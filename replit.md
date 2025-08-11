@@ -5,6 +5,9 @@ e-Consulaire is a comprehensive digital platform for the Democratic Republic of 
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
+UI Design: Modern glassmorphism style with Tailwind CSS
+Login Structure: Three separate login interfaces - /admin, /login, /consulate
+Remove landing page, direct access to login interfaces only
 
 # System Architecture
 
