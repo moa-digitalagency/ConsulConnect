@@ -1,0 +1,13 @@
+Le portail e-consulaire diplomatie.gouv.cd propose un compte usager (email + MFA) et un espace personnel. Toute démarche suit le même flux : formulaire en ligne → dépôt sécurisé des pièces → paiement si requis → (RDV si besoin) → notifications automatiques (email/SMS) → suivi d’état → délivrance numérique (PDF signé + QR vérifiable) → historique. Côté agents : back-office avec file de traitement, vérification assistée, signature et journal d’audit.
+
+Carte consulaire. Formulaire (identité, situation, contact), upload (photo, pièce d’identité, justificatifs), paiement si applicable. L’agent valide/rejette avec motif. Retrait/expédition sécurisé (créneau ou tracking). Historique visible dans l’espace usager.
+
+Attestation de prise en charge. Formulaire court (bénéficiaire, garant, motif, durée), pièces (identité, justificatifs), vérification assistée (contrôles de cohérence). Génération d’une attestation signée avec QR pour vérification publique. Téléchargement immédiat + envoi par email.
+
+Légalisations. Prise de rendez-vous en ligne (créneaux, quotas, anti-bots), liste des pièces et tarifs affichés, dépôt des scans, reçu et suivi. À l’accueil, contrôle des originaux, validation en back-office, délivrance d’un justificatif horodaté.
+
+Passeport (diaspora). Pré-demande en ligne (type : 1ère demande/renouvellement/perte-vol), contrôles de complétude, génération d’un RDV pour capture biométrique au poste. Suivi d’état (reçu, en traitement, prêt, retrait/expédition) avec messages d’étapes. Page d’infos claires (délais indicatifs, frais, conditions, pièces).
+
+Autres documents (résidence, vie, nationalité, duplicata carte, attestations diverses). Même logique standardisée : formulaire → pièces → paiement (si requis) → suivi → délivrance PDF signé + QR. Chaque document est archivé et traçable (journal d’actions, horodatage, versionning), exportable pour contrôle.
+
+Techniques transverses : rôles (usager/agent/superviseur), modèles de documents paramétrables, notifications configurables, tableaux de bord (volumes, délais, rejets), vérification publique de QR, accessibilité et multilingue, chiffrement au repos/en transit, sauvegardes automatiques, et journal d’audit complet.
