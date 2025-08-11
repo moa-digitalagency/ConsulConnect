@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de Bord - e-Consulaire RDC{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="fas fa-tachometer-alt me-2"></i>
+        Tableau de Bord
+    </h1>
+    <div class="text-muted">
+        Bienvenue, <strong>{{ current_user.get_full_name() }}</strong>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">{{ applications|length }}</h5>
+                        <p class="card-text mb-0">Total Demandes</p>
+                    </div>
+                    <i class="fas fa-file-alt fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">
+                            {{ applications|selectattr('status', 'equalto', 'en_traitement')|list|length }}
+                        </h5>
+                        <p class="card-text mb-0">En Traitement</p>
+                    </div>
+                    <i class="fas fa-clock fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">
+                            {{ applications|selectattr('status', 'equalto', 'validee')|list|length }}
+                        </h5>
+                        <p class="card-text mb-0">Validées</p>
+                    </div>
+                    <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-0">{{ notifications|length }}</h5>
+                        <p class="card-text mb-0">Notifications</p>
+                    </div>
+                    <i class="fas fa-bell fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Applications -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Mes Dernières Demandes
+                </h5>
+                <a href="{{ url_for('list_applications') }}" class="btn btn-sm btn-outline-primary">
+                    Voir toutes
+                </a>
+            </div>
+            <div class="card-body">
+                {% if applications %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Référence</th>
+                                <th>Service</th>
+                                <th>Statut</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in applications[:5] %}
+                            <tr>
+                                <td>
+                                    <strong>{{ app.reference_number }}</strong>
+                                </td>
+                                <td>{{ app.get_service_display() }}</td>
+                                <td>
+                                    {% if app.status == 'soumise' %}
+                                        <span class="badge bg-secondary">{{ app.get_status_display() }}</span>
+                                    {% elif app.status == 'en_traitement' %}
+                                        <span class="badge bg-warning">{{ app.get_status_display() }}</span>
+                                    {% elif app.status == 'validee' %}
+                                        <span class="badge bg-success">{{ app.get_status_display() }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ app.get_status_display() }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ app.created_at.strftime('%d/%m/%Y') }}</td>
+                                <td>
+                                    <a href="{{ url_for('view_application', id=app.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Aucune demande pour le moment</h5>
+                    <p class="text-muted">Commencez par choisir un service consulaire</p>
+                    <div class="mt-3">
+                        <div class="btn-group" role="group">
+                            <a href="{{ url_for('consular_card') }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-id-card me-1"></i>Carte Consulaire
+                            </a>
+                            <a href="{{ url_for('care_attestation') }}" class="btn btn-success btn-sm">
+                                <i class="fas fa-file-contract me-1"></i>Attestation
+                            </a>
+                            <a href="{{ url_for('passport') }}" class="btn btn-info btn-sm">
+                                <i class="fas fa-passport me-1"></i>Passeport
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notifications & Quick Actions -->
+    <div class="col-lg-4">
+        <!-- Notifications -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bell me-2"></i>Notifications
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if notifications %}
+                {% for notification in notifications %}
+                <div class="alert alert-{{ notification.type }} alert-sm mb-2">
+                    <div class="d-flex align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="alert-heading mb-1">{{ notification.title }}</h6>
+                            <p class="mb-1 small">{{ notification.message }}</p>
+                            <small class="text-muted">{{ notification.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
+                        </div>
+                        <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert"></button>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="text-center text-muted">
+                    <i class="fas fa-bell-slash fa-2x mb-2"></i>
+                    <p class="mb-0">Aucune notification</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>Actions Rapides
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('consular_card') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-id-card me-2"></i>Nouvelle Carte Consulaire
+                    </a>
+                    <a href="{{ url_for('care_attestation') }}" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-file-contract me-2"></i>Attestation de Prise en Charge
+                    </a>
+                    <a href="{{ url_for('legalizations') }}" class="btn btn-outline-warning btn-sm">
+                        <i class="fas fa-stamp me-2"></i>Légalisations
+                    </a>
+                    <a href="{{ url_for('passport') }}" class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-passport me-2"></i>Pré-demande Passeport
+                    </a>
+                    <a href="{{ url_for('other_documents') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-file-alt me-2"></i>Autres Documents
+                    </a>
+                </div>
+                
+                <hr class="my-3">
+                
+                <div class="d-grid">
+                    <a href="{{ url_for('list_applications') }}" class="btn btn-dark btn-sm">
+                        <i class="fas fa-search me-2"></i>Suivre mes demandes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

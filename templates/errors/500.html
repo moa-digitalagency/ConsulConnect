@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Erreur serveur - e-Consulaire RDC{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+        <div class="error-page">
+            <div class="error-code">
+                <h1 class="display-1 text-warning fw-bold">500</h1>
+            </div>
+            
+            <div class="error-content">
+                <h2 class="h4 mb-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Erreur serveur interne
+                </h2>
+                <p class="text-muted mb-4">
+                    Une erreur technique s'est produite. Nos équipes ont été notifiées et travaillent à résoudre le problème.
+                </p>
+                
+                <div class="error-actions">
+                    <button onclick="window.location.reload()" class="btn btn-primary me-2">
+                        <i class="fas fa-redo me-2"></i>Réessayer
+                    </button>
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-home me-2"></i>Accueil
+                    </a>
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="help-info">
+                    <h6 class="text-muted">Que faire en attendant ?</h6>
+                    <ul class="list-unstyled text-muted small">
+                        <li><i class="fas fa-clock me-2"></i>Attendez quelques minutes et réessayez</li>
+                        <li><i class="fas fa-refresh me-2"></i>Actualisez la page</li>
+                        <li><i class="fas fa-envelope me-2"></i>Contactez le support si le problème persiste</li>
+                    </ul>
+                </div>
+                
+                <div class="contact-info mt-3">
+                    <p class="small text-muted mb-1">Support technique :</p>
+                    <p class="small">
+                        <i class="fas fa-envelope me-1"></i>support@diplomatie.gouv.cd
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-page {
+    padding: 4rem 0;
+}
+
+.error-code h1 {
+    font-size: 8rem;
+    line-height: 1;
+    opacity: 0.1;
+}
+
+.error-content {
+    margin-top: -2rem;
+}
+
+.help-info ul li {
+    padding: 0.25rem 0;
+}
+</style>
+{% endblock %}

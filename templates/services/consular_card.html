@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Carte Consulaire - e-Consulaire RDC{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-id-card me-2"></i>Demande de Carte Consulaire
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-info-circle me-2"></i>Informations importantes
+                    </h6>
+                    <ul class="mb-0">
+                        <li>La carte consulaire est valable 5 ans</li>
+                        <li>Frais de traitement: <strong>50 USD</strong></li>
+                        <li>Délai de traitement: 7-10 jours ouvrables</li>
+                        <li>Tous les champs marqués d'un * sont obligatoires</li>
+                    </ul>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" id="consularCardForm">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Informations personnelles -->
+                    <div class="form-section mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-user me-2"></i>Informations Personnelles
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.first_name.label(class="form-label required") }}
+                                {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else "")) }}
+                                {% if form.first_name.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.first_name.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.last_name.label(class="form-label required") }}
+                                {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else "")) }}
+                                {% if form.last_name.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.last_name.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.birth_date.label(class="form-label required") }}
+                                {{ form.birth_date(class="form-control" + (" is-invalid" if form.birth_date.errors else "")) }}
+                                {% if form.birth_date.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.birth_date.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.birth_place.label(class="form-label required") }}
+                                {{ form.birth_place(class="form-control" + (" is-invalid" if form.birth_place.errors else "")) }}
+                                {% if form.birth_place.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.birth_place.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.nationality.label(class="form-label required") }}
+                            {{ form.nationality(class="form-control" + (" is-invalid" if form.nationality.errors else "")) }}
+                            {% if form.nationality.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.nationality.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Informations de contact -->
+                    <div class="form-section mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-address-card me-2"></i>Informations de Contact
+                        </h5>
+                        
+                        <div class="mb-3">
+                            {{ form.address.label(class="form-label required") }}
+                            {{ form.address(class="form-control" + (" is-invalid" if form.address.errors else ""), rows="3") }}
+                            {% if form.address.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.address.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.city.label(class="form-label required") }}
+                                {{ form.city(class="form-control" + (" is-invalid" if form.city.errors else "")) }}
+                                {% if form.city.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.city.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.country.label(class="form-label required") }}
+                                {{ form.country(class="form-control" + (" is-invalid" if form.country.errors else "")) }}
+                                {% if form.country.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.country.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.phone.label(class="form-label required") }}
+                                {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else "")) }}
+                                {% if form.phone.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.phone.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.emergency_contact.label(class="form-label required") }}
+                                {{ form.emergency_contact(class="form-control" + (" is-invalid" if form.emergency_contact.errors else "")) }}
+                                {% if form.emergency_contact.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.emergency_contact.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Situation professionnelle -->
+                    <div class="form-section mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-briefcase me-2"></i>Situation Professionnelle
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.profession.label(class="form-label required") }}
+                                {{ form.profession(class="form-control" + (" is-invalid" if form.profession.errors else "")) }}
+                                {% if form.profession.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.profession.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.employer.label(class="form-label") }}
+                                {{ form.employer(class="form-control" + (" is-invalid" if form.employer.errors else "")) }}
+                                {% if form.employer.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.employer.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Optionnel</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Documents requis -->
+                    <div class="form-section mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-paperclip me-2"></i>Documents Requis
+                        </h5>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Formats acceptés:</strong> JPG, PNG, PDF - Taille maximale: 5MB par fichier
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                {{ form.photo.label(class="form-label required") }}
+                                {{ form.photo(class="form-control" + (" is-invalid" if form.photo.errors else "")) }}
+                                {% if form.photo.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.photo.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Photo d'identité récente (format passeport)</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.identity_document.label(class="form-label required") }}
+                                {{ form.identity_document(class="form-control" + (" is-invalid" if form.identity_document.errors else "")) }}
+                                {% if form.identity_document.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.identity_document.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Passeport ou carte d'identité</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.proof_of_residence.label(class="form-label required") }}
+                                {{ form.proof_of_residence(class="form-control" + (" is-invalid" if form.proof_of_residence.errors else "")) }}
+                                {% if form.proof_of_residence.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.proof_of_residence.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Facture ou contrat de bail</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Retour au tableau de bord
+                        </a>
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('consularCardForm').addEventListener('submit', function(e) {
+    // Show loading state
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Traitement en cours...';
+    submitBtn.disabled = true;
+    
+    // Re-enable after a delay if there are validation errors
+    setTimeout(() => {
+        if (document.querySelector('.is-invalid')) {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    }, 2000);
+});
+</script>
+{% endblock %}

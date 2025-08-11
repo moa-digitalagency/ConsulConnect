@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Administration - e-Consulaire RDC{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="fas fa-tools me-2"></i>
+        Tableau de Bord Administrateur
+    </h1>
+    <div class="text-muted">
+        Connecté en tant que <strong>{{ current_user.role.title() }}</strong>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-file-alt fa-2x mb-2"></i>
+                <h4 class="mb-1">{{ total_applications }}</h4>
+                <small>Total Demandes</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card bg-secondary text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-inbox fa-2x mb-2"></i>
+                <h4 class="mb-1">{{ pending_applications }}</h4>
+                <small>En Attente</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-clock fa-2x mb-2"></i>
+                <h4 class="mb-1">{{ processing_applications }}</h4>
+                <small>En Traitement</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                <h4 class="mb-1">{{ approved_applications }}</h4>
+                <small>Approuvées</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-times-circle fa-2x mb-2"></i>
+                <h4 class="mb-1">{{ rejected_applications }}</h4>
+                <small>Rejetées</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-percentage fa-2x mb-2"></i>
+                <h4 class="mb-1">
+                    {% if total_applications > 0 %}
+                        {{ ((approved_applications / total_applications) * 100)|round(1) }}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </h4>
+                <small>Taux d'Approbation</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Applications -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Demandes Récentes
+                </h5>
+                <a href="{{ url_for('list_applications') }}" class="btn btn-sm btn-outline-primary">
+                    Voir toutes
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_applications %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Référence</th>
+                                <th>Utilisateur</th>
+                                <th>Service</th>
+                                <th>Statut</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in recent_applications %}
+                            <tr>
+                                <td>
+                                    <strong>{{ app.reference_number }}</strong>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>{{ app.user.get_full_name() }}</strong><br>
+                                        <small class="text-muted">{{ app.user.email }}</small>
+                                    </div>
+                                </td>
+                                <td>{{ app.get_service_display() }}</td>
+                                <td>
+                                    {% if app.status == 'soumise' %}
+                                        <span class="badge bg-secondary">{{ app.get_status_display() }}</span>
+                                    {% elif app.status == 'en_traitement' %}
+                                        <span class="badge bg-warning">{{ app.get_status_display() }}</span>
+                                    {% elif app.status == 'validee' %}
+                                        <span class="badge bg-success">{{ app.get_status_display() }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ app.get_status_display() }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ app.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('view_application', id=app.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Aucune demande récente</h5>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions & Tools -->
+    <div class="col-lg-4">
+        <!-- Priority Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Actions Prioritaires
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('list_applications') }}?status=soumise" 
+                       class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-inbox me-2"></i>
+                        Demandes en attente ({{ pending_applications }})
+                    </a>
+                    <a href="{{ url_for('list_applications') }}?status=en_traitement" 
+                       class="btn btn-outline-warning btn-sm">
+                        <i class="fas fa-clock me-2"></i>
+                        En traitement ({{ processing_applications }})
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Admin Tools -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-tools me-2"></i>Outils d'Administration
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('list_applications') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-list me-2"></i>Toutes les demandes
+                    </a>
+                    <button class="btn btn-outline-info btn-sm" disabled>
+                        <i class="fas fa-chart-bar me-2"></i>Rapports (Bientôt)
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" disabled>
+                        <i class="fas fa-download me-2"></i>Export données (Bientôt)
+                    </button>
+                    <button class="btn btn-outline-dark btn-sm" disabled>
+                        <i class="fas fa-cog me-2"></i>Configuration (Bientôt)
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Service Statistics -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Répartition par Service
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="small">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span><i class="fas fa-id-card text-primary me-1"></i>Carte Consulaire</span>
+                        <span class="text-muted">En développement</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span><i class="fas fa-file-contract text-success me-1"></i>Attestations</span>
+                        <span class="text-muted">En développement</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span><i class="fas fa-stamp text-warning me-1"></i>Légalisations</span>
+                        <span class="text-muted">En développement</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span><i class="fas fa-passport text-info me-1"></i>Passeports</span>
+                        <span class="text-muted">En développement</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-file-alt text-secondary me-1"></i>Autres</span>
+                        <span class="text-muted">En développement</span>
+                    </div>
+                </div>
+                <hr>
+                <p class="small text-muted mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Les statistiques détaillées seront disponibles prochainement.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

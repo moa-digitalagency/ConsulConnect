@@ -1,0 +1,554 @@
+import os
+import json
+from datetime import datetime
+from flask import render_template, redirect, url_for, flash, request, send_file, abort, jsonify
+from flask_login import login_user, logout_user, login_required, current_user
+from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
+from app import app, db, mail
+from models import User, Application, Document, StatusHistory, AuditLog, Notification
+from forms import (LoginForm, RegisterForm, ConsularCardForm, CareAttestationForm, 
+                   LegalizationsForm, PassportForm, OtherDocumentsForm, ApplicationStatusForm)
+from utils import generate_pdf_document, send_notification_email, log_audit
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and check_password_hash(user.password_hash, form.password.data):
+            if user.is_active:
+                login_user(user, remember=form.remember_me.data)
+                user.last_login = datetime.utcnow()
+                db.session.commit()
+                
+                log_audit(user.id, 'login', 'user', user.id, 'User logged in')
+                
+                next_page = request.args.get('next')
+                if next_page:
+                    return redirect(next_page)
+                return redirect(url_for('dashboard'))
+            else:
+                flash('Votre compte est désactivé.', 'error')
+        else:
+            flash('Email ou mot de passe incorrect.', 'error')
+    
+    return render_template('auth/login.html', form=form)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    
+    form = RegisterForm()
+    if form.validate_on_submit():
+        user = User(
+            username=form.username.data,
+            email=form.email.data,
+            first_name=form.first_name.data,
+            last_name=form.last_name.data,
+            phone=form.phone.data,
+            password_hash=generate_password_hash(form.password.data),
+            language=form.language.data
+        )
+        db.session.add(user)
+        db.session.commit()
+        
+        log_audit(None, 'register', 'user', user.id, f'New user registered: {user.email}')
+        
+        flash('Inscription réussie! Vous pouvez maintenant vous connecter.', 'success')
+        return redirect(url_for('login'))
+    
+    return render_template('auth/register.html', form=form)
+
+@app.route('/logout')
+@login_required
+def logout():
+    log_audit(current_user.id, 'logout', 'user', current_user.id, 'User logged out')
+    logout_user()
+    flash('Vous avez été déconnecté.', 'info')
+    return redirect(url_for('index'))
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    if current_user.is_admin():
+        return redirect(url_for('admin_dashboard'))
+    
+    # User dashboard
+    applications = Application.query.filter_by(user_id=current_user.id).order_by(Application.created_at.desc()).all()
+    notifications = Notification.query.filter_by(user_id=current_user.id, is_read=False).order_by(Notification.created_at.desc()).limit(5).all()
+    
+    return render_template('dashboard/user.html', applications=applications, notifications=notifications)
+
+@app.route('/admin')
+@login_required
+def admin_dashboard():
+    if not current_user.is_admin():
+        abort(403)
+    
+    # Statistics
+    total_applications = Application.query.count()
+    pending_applications = Application.query.filter_by(status='soumise').count()
+    processing_applications = Application.query.filter_by(status='en_traitement').count()
+    approved_applications = Application.query.filter_by(status='validee').count()
+    rejected_applications = Application.query.filter_by(status='rejetee').count()
+    
+    # Recent applications
+    recent_applications = Application.query.order_by(Application.created_at.desc()).limit(10).all()
+    
+    return render_template('dashboard/admin.html', 
+                         total_applications=total_applications,
+                         pending_applications=pending_applications,
+                         processing_applications=processing_applications,
+                         approved_applications=approved_applications,
+                         rejected_applications=rejected_applications,
+                         recent_applications=recent_applications)
+
+@app.route('/services/consular-card', methods=['GET', 'POST'])
+@login_required
+def consular_card():
+    form = ConsularCardForm()
+    if form.validate_on_submit():
+        # Create application
+        application = Application(
+            user_id=current_user.id,
+            service_type='carte_consulaire',
+            form_data=json.dumps({
+                'first_name': form.first_name.data,
+                'last_name': form.last_name.data,
+                'birth_date': form.birth_date.data.isoformat(),
+                'birth_place': form.birth_place.data,
+                'nationality': form.nationality.data,
+                'address': form.address.data,
+                'city': form.city.data,
+                'country': form.country.data,
+                'phone': form.phone.data,
+                'emergency_contact': form.emergency_contact.data,
+                'profession': form.profession.data,
+                'employer': form.employer.data
+            }),
+            payment_amount=50.0  # Example fee
+        )
+        db.session.add(application)
+        db.session.flush()  # Get the ID
+        
+        # Save uploaded files
+        file_fields = [
+            ('photo', form.photo.data),
+            ('identity_document', form.identity_document.data),
+            ('proof_of_residence', form.proof_of_residence.data)
+        ]
+        
+        for doc_type, file in file_fields:
+            if file:
+                filename = secure_filename(file.filename)
+                unique_filename = f"{application.id}_{doc_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                file.save(file_path)
+                
+                document = Document(
+                    application_id=application.id,
+                    filename=unique_filename,
+                    original_filename=filename,
+                    file_path=file_path,
+                    file_size=os.path.getsize(file_path),
+                    document_type=doc_type
+                )
+                db.session.add(document)
+        
+        # Add status history
+        status_history = StatusHistory(
+            application_id=application.id,
+            new_status='soumise',
+            changed_by=current_user.id,
+            comment='Demande soumise par l\'utilisateur'
+        )
+        db.session.add(status_history)
+        
+        db.session.commit()
+        
+        log_audit(current_user.id, 'create_application', 'application', application.id, 'Consular card application submitted')
+        
+        # Send notification email
+        send_notification_email(current_user.email, 
+                               'Demande de carte consulaire soumise',
+                               f'Votre demande de carte consulaire (réf: {application.reference_number}) a été soumise avec succès.')
+        
+        flash(f'Votre demande a été soumise avec succès. Référence: {application.reference_number}', 'success')
+        return redirect(url_for('view_application', id=application.id))
+    
+    return render_template('services/consular_card.html', form=form)
+
+@app.route('/services/care-attestation', methods=['GET', 'POST'])
+@login_required
+def care_attestation():
+    form = CareAttestationForm()
+    if form.validate_on_submit():
+        application = Application(
+            user_id=current_user.id,
+            service_type='attestation_prise_charge',
+            form_data=json.dumps({
+                'beneficiary_first_name': form.beneficiary_first_name.data,
+                'beneficiary_last_name': form.beneficiary_last_name.data,
+                'beneficiary_birth_date': form.beneficiary_birth_date.data.isoformat(),
+                'beneficiary_nationality': form.beneficiary_nationality.data,
+                'guarantor_profession': form.guarantor_profession.data,
+                'guarantor_income': form.guarantor_income.data,
+                'purpose': form.purpose.data,
+                'purpose_other': form.purpose_other.data,
+                'duration': form.duration.data,
+                'relationship': form.relationship.data
+            }),
+            payment_amount=25.0
+        )
+        db.session.add(application)
+        db.session.flush()
+        
+        # Save documents
+        file_fields = [
+            ('guarantor_identity', form.guarantor_identity.data),
+            ('income_proof', form.income_proof.data),
+            ('beneficiary_identity', form.beneficiary_identity.data)
+        ]
+        
+        for doc_type, file in file_fields:
+            if file:
+                filename = secure_filename(file.filename)
+                unique_filename = f"{application.id}_{doc_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                file.save(file_path)
+                
+                document = Document(
+                    application_id=application.id,
+                    filename=unique_filename,
+                    original_filename=filename,
+                    file_path=file_path,
+                    file_size=os.path.getsize(file_path),
+                    document_type=doc_type
+                )
+                db.session.add(document)
+        
+        status_history = StatusHistory(
+            application_id=application.id,
+            new_status='soumise',
+            changed_by=current_user.id
+        )
+        db.session.add(status_history)
+        
+        db.session.commit()
+        
+        log_audit(current_user.id, 'create_application', 'application', application.id, 'Care attestation application submitted')
+        
+        flash(f'Votre demande a été soumise. Référence: {application.reference_number}', 'success')
+        return redirect(url_for('view_application', id=application.id))
+    
+    return render_template('services/care_attestation.html', form=form)
+
+@app.route('/services/legalizations', methods=['GET', 'POST'])
+@login_required
+def legalizations():
+    form = LegalizationsForm()
+    if form.validate_on_submit():
+        application = Application(
+            user_id=current_user.id,
+            service_type='legalisations',
+            form_data=json.dumps({
+                'document_type': form.document_type.data,
+                'document_type_other': form.document_type_other.data,
+                'quantity': form.quantity.data,
+                'urgency': form.urgency.data,
+                'notes': form.notes.data,
+                'preferred_date': form.preferred_date.data.isoformat(),
+                'preferred_time': form.preferred_time.data
+            }),
+            payment_amount=30.0 if form.urgency.data == 'normal' else 50.0,
+            appointment_date=datetime.combine(form.preferred_date.data, datetime.strptime(form.preferred_time.data, '%H:%M').time())
+        )
+        db.session.add(application)
+        db.session.flush()
+        
+        # Save documents
+        if form.documents.data:
+            file = form.documents.data
+            filename = secure_filename(file.filename)
+            unique_filename = f"{application.id}_documents_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+            file.save(file_path)
+            
+            document = Document(
+                application_id=application.id,
+                filename=unique_filename,
+                original_filename=filename,
+                file_path=file_path,
+                file_size=os.path.getsize(file_path),
+                document_type='documents'
+            )
+            db.session.add(document)
+        
+        status_history = StatusHistory(
+            application_id=application.id,
+            new_status='soumise',
+            changed_by=current_user.id
+        )
+        db.session.add(status_history)
+        
+        db.session.commit()
+        
+        log_audit(current_user.id, 'create_application', 'application', application.id, 'Legalizations application submitted')
+        
+        flash(f'Votre rendez-vous a été pris. Référence: {application.reference_number}', 'success')
+        return redirect(url_for('view_application', id=application.id))
+    
+    return render_template('services/legalizations.html', form=form)
+
+@app.route('/services/passport', methods=['GET', 'POST'])
+@login_required
+def passport():
+    form = PassportForm()
+    if form.validate_on_submit():
+        application = Application(
+            user_id=current_user.id,
+            service_type='passeport',
+            form_data=json.dumps({
+                'request_type': form.request_type.data,
+                'old_passport_number': form.old_passport_number.data,
+                'preferred_date': form.preferred_date.data.isoformat(),
+                'preferred_time': form.preferred_time.data
+            }),
+            payment_amount=100.0,
+            appointment_date=datetime.combine(form.preferred_date.data, datetime.strptime(form.preferred_time.data, '%H:%M').time())
+        )
+        db.session.add(application)
+        db.session.flush()
+        
+        # Save documents
+        file_fields = [
+            ('birth_certificate', form.birth_certificate.data),
+            ('identity_document', form.identity_document.data),
+            ('proof_of_residence', form.proof_of_residence.data)
+        ]
+        
+        if form.loss_declaration.data:
+            file_fields.append(('loss_declaration', form.loss_declaration.data))
+        
+        for doc_type, file in file_fields:
+            if file:
+                filename = secure_filename(file.filename)
+                unique_filename = f"{application.id}_{doc_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                file.save(file_path)
+                
+                document = Document(
+                    application_id=application.id,
+                    filename=unique_filename,
+                    original_filename=filename,
+                    file_path=file_path,
+                    file_size=os.path.getsize(file_path),
+                    document_type=doc_type
+                )
+                db.session.add(document)
+        
+        status_history = StatusHistory(
+            application_id=application.id,
+            new_status='soumise',
+            changed_by=current_user.id
+        )
+        db.session.add(status_history)
+        
+        db.session.commit()
+        
+        log_audit(current_user.id, 'create_application', 'application', application.id, 'Passport application submitted')
+        
+        flash(f'Votre pré-demande a été soumise. Référence: {application.reference_number}', 'success')
+        return redirect(url_for('view_application', id=application.id))
+    
+    return render_template('services/passport.html', form=form)
+
+@app.route('/services/other-documents', methods=['GET', 'POST'])
+@login_required
+def other_documents():
+    form = OtherDocumentsForm()
+    if form.validate_on_submit():
+        application = Application(
+            user_id=current_user.id,
+            service_type='autres_documents',
+            form_data=json.dumps({
+                'document_type': form.document_type.data,
+                'document_type_other': form.document_type_other.data,
+                'purpose': form.purpose.data
+            }),
+            payment_amount=20.0
+        )
+        db.session.add(application)
+        db.session.flush()
+        
+        # Save documents
+        if form.supporting_documents.data:
+            file = form.supporting_documents.data
+            filename = secure_filename(file.filename)
+            unique_filename = f"{application.id}_supporting_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+            file.save(file_path)
+            
+            document = Document(
+                application_id=application.id,
+                filename=unique_filename,
+                original_filename=filename,
+                file_path=file_path,
+                file_size=os.path.getsize(file_path),
+                document_type='supporting'
+            )
+            db.session.add(document)
+        
+        status_history = StatusHistory(
+            application_id=application.id,
+            new_status='soumise',
+            changed_by=current_user.id
+        )
+        db.session.add(status_history)
+        
+        db.session.commit()
+        
+        log_audit(current_user.id, 'create_application', 'application', application.id, 'Other documents application submitted')
+        
+        flash(f'Votre demande a été soumise. Référence: {application.reference_number}', 'success')
+        return redirect(url_for('view_application', id=application.id))
+    
+    return render_template('services/other_documents.html', form=form)
+
+@app.route('/application/<int:id>')
+@login_required
+def view_application(id):
+    application = Application.query.get_or_404(id)
+    
+    # Check permissions
+    if not current_user.is_admin() and application.user_id != current_user.id:
+        abort(403)
+    
+    form_data = json.loads(application.form_data) if application.form_data else {}
+    
+    return render_template('applications/view.html', application=application, form_data=form_data)
+
+@app.route('/applications')
+@login_required
+def list_applications():
+    if current_user.is_admin():
+        applications = Application.query.order_by(Application.created_at.desc()).all()
+    else:
+        applications = Application.query.filter_by(user_id=current_user.id).order_by(Application.created_at.desc()).all()
+    
+    return render_template('applications/list.html', applications=applications)
+
+@app.route('/admin/application/<int:id>/status', methods=['POST'])
+@login_required
+def update_application_status(id):
+    if not current_user.is_admin():
+        abort(403)
+    
+    application = Application.query.get_or_404(id)
+    form = ApplicationStatusForm()
+    
+    if form.validate_on_submit():
+        old_status = application.status
+        application.status = form.status.data
+        application.processed_by = current_user.id
+        
+        if form.rejection_reason.data:
+            application.rejection_reason = form.rejection_reason.data
+        
+        # Add status history
+        status_history = StatusHistory(
+            application_id=application.id,
+            old_status=old_status,
+            new_status=form.status.data,
+            changed_by=current_user.id,
+            comment=form.comment.data
+        )
+        db.session.add(status_history)
+        
+        # Generate PDF if approved
+        if form.status.data == 'validee':
+            try:
+                pdf_path = generate_pdf_document(application)
+                if pdf_path:
+                    # Create document record
+                    document = Document(
+                        application_id=application.id,
+                        filename=os.path.basename(pdf_path),
+                        original_filename=f"document_officiel_{application.reference_number}.pdf",
+                        file_path=pdf_path,
+                        file_size=os.path.getsize(pdf_path),
+                        document_type='official_document'
+                    )
+                    db.session.add(document)
+            except Exception as e:
+                app.logger.error(f"Error generating PDF: {e}")
+        
+        db.session.commit()
+        
+        log_audit(current_user.id, 'update_status', 'application', application.id, 
+                 f'Status changed from {old_status} to {form.status.data}')
+        
+        # Send notification
+        send_notification_email(application.user.email,
+                               f'Mise à jour de votre demande {application.reference_number}',
+                               f'Le statut de votre demande a été mis à jour: {application.get_status_display()}')
+        
+        flash('Statut mis à jour avec succès.', 'success')
+    
+    return redirect(url_for('view_application', id=id))
+
+@app.route('/download/<int:document_id>')
+@login_required
+def download_document(document_id):
+    document = Document.query.get_or_404(document_id)
+    application = document.application
+    
+    # Check permissions
+    if not current_user.is_admin() and application.user_id != current_user.id:
+        abort(403)
+    
+    if not os.path.exists(document.file_path):
+        abort(404)
+    
+    return send_file(document.file_path, 
+                     as_attachment=True, 
+                     download_name=document.original_filename)
+
+@app.route('/payment/simulate/<int:application_id>', methods=['POST'])
+@login_required
+def simulate_payment(application_id):
+    application = Application.query.get_or_404(application_id)
+    
+    if application.user_id != current_user.id:
+        abort(403)
+    
+    # Simulate payment processing
+    application.payment_status = 'paid'
+    db.session.commit()
+    
+    log_audit(current_user.id, 'payment', 'application', application.id, 'Payment processed')
+    
+    flash('Paiement effectué avec succès.', 'success')
+    return redirect(url_for('view_application', id=application_id))
+
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('errors/404.html'), 404
+
+@app.errorhandler(403)
+def forbidden_error(error):
+    return render_template('errors/403.html'), 403
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return render_template('errors/500.html'), 500

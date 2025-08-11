@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}Légalisations - e-Consulaire RDC{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">
+                    <i class="fas fa-stamp me-2"></i>Demande de Légalisations
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-info-circle me-2"></i>Service de légalisations
+                    </h6>
+                    <ul class="mb-0">
+                        <li>Légalisation officielle de vos documents</li>
+                        <li>Traitement normal: <strong>30 USD</strong> (5-7 jours)</li>
+                        <li>Traitement urgent: <strong>50 USD</strong> (2-3 jours)</li>
+                        <li>Prise de rendez-vous obligatoire pour dépôt des originaux</li>
+                    </ul>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" id="legalizationsForm">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Type de document -->
+                    <div class="form-section mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-file-alt me-2"></i>Type de Document
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.document_type.label(class="form-label required") }}
+                                {{ form.document_type(class="form-select" + (" is-invalid" if form.document_type.errors else "")) }}
+                                {% if form.document_type.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.document_type.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3" id="document_type_other_field" style="display: none;">
+                                {{ form.document_type_other.label(class="form-label") }}
+                                {{ form.document_type_other(class="form-control" + (" is-invalid" if form.document_type_other.errors else "")) }}
+                                {% if form.document_type_other.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.document_type_other.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.quantity.label(class="form-label required") }}
+                                {{ form.quantity(class="form-select" + (" is-invalid" if form.quantity.errors else "")) }}
+                                {% if form.quantity.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.quantity.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.urgency.label(class="form-label required") }}
+                                {{ form.urgency(class="form-select" + (" is-invalid" if form.urgency.errors else "")) }}
+                                {% if form.urgency.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.urgency.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.notes.label(class="form-label") }}
+                            {{ form.notes(class="form-control" + (" is-invalid" if form.notes.errors else ""), rows="3", placeholder="Précisez toute information utile pour le traitement de votre demande") }}
+                            {% if form.notes.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.notes.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Rendez-vous -->
+                    <div class="form-section mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-calendar-alt me-2"></i>Prise de Rendez-vous
+                        </h5>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Important:</strong> Vous devez vous présenter au consulat avec les documents originaux à la date et heure convenues.
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.preferred_date.label(class="form-label required") }}
+                                {{ form.preferred_date(class="form-control" + (" is-invalid" if form.preferred_date.errors else "")) }}
+                                {% if form.preferred_date.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.preferred_date.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Les rendez-vous sont disponibles du lundi au vendredi</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.preferred_time.label(class="form-label required") }}
+                                {{ form.preferred_time(class="form-select" + (" is-invalid" if form.preferred_time.errors else "")) }}
+                                {% if form.preferred_time.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.preferred_time.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Documents à légaliser -->
+                    <div class="form-section mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-paperclip me-2"></i>Documents à Légaliser
+                        </h5>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Formats acceptés:</strong> JPG, PNG, PDF - Taille maximale: 10MB par fichier
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.documents.label(class="form-label required") }}
+                            {{ form.documents(class="form-control" + (" is-invalid" if form.documents.errors else ""), multiple=True) }}
+                            {% if form.documents.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.documents.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Téléchargez les scans ou photos des documents à légaliser. 
+                                <strong>Attention:</strong> Vous devez apporter les originaux lors de votre rendez-vous.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Prix récapitulatif -->
+                    <div class="form-section mb-4">
+                        <div class="card border-info">
+                            <div class="card-header bg-info text-white">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-calculator me-2"></i>Récapitulatif des Frais
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-sm-8">
+                                        <span id="fee-description">Traitement normal (5-7 jours) - 1 document</span>
+                                    </div>
+                                    <div class="col-sm-4 text-end">
+                                        <strong id="total-fee">30 USD</strong>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-sm-8">
+                                        <strong>Total à payer</strong>
+                                    </div>
+                                    <div class="col-sm-4 text-end">
+                                        <strong class="text-primary" id="final-total">30 USD</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Conditions -->
+                    <div class="form-section mb-4">
+                        <div class="card border-warning">
+                            <div class="card-body">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="acceptTerms" required>
+                                    <label class="form-check-label" for="acceptTerms">
+                                        Je confirme avoir pris connaissance des conditions et m'engage à me présenter au consulat avec les documents originaux à la date et heure convenues.
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Retour au tableau de bord
+                        </a>
+                        {{ form.submit(class="btn btn-warning btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const documentTypeSelect = document.getElementById('document_type');
+    const documentTypeOtherField = document.getElementById('document_type_other_field');
+    const quantitySelect = document.getElementById('quantity');
+    const urgencySelect = document.getElementById('urgency');
+    const feeDescription = document.getElementById('fee-description');
+    const totalFee = document.getElementById('total-fee');
+    const finalTotal = document.getElementById('final-total');
+    
+    function toggleOtherField() {
+        if (documentTypeSelect.value === 'autre') {
+            documentTypeOtherField.style.display = 'block';
+            documentTypeOtherField.querySelector('input').required = true;
+        } else {
+            documentTypeOtherField.style.display = 'none';
+            documentTypeOtherField.querySelector('input').required = false;
+        }
+    }
+    
+    function calculateFees() {
+        const quantity = parseInt(quantitySelect.value) || 1;
+        const isUrgent = urgencySelect.value === 'urgent';
+        const basePrice = isUrgent ? 50 : 30;
+        const total = basePrice * quantity;
+        
+        const urgencyText = isUrgent ? 'Traitement urgent (2-3 jours)' : 'Traitement normal (5-7 jours)';
+        const quantityText = quantity > 1 ? `${quantity} documents` : '1 document';
+        
+        feeDescription.textContent = `${urgencyText} - ${quantityText}`;
+        totalFee.textContent = `${total} USD`;
+        finalTotal.textContent = `${total} USD`;
+    }
+    
+    documentTypeSelect.addEventListener('change', toggleOtherField);
+    quantitySelect.addEventListener('change', calculateFees);
+    urgencySelect.addEventListener('change', calculateFees);
+    
+    // Initial setup
+    toggleOtherField();
+    calculateFees();
+    
+    // Set minimum date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('preferred_date').min = tomorrow.toISOString().split('T')[0];
+});
+</script>
+{% endblock %}

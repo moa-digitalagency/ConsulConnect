@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}Demande de Passeport - e-Consulaire RDC{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-passport me-2"></i>Pré-demande de Passeport
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-info-circle me-2"></i>Procédure de demande de passeport
+                    </h6>
+                    <ul class="mb-0">
+                        <li>Cette pré-demande vous permet de prendre rendez-vous pour la biométrie</li>
+                        <li>Frais de traitement: <strong>100 USD</strong></li>
+                        <li>Délai de traitement: 3-4 semaines après capture biométrique</li>
+                        <li>Présence physique obligatoire pour empreintes et photo</li>
+                    </ul>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" id="passportForm">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Type de demande -->
+                    <div class="form-section mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-clipboard-list me-2"></i>Type de Demande
+                        </h5>
+                        
+                        <div class="mb-3">
+                            {{ form.request_type.label(class="form-label required") }}
+                            {{ form.request_type(class="form-select" + (" is-invalid" if form.request_type.errors else "")) }}
+                            {% if form.request_type.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.request_type.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div id="renewal_field" class="mb-3" style="display: none;">
+                            {{ form.old_passport_number.label(class="form-label") }}
+                            {{ form.old_passport_number(class="form-control" + (" is-invalid" if form.old_passport_number.errors else ""), placeholder="Ex: CD1234567") }}
+                            {% if form.old_passport_number.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.old_passport_number.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Documents requis -->
+                    <div class="form-section mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-paperclip me-2"></i>Documents Requis
+                        </h5>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Formats acceptés:</strong> JPG, PNG, PDF - Taille maximale: 5MB par fichier
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                {{ form.birth_certificate.label(class="form-label required") }}
+                                {{ form.birth_certificate(class="form-control" + (" is-invalid" if form.birth_certificate.errors else "")) }}
+                                {% if form.birth_certificate.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.birth_certificate.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Acte de naissance original ou copie certifiée</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.identity_document.label(class="form-label required") }}
+                                {{ form.identity_document(class="form-control" + (" is-invalid" if form.identity_document.errors else "")) }}
+                                {% if form.identity_document.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.identity_document.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Carte d'identité ou ancien passeport</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.proof_of_residence.label(class="form-label required") }}
+                                {{ form.proof_of_residence(class="form-control" + (" is-invalid" if form.proof_of_residence.errors else "")) }}
+                                {% if form.proof_of_residence.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.proof_of_residence.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Justificatif de domicile récent</div>
+                            </div>
+                        </div>
+                        
+                        <div id="loss_declaration_field" class="mb-3" style="display: none;">
+                            {{ form.loss_declaration.label(class="form-label") }}
+                            {{ form.loss_declaration(class="form-control" + (" is-invalid" if form.loss_declaration.errors else "")) }}
+                            {% if form.loss_declaration.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.loss_declaration.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Déclaration de perte ou vol établie par les autorités compétentes</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Rendez-vous biométrique -->
+                    <div class="form-section mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-fingerprint me-2"></i>Rendez-vous pour Capture Biométrique
+                        </h5>
+                        
+                        <div class="alert alert-primary">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Important:</strong> Vous devez vous présenter personnellement au consulat pour la prise d'empreintes digitales et la photo. Aucune procuration n'est acceptée.
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.preferred_date.label(class="form-label required") }}
+                                {{ form.preferred_date(class="form-control" + (" is-invalid" if form.preferred_date.errors else "")) }}
+                                {% if form.preferred_date.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.preferred_date.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Rendez-vous disponibles du lundi au vendredi</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.preferred_time.label(class="form-label required") }}
+                                {{ form.preferred_time(class="form-select" + (" is-invalid" if form.preferred_time.errors else "")) }}
+                                {% if form.preferred_time.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.preferred_time.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Informations importantes -->
+                    <div class="form-section mb-4">
+                        <div class="card border-warning">
+                            <div class="card-header bg-warning text-dark">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>À apporter lors du rendez-vous
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <ul class="mb-0">
+                                    <li>Tous les documents originaux correspondant aux scans téléchargés</li>
+                                    <li>Une copie de cette pré-demande (que vous recevrez par email)</li>
+                                    <li>Le paiement des frais (100 USD en espèces ou carte bancaire)</li>
+                                    <li>Une pièce d'identité valide avec photo</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Délais et suivi -->
+                    <div class="form-section mb-4">
+                        <div class="card border-info">
+                            <div class="card-header bg-info text-white">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-clock me-2"></i>Délais et Suivi
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Étapes du processus:</h6>
+                                        <ol class="small">
+                                            <li>Pré-demande en ligne</li>
+                                            <li>Rendez-vous biométrique</li>
+                                            <li>Transmission au centre de production</li>
+                                            <li>Production du passeport (3-4 semaines)</li>
+                                            <li>Notification de disponibilité</li>
+                                            <li>Retrait au consulat</li>
+                                        </ol>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Suivi de votre demande:</h6>
+                                        <p class="small">
+                                            Vous recevrez des notifications automatiques par email à chaque étape du processus. 
+                                            Vous pouvez également suivre l'avancement dans votre espace personnel.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Conditions -->
+                    <div class="form-section mb-4">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="acceptTerms" required>
+                            <label class="form-check-label" for="acceptTerms">
+                                Je certifie que les informations fournies sont exactes et je m'engage à me présenter au consulat avec tous les documents originaux à la date et heure convenues.
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Retour au tableau de bord
+                        </a>
+                        {{ form.submit(class="btn btn-info btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const requestTypeSelect = document.getElementById('request_type');
+    const renewalField = document.getElementById('renewal_field');
+    const lossDeclarationField = document.getElementById('loss_declaration_field');
+    const oldPassportInput = document.getElementById('old_passport_number');
+    const lossDeclarationInput = document.getElementById('loss_declaration');
+    
+    function toggleFields() {
+        const requestType = requestTypeSelect.value;
+        
+        if (requestType === 'renouvellement') {
+            renewalField.style.display = 'block';
+            lossDeclarationField.style.display = 'none';
+            oldPassportInput.required = true;
+            lossDeclarationInput.required = false;
+        } else if (requestType === 'perte_vol') {
+            renewalField.style.display = 'none';
+            lossDeclarationField.style.display = 'block';
+            oldPassportInput.required = false;
+            lossDeclarationInput.required = true;
+        } else {
+            renewalField.style.display = 'none';
+            lossDeclarationField.style.display = 'none';
+            oldPassportInput.required = false;
+            lossDeclarationInput.required = false;
+        }
+    }
+    
+    requestTypeSelect.addEventListener('change', toggleFields);
+    toggleFields(); // Initial setup
+    
+    // Set minimum date to next week (allow time for document preparation)
+    const nextWeek = new Date();
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    document.getElementById('preferred_date').min = nextWeek.toISOString().split('T')[0];
+});
+</script>
+{% endblock %}

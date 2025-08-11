@@ -1,0 +1,350 @@
+{% extends "base.html" %}
+
+{% block title %}Demande {{ application.reference_number }} - e-Consulaire RDC{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1>
+                    <i class="fas fa-file-alt me-2"></i>
+                    Demande {{ application.reference_number }}
+                </h1>
+                <p class="text-muted mb-0">
+                    {{ application.get_service_display() }} • 
+                    Créée le {{ application.created_at.strftime('%d/%m/%Y à %H:%M') }}
+                </p>
+            </div>
+            <div>
+                {% if application.status == 'soumise' %}
+                    <span class="badge bg-secondary fs-6">{{ application.get_status_display() }}</span>
+                {% elif application.status == 'en_traitement' %}
+                    <span class="badge bg-warning fs-6">{{ application.get_status_display() }}</span>
+                {% elif application.status == 'validee' %}
+                    <span class="badge bg-success fs-6">{{ application.get_status_display() }}</span>
+                {% else %}
+                    <span class="badge bg-danger fs-6">{{ application.get_status_display() }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Main Information -->
+    <div class="col-lg-8">
+        <!-- Application Details -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Détails de la Demande
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Service :</strong> {{ application.get_service_display() }}<br>
+                        <strong>Référence :</strong> {{ application.reference_number }}<br>
+                        <strong>Statut :</strong> {{ application.get_status_display() }}<br>
+                        <strong>Date de création :</strong> {{ application.created_at.strftime('%d/%m/%Y à %H:%M') }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Dernière mise à jour :</strong> {{ application.updated_at.strftime('%d/%m/%Y à %H:%M') }}<br>
+                        <strong>Montant :</strong> {{ application.payment_amount }} USD<br>
+                        <strong>Statut paiement :</strong> 
+                        {% if application.payment_status == 'paid' %}
+                            <span class="badge bg-success">Payé</span>
+                        {% elif application.payment_status == 'pending' %}
+                            <span class="badge bg-warning">En attente</span>
+                        {% else %}
+                            <span class="badge bg-danger">Échec</span>
+                        {% endif %}
+                        <br>
+                        {% if application.appointment_date %}
+                            <strong>Rendez-vous :</strong> {{ application.appointment_date.strftime('%d/%m/%Y à %H:%M') }}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if application.rejection_reason %}
+                    <hr>
+                    <div class="alert alert-danger">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Motif de rejet
+                        </h6>
+                        {{ application.rejection_reason }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Form Data -->
+        {% if form_data %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-edit me-2"></i>Informations Saisies
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for key, value in form_data.items() %}
+                        {% if value %}
+                        <div class="col-md-6 mb-2">
+                            <strong>{{ key.replace('_', ' ').title() }} :</strong>
+                            {% if key.endswith('_date') %}
+                                {{ value }}
+                            {% else %}
+                                {{ value }}
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Documents -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-paperclip me-2"></i>Documents
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if application.documents %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Nom du fichier</th>
+                                <th>Type</th>
+                                <th>Taille</th>
+                                <th>Date d'upload</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for doc in application.documents %}
+                            <tr>
+                                <td>
+                                    <i class="fas fa-file me-1"></i>
+                                    {{ doc.original_filename }}
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ doc.document_type or 'Document' }}</span>
+                                </td>
+                                <td>{{ doc.get_file_size_mb() }} MB</td>
+                                <td>{{ doc.uploaded_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('download_document', document_id=doc.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-3">
+                    <i class="fas fa-file fa-2x mb-2"></i>
+                    <p>Aucun document téléchargé</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Status History -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>Historique des Statuts
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if application.status_history %}
+                <div class="timeline">
+                    {% for history in application.status_history|reverse %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker">
+                            {% if history.new_status == 'soumise' %}
+                                <i class="fas fa-plus text-secondary"></i>
+                            {% elif history.new_status == 'en_traitement' %}
+                                <i class="fas fa-clock text-warning"></i>
+                            {% elif history.new_status == 'validee' %}
+                                <i class="fas fa-check text-success"></i>
+                            {% else %}
+                                <i class="fas fa-times text-danger"></i>
+                            {% endif %}
+                        </div>
+                        <div class="timeline-content">
+                            <h6 class="mb-1">{{ history.new_status.replace('_', ' ').title() }}</h6>
+                            <p class="text-muted small mb-1">
+                                {{ history.created_at.strftime('%d/%m/%Y à %H:%M') }}
+                                {% if history.user %}
+                                    par {{ history.user.get_full_name() }}
+                                {% endif %}
+                            </p>
+                            {% if history.comment %}
+                                <p class="mb-0">{{ history.comment }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-3">
+                    <i class="fas fa-history fa-2x mb-2"></i>
+                    <p>Aucun historique disponible</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if application.payment_status == 'pending' and not current_user.is_admin() %}
+                    <form method="POST" action="{{ url_for('simulate_payment', application_id=application.id) }}">
+                        <button type="submit" class="btn btn-success btn-sm w-100">
+                            <i class="fas fa-credit-card me-2"></i>
+                            Simuler le paiement ({{ application.payment_amount }} USD)
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if current_user.is_admin() and application.status != 'validee' %}
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateStatusModal">
+                        <i class="fas fa-edit me-2"></i>Mettre à jour le statut
+                    </button>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('list_applications') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-list me-2"></i>Toutes les demandes
+                    </a>
+                    
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-tachometer-alt me-2"></i>Tableau de bord
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user me-2"></i>Demandeur
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <strong>Nom :</strong> {{ application.user.get_full_name() }}
+                </div>
+                <div class="mb-2">
+                    <strong>Email :</strong> {{ application.user.email }}
+                </div>
+                <div class="mb-2">
+                    <strong>Téléphone :</strong> {{ application.user.phone or 'Non renseigné' }}
+                </div>
+                <div>
+                    <strong>Inscrit le :</strong> {{ application.user.created_at.strftime('%d/%m/%Y') }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Processing Information -->
+        {% if application.processor %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-tie me-2"></i>Traité par
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <strong>Agent :</strong> {{ application.processor.get_full_name() }}
+                </div>
+                <div>
+                    <strong>Rôle :</strong> {{ application.processor.role.title() }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Update Status Modal (Admin Only) -->
+{% if current_user.is_admin() %}
+<div class="modal fade" id="updateStatusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Mettre à jour le statut</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('update_application_status', id=application.id) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Nouveau statut</label>
+                        <select name="status" id="status" class="form-select" required>
+                            <option value="soumise" {% if application.status == 'soumise' %}selected{% endif %}>Soumise</option>
+                            <option value="en_traitement" {% if application.status == 'en_traitement' %}selected{% endif %}>En traitement</option>
+                            <option value="validee" {% if application.status == 'validee' %}selected{% endif %}>Validée</option>
+                            <option value="rejetee" {% if application.status == 'rejetee' %}selected{% endif %}>Rejetée</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Commentaire</label>
+                        <textarea name="comment" id="comment" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3" id="rejection_reason_field" style="display: none;">
+                        <label for="rejection_reason" class="form-label">Motif de rejet</label>
+                        <textarea name="rejection_reason" id="rejection_reason" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Mettre à jour</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statusSelect = document.getElementById('status');
+    const rejectionField = document.getElementById('rejection_reason_field');
+    
+    function toggleRejectionField() {
+        if (statusSelect.value === 'rejetee') {
+            rejectionField.style.display = 'block';
+            document.getElementById('rejection_reason').required = true;
+        } else {
+            rejectionField.style.display = 'none';
+            document.getElementById('rejection_reason').required = false;
+        }
+    }
+    
+    statusSelect.addEventListener('change', toggleRejectionField);
+    toggleRejectionField(); // Initial check
+});
+</script>
+{% endif %}
+{% endblock %}

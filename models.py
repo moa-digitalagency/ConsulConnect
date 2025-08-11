@@ -1,0 +1,140 @@
+from datetime import datetime
+from app import db
+from flask_login import UserMixin
+from sqlalchemy import func
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+    first_name = db.Column(db.String(64), nullable=False)
+    last_name = db.Column(db.String(64), nullable=False)
+    phone = db.Column(db.String(20))
+    role = db.Column(db.String(20), default='usager')  # usager, agent, superviseur
+    active = db.Column(db.Boolean, default=True)
+    language = db.Column(db.String(2), default='fr')  # fr, en
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_login = db.Column(db.DateTime)
+    
+    # Relationships
+    applications = db.relationship('Application', foreign_keys='Application.user_id', backref='user', lazy=True)
+    
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}"
+    
+    def is_admin(self):
+        return self.role in ['agent', 'superviseur']
+    
+    def is_supervisor(self):
+        return self.role == 'superviseur'
+    
+    @property
+    def is_active(self):
+        return self.active
+
+class Application(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    service_type = db.Column(db.String(50), nullable=False)  # carte_consulaire, attestation_prise_charge, etc.
+    reference_number = db.Column(db.String(20), unique=True, nullable=False)
+    status = db.Column(db.String(20), default='soumise')  # soumise, en_traitement, validee, rejetee
+    form_data = db.Column(db.Text)  # JSON string of form data
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    processed_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    rejection_reason = db.Column(db.Text)
+    appointment_date = db.Column(db.DateTime)
+    payment_amount = db.Column(db.Float, default=0.0)
+    payment_status = db.Column(db.String(20), default='pending')  # pending, paid, failed
+    
+    # Relationships
+    documents = db.relationship('Document', backref='application', lazy=True, cascade='all, delete-orphan')
+    status_history = db.relationship('StatusHistory', backref='application', lazy=True, cascade='all, delete-orphan')
+    processor = db.relationship('User', foreign_keys=[processed_by], backref='processed_applications')
+    
+    def __init__(self, **kwargs):
+        super(Application, self).__init__(**kwargs)
+        if not self.reference_number:
+            self.reference_number = self.generate_reference_number()
+    
+    def generate_reference_number(self):
+        import random
+        import string
+        year = datetime.now().year
+        prefix = self.service_type.upper()[:3]
+        suffix = ''.join(random.choices(string.digits, k=6))
+        return f"{prefix}{year}{suffix}"
+    
+    def get_status_display(self):
+        status_map = {
+            'soumise': 'Soumise',
+            'en_traitement': 'En traitement',
+            'validee': 'Validée',
+            'rejetee': 'Rejetée'
+        }
+        return status_map.get(self.status, self.status)
+    
+    def get_service_display(self):
+        service_map = {
+            'carte_consulaire': 'Carte Consulaire',
+            'attestation_prise_charge': 'Attestation de Prise en Charge',
+            'legalisations': 'Légalisations',
+            'passeport': 'Passeport',
+            'autres_documents': 'Autres Documents'
+        }
+        return service_map.get(self.service_type, self.service_type)
+
+class Document(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    application_id = db.Column(db.Integer, db.ForeignKey('application.id'), nullable=False)
+    filename = db.Column(db.String(255), nullable=False)
+    original_filename = db.Column(db.String(255), nullable=False)
+    file_path = db.Column(db.String(500), nullable=False)
+    file_size = db.Column(db.Integer)
+    mime_type = db.Column(db.String(100))
+    document_type = db.Column(db.String(50))  # photo, identity, proof, etc.
+    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def get_file_size_mb(self):
+        if self.file_size:
+            return round(self.file_size / (1024 * 1024), 2)
+        return 0
+
+class StatusHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    application_id = db.Column(db.Integer, db.ForeignKey('application.id'), nullable=False)
+    old_status = db.Column(db.String(20))
+    new_status = db.Column(db.String(20), nullable=False)
+    changed_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    comment = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', foreign_keys=[changed_by], backref='status_changes')
+
+class AuditLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    action = db.Column(db.String(100), nullable=False)
+    resource = db.Column(db.String(100))
+    resource_id = db.Column(db.Integer)
+    details = db.Column(db.Text)
+    ip_address = db.Column(db.String(45))
+    user_agent = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', foreign_keys=[user_id], backref='audit_logs')
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    type = db.Column(db.String(20), default='info')  # info, success, warning, error
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', foreign_keys=[user_id], backref='notifications')

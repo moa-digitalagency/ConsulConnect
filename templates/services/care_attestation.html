@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}Attestation de Prise en Charge - e-Consulaire RDC{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-file-contract me-2"></i>Attestation de Prise en Charge
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-info-circle me-2"></i>À propos de ce service
+                    </h6>
+                    <ul class="mb-0">
+                        <li>Document officiel attestant votre engagement à prendre en charge un bénéficiaire</li>
+                        <li>Frais de traitement: <strong>25 USD</strong></li>
+                        <li>Génération immédiate après validation</li>
+                        <li>Document signé numériquement avec QR code de vérification</li>
+                    </ul>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" id="careAttestationForm">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Informations du bénéficiaire -->
+                    <div class="form-section mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-user-friends me-2"></i>Informations du Bénéficiaire
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.beneficiary_first_name.label(class="form-label required") }}
+                                {{ form.beneficiary_first_name(class="form-control" + (" is-invalid" if form.beneficiary_first_name.errors else "")) }}
+                                {% if form.beneficiary_first_name.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.beneficiary_first_name.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.beneficiary_last_name.label(class="form-label required") }}
+                                {{ form.beneficiary_last_name(class="form-control" + (" is-invalid" if form.beneficiary_last_name.errors else "")) }}
+                                {% if form.beneficiary_last_name.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.beneficiary_last_name.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.beneficiary_birth_date.label(class="form-label required") }}
+                                {{ form.beneficiary_birth_date(class="form-control" + (" is-invalid" if form.beneficiary_birth_date.errors else "")) }}
+                                {% if form.beneficiary_birth_date.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.beneficiary_birth_date.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.beneficiary_nationality.label(class="form-label required") }}
+                                {{ form.beneficiary_nationality(class="form-control" + (" is-invalid" if form.beneficiary_nationality.errors else "")) }}
+                                {% if form.beneficiary_nationality.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.beneficiary_nationality.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Informations du garant -->
+                    <div class="form-section mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-user-tie me-2"></i>Vos Informations (Garant)
+                        </h5>
+                        
+                        <div class="alert alert-light border">
+                            <strong>Garant:</strong> {{ current_user.get_full_name() }} ({{ current_user.email }})
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.guarantor_profession.label(class="form-label required") }}
+                                {{ form.guarantor_profession(class="form-control" + (" is-invalid" if form.guarantor_profession.errors else "")) }}
+                                {% if form.guarantor_profession.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.guarantor_profession.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.guarantor_income.label(class="form-label required") }}
+                                <div class="input-group">
+                                    {{ form.guarantor_income(class="form-control" + (" is-invalid" if form.guarantor_income.errors else "")) }}
+                                    <span class="input-group-text">USD</span>
+                                </div>
+                                {% if form.guarantor_income.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.guarantor_income.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Détails de la prise en charge -->
+                    <div class="form-section mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-hands-helping me-2"></i>Détails de la Prise en Charge
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.purpose.label(class="form-label required") }}
+                                {{ form.purpose(class="form-select" + (" is-invalid" if form.purpose.errors else "")) }}
+                                {% if form.purpose.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.purpose.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3" id="purpose_other_field" style="display: none;">
+                                {{ form.purpose_other.label(class="form-label") }}
+                                {{ form.purpose_other(class="form-control" + (" is-invalid" if form.purpose_other.errors else "")) }}
+                                {% if form.purpose_other.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.purpose_other.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.duration.label(class="form-label required") }}
+                                {{ form.duration(class="form-control" + (" is-invalid" if form.duration.errors else ""), placeholder="Ex: 3 mois, 2 semaines...") }}
+                                {% if form.duration.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.duration.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.relationship.label(class="form-label required") }}
+                                {{ form.relationship(class="form-control" + (" is-invalid" if form.relationship.errors else ""), placeholder="Ex: Frère, Ami, Collègue...") }}
+                                {% if form.relationship.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.relationship.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Documents requis -->
+                    <div class="form-section mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-paperclip me-2"></i>Documents Requis
+                        </h5>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Formats acceptés:</strong> JPG, PNG, PDF - Taille maximale: 5MB par fichier
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                {{ form.guarantor_identity.label(class="form-label required") }}
+                                {{ form.guarantor_identity(class="form-control" + (" is-invalid" if form.guarantor_identity.errors else "")) }}
+                                {% if form.guarantor_identity.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.guarantor_identity.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Votre pièce d'identité</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.income_proof.label(class="form-label required") }}
+                                {{ form.income_proof(class="form-control" + (" is-invalid" if form.income_proof.errors else "")) }}
+                                {% if form.income_proof.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.income_proof.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Bulletin de paie ou attestation</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.beneficiary_identity.label(class="form-label required") }}
+                                {{ form.beneficiary_identity(class="form-control" + (" is-invalid" if form.beneficiary_identity.errors else "")) }}
+                                {% if form.beneficiary_identity.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.beneficiary_identity.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Pièce d'identité du bénéficiaire</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Terms -->
+                    <div class="form-section mb-4">
+                        <div class="card border-warning">
+                            <div class="card-header bg-warning text-dark">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Engagement
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="acceptResponsibility" required>
+                                    <label class="form-check-label" for="acceptResponsibility">
+                                        Je certifie sur l'honneur que les informations fournies sont exactes et je m'engage à prendre en charge financièrement et moralement le bénéficiaire mentionné durant son séjour.
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Retour au tableau de bord
+                        </a>
+                        {{ form.submit(class="btn btn-success btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const purposeSelect = document.getElementById('purpose');
+    const purposeOtherField = document.getElementById('purpose_other_field');
+    
+    function toggleOtherField() {
+        if (purposeSelect.value === 'autre') {
+            purposeOtherField.style.display = 'block';
+            purposeOtherField.querySelector('input').required = true;
+        } else {
+            purposeOtherField.style.display = 'none';
+            purposeOtherField.querySelector('input').required = false;
+        }
+    }
+    
+    purposeSelect.addEventListener('change', toggleOtherField);
+    toggleOtherField(); // Initial check
+});
+</script>
+{% endblock %}

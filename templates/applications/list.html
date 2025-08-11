@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+
+{% block title %}Mes Demandes - e-Consulaire RDC{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="fas fa-list me-2"></i>
+        {% if current_user.is_admin() %}
+            Toutes les Demandes
+        {% else %}
+            Mes Demandes
+        {% endif %}
+    </h1>
+    <div>
+        {% if not current_user.is_admin() %}
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('consular_card') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus me-1"></i>Nouvelle demande
+            </a>
+            <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
+                <span class="visually-hidden">Plus d'options</span>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{{ url_for('care_attestation') }}">
+                    <i class="fas fa-file-contract me-2"></i>Attestation de Prise en Charge
+                </a></li>
+                <li><a class="dropdown-item" href="{{ url_for('legalizations') }}">
+                    <i class="fas fa-stamp me-2"></i>Légalisations
+                </a></li>
+                <li><a class="dropdown-item" href="{{ url_for('passport') }}">
+                    <i class="fas fa-passport me-2"></i>Passeport
+                </a></li>
+                <li><a class="dropdown-item" href="{{ url_for('other_documents') }}">
+                    <i class="fas fa-file-alt me-2"></i>Autres Documents
+                </a></li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="status_filter" class="form-label">Statut</label>
+                        <select name="status" id="status_filter" class="form-select">
+                            <option value="">Tous les statuts</option>
+                            <option value="soumise" {% if request.args.get('status') == 'soumise' %}selected{% endif %}>Soumise</option>
+                            <option value="en_traitement" {% if request.args.get('status') == 'en_traitement' %}selected{% endif %}>En traitement</option>
+                            <option value="validee" {% if request.args.get('status') == 'validee' %}selected{% endif %}>Validée</option>
+                            <option value="rejetee" {% if request.args.get('status') == 'rejetee' %}selected{% endif %}>Rejetée</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="service_filter" class="form-label">Service</label>
+                        <select name="service" id="service_filter" class="form-select">
+                            <option value="">Tous les services</option>
+                            <option value="carte_consulaire" {% if request.args.get('service') == 'carte_consulaire' %}selected{% endif %}>Carte Consulaire</option>
+                            <option value="attestation_prise_charge" {% if request.args.get('service') == 'attestation_prise_charge' %}selected{% endif %}>Attestation de Prise en Charge</option>
+                            <option value="legalisations" {% if request.args.get('service') == 'legalisations' %}selected{% endif %}>Légalisations</option>
+                            <option value="passeport" {% if request.args.get('service') == 'passeport' %}selected{% endif %}>Passeport</option>
+                            <option value="autres_documents" {% if request.args.get('service') == 'autres_documents' %}selected{% endif %}>Autres Documents</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="date_from" class="form-label">Date de</label>
+                        <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request.args.get('date_from', '') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="date_to" class="form-label">Date à</label>
+                        <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request.args.get('date_to', '') }}">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <div class="d-grid w-100">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter me-1"></i>Filtrer
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Applications List -->
+<div class="row">
+    <div class="col-12">
+        {% if applications %}
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Référence</th>
+                                {% if current_user.is_admin() %}
+                                <th>Utilisateur</th>
+                                {% endif %}
+                                <th>Service</th>
+                                <th>Statut</th>
+                                <th>Date de création</th>
+                                <th>Montant</th>
+                                <th>Paiement</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in applications %}
+                            <tr>
+                                <td>
+                                    <strong>{{ app.reference_number }}</strong>
+                                </td>
+                                {% if current_user.is_admin() %}
+                                <td>
+                                    <div>
+                                        <strong>{{ app.user.get_full_name() }}</strong><br>
+                                        <small class="text-muted">{{ app.user.email }}</small>
+                                    </div>
+                                </td>
+                                {% endif %}
+                                <td>
+                                    <span class="d-inline-flex align-items-center">
+                                        {% if app.service_type == 'carte_consulaire' %}
+                                            <i class="fas fa-id-card text-primary me-1"></i>
+                                        {% elif app.service_type == 'attestation_prise_charge' %}
+                                            <i class="fas fa-file-contract text-success me-1"></i>
+                                        {% elif app.service_type == 'legalisations' %}
+                                            <i class="fas fa-stamp text-warning me-1"></i>
+                                        {% elif app.service_type == 'passeport' %}
+                                            <i class="fas fa-passport text-info me-1"></i>
+                                        {% else %}
+                                            <i class="fas fa-file-alt text-secondary me-1"></i>
+                                        {% endif %}
+                                        {{ app.get_service_display() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if app.status == 'soumise' %}
+                                        <span class="badge bg-secondary">{{ app.get_status_display() }}</span>
+                                    {% elif app.status == 'en_traitement' %}
+                                        <span class="badge bg-warning">{{ app.get_status_display() }}</span>
+                                    {% elif app.status == 'validee' %}
+                                        <span class="badge bg-success">{{ app.get_status_display() }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ app.get_status_display() }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div>
+                                        {{ app.created_at.strftime('%d/%m/%Y') }}<br>
+                                        <small class="text-muted">{{ app.created_at.strftime('%H:%M') }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong>{{ app.payment_amount }} USD</strong>
+                                </td>
+                                <td>
+                                    {% if app.payment_status == 'paid' %}
+                                        <span class="badge bg-success">Payé</span>
+                                    {% elif app.payment_status == 'pending' %}
+                                        <span class="badge bg-warning">En attente</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Échec</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('view_application', id=app.id) }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        
+                                        {% if app.payment_status == 'pending' and not current_user.is_admin() %}
+                                        <form method="POST" action="{{ url_for('simulate_payment', application_id=app.id) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" 
+                                                    title="Simuler le paiement">
+                                                <i class="fas fa-credit-card"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                        
+                                        {% if app.status == 'validee' %}
+                                            {% set official_doc = app.documents|selectattr('document_type', 'equalto', 'official_document')|first %}
+                                            {% if official_doc %}
+                                            <a href="{{ url_for('download_document', document_id=official_doc.id) }}" 
+                                               class="btn btn-sm btn-outline-success"
+                                               title="Télécharger le document officiel">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pagination placeholder -->
+        {% if applications|length > 20 %}
+        <div class="mt-3">
+            <nav aria-label="Pagination des demandes">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item disabled">
+                        <span class="page-link">Précédent</span>
+                    </li>
+                    <li class="page-item active">
+                        <span class="page-link">1</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">Suivant</span>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <!-- Empty state -->
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Aucune demande trouvée</h5>
+                {% if request.args %}
+                <p class="text-muted">Essayez de modifier vos critères de recherche ou</p>
+                <a href="{{ url_for('list_applications') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-times me-2"></i>Effacer les filtres
+                </a>
+                {% else %}
+                <p class="text-muted">Vous n'avez pas encore soumis de demandes.</p>
+                <div class="mt-3">
+                    <a href="{{ url_for('consular_card') }}" class="btn btn-primary me-2">
+                        <i class="fas fa-plus me-2"></i>Première demande
+                    </a>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-tachometer-alt me-2"></i>Retour au tableau de bord
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Statistics Summary -->
+{% if applications and current_user.is_admin() %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Résumé des Statistiques
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h4 class="text-primary">{{ applications|length }}</h4>
+                        <p class="small text-muted mb-0">Total affiché</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning">{{ applications|selectattr('status', 'equalto', 'en_traitement')|list|length }}</h4>
+                        <p class="small text-muted mb-0">En traitement</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-success">{{ applications|selectattr('status', 'equalto', 'validee')|list|length }}</h4>
+                        <p class="small text-muted mb-0">Validées</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-info">{{ applications|selectattr('payment_status', 'equalto', 'paid')|list|length }}</h4>
+                        <p class="small text-muted mb-0">Payées</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Auto-submit form on filter change
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const selects = form.querySelectorAll('select');
+    
+    selects.forEach(select => {
+        select.addEventListener('change', function() {
+            // Optional: auto-submit on filter change
+            // form.submit();
+        });
+    });
+});
+</script>
+{% endblock %}

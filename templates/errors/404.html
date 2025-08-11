@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Page non trouvée - e-Consulaire RDC{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+        <div class="error-page">
+            <div class="error-code">
+                <h1 class="display-1 text-muted fw-bold">404</h1>
+            </div>
+            
+            <div class="error-content">
+                <h2 class="h4 mb-3">
+                    <i class="fas fa-search me-2"></i>Page non trouvée
+                </h2>
+                <p class="text-muted mb-4">
+                    La page que vous recherchez n'existe pas ou a été déplacée.
+                </p>
+                
+                <div class="error-actions">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary me-2">
+                        <i class="fas fa-tachometer-alt me-2"></i>Tableau de bord
+                    </a>
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-home me-2"></i>Accueil
+                    </a>
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="help-links">
+                    <p class="small text-muted mb-2">Liens utiles :</p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="{{ url_for('consular_card') }}" class="text-decoration-none small">
+                            <i class="fas fa-id-card me-1"></i>Carte Consulaire
+                        </a>
+                        <a href="{{ url_for('care_attestation') }}" class="text-decoration-none small">
+                            <i class="fas fa-file-contract me-1"></i>Attestation
+                        </a>
+                        <a href="{{ url_for('passport') }}" class="text-decoration-none small">
+                            <i class="fas fa-passport me-1"></i>Passeport
+                        </a>
+                        <a href="{{ url_for('list_applications') }}" class="text-decoration-none small">
+                            <i class="fas fa-list me-1"></i>Mes demandes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-page {
+    padding: 4rem 0;
+}
+
+.error-code h1 {
+    font-size: 8rem;
+    line-height: 1;
+    opacity: 0.1;
+}
+
+.error-content {
+    margin-top: -2rem;
+}
+
+.help-links a {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.help-links a:hover {
+    color: #495057;
+}
+</style>
+{% endblock %}
