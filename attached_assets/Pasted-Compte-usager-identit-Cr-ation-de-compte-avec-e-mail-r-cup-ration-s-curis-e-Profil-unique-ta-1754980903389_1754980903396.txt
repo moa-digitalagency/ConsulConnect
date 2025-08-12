@@ -1,0 +1,41 @@
+Compte usager & identité. Création de compte avec e-mail, récupération sécurisée. Profil unique (état civil, adresses, ville, pays, professions, pièces) réutilisable sur toutes les démarches.
+
+Immatriculation & carte consulaire. Formulaire structuré, upload de justificatifs, contrôle de complétude, paiement en ligne, génération PDF signé avec QR de vérification, suivi temps réel, historique des renouvellements.
+
+Passeport (pré-demande). Choix 1ère demande/renouvellement/perte/vol, vérification pièces, génération RDV biométrique au poste, suivi d’état (reçu → en traitement → prêt), notifications e-mail, preuve de dépôt téléchargeable piece joint.
+
+Laissez-passer d’urgence. Formulaire court, canal prioritaire, indicateurs SLA, délivrance d’un document temporaire PDF signé, journal d’audit, traçabilité renforcée.
+
+Attestation de prise en charge. Formulaire garant/bénéficiaire, pièces requises, contrôles de cohérence, émission PDF signé + QR, registre de vérification publique pour tiers (écoles, ambassades partenaires).
+
+Attestation d’hébergement & de résidence. Collecte des preuves (bail, facture), validation back-office, frais éventuels, preuve horodatée téléchargeable, lien de vérification.
+
+Attestation de vie. Parcours guidé (présence physique ou visio supervisée), capture d’éléments probants, scellé numérique, validité limitée, journal des vérifications.
+
+Certificat de nationalité (si périmètre). Pré-instruction, pièces, routage vers l’autorité compétente, suivi multi-étapes, remise PDF signé ou convocation.
+
+État civil (transcriptions). Déclarations de naissance/mariage/décès, téléversement d’actes, workflow de transcription et délivrance d’extraits, registres consultables par numéro sécurisé.
+
+Légalisations & certifications. Prise de RDV en ligne, liste de pièces, tarifs affichés, dépôt de scans, reçu immédiat, contrôle d’originaux au guichet, remise d’un tampon numérique ou attestation signée.
+
+Procurations & actes notariés (consulaires). Gabarits de modèles, saisie assistée, prise de RDV pour signature, enregistrement et hash du document, export sécurisé.
+
+Authentification de diplômes. Import de diplômes, cross-check via bases partenaires (si dispo), émission d’une attestation d’authenticité signée, QR de vérification.
+
+Casier judiciaire (relais). Saisie de la demande, pièces, paiement, passerelle vers autorité compétente, suivi d’avancement, remise ou redirection.
+
+Rendez-vous & files d’attente. Calendrier par service, quotas/anti-bots, gestion des no-show, rappel SMS/e-mail, QR d’accueil, priorisation (urgence, vulnérables).
+
+Suivi, notifications & preuves. Timeline d’état, webhooks et e-mails/SMS paramétrables, preuve de dépôt signée, horodatage, journal complet des actions.
+
+Vérification publique. Portail de vérification de QR pour tiers, API de lookup par identifiant, limites anti-abus, logs de consultation.
+
+Alerte & protection consulaire. Formulaire d’urgence (perte de document, détresse), canal 24/7, géolocalisation optionnelle consentie, playbooks de réponse.
+
+Espace “Mes démarches”. Vue consolidée des demandes, filtres (service/état/année), téléchargement des reçus et documents, duplicata en un clic.
+
+Interopérabilité. API REST sécurisées, webhooks, SSO agents, intégrations e-paiement/SMS/poste, connecteurs vers registres nationaux (si autorisés).
+
+Accessibilité & langues. Mobile-first, normes d’accessibilité, multilingue (FR + langues utiles), unités et formats locaux, aide contextuelle.
+
+Qualité & pilotage. Tableaux de bord (volumes, délais, taux de rejet), sondages de satisfaction, exports CSV, alertes d’anomalies, amélioration continue.
