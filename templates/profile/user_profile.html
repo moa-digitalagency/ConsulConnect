@@ -1,0 +1,451 @@
+{% extends "base.html" %}
+
+{% block title %}Mon Profil - e-Consulaire RDC{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+<style>
+    .profile-photo-container {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0066CC 0%, #FFD700 50%, #CE1126 100%);
+        padding: 3px;
+        margin: 0 auto;
+    }
+    
+    .profile-photo {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    
+    .profile-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .profile-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .profile-complete {
+        background-color: #D1FAE5;
+        color: #065F46;
+    }
+    
+    .profile-incomplete {
+        background-color: #FEF3C7;
+        color: #92400E;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pattern-overlay">
+    <!-- Header Corporate avec Navigation -->
+    <header class="bg-white shadow-sm border-b-4 border-blue-600">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <!-- Logo et Titre -->
+                <div class="flex items-center space-x-4">
+                    <div class="logo-corporate w-14 h-14">
+                        <i class="fas fa-flag text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Mon Profil</h1>
+                        <p class="text-sm text-gray-600">Gestion des informations personnelles</p>
+                    </div>
+                </div>
+                
+                <!-- Navigation -->
+                <div class="flex items-center space-x-4">
+                    <a href="{{ url_for('user_dashboard') }}" class="btn-corporate-secondary px-4 py-2 text-sm">
+                        <i class="fas fa-arrow-left mr-2"></i>Retour au Dashboard
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="btn-corporate-danger px-4 py-2 text-sm">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu Principal -->
+    <div class="container mx-auto px-4 py-8">
+        <form method="POST" enctype="multipart/form-data" class="max-w-6xl mx-auto">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <!-- Photo et Statut du Profil -->
+            <div class="card-corporate p-8 mb-6 text-center">
+                <div class="profile-photo-container mb-4">
+                    <div class="profile-photo">
+                        {% if current_user.photo_url %}
+                        <img src="{{ current_user.photo_url }}" alt="Photo de profil">
+                        {% else %}
+                        <i class="fas fa-user text-6xl text-gray-400"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">
+                    {{ current_user.first_name }} {{ current_user.last_name }}
+                </h2>
+                
+                <div class="mb-4">
+                    {% if current_user.profile_complete %}
+                    <span class="profile-status profile-complete">
+                        <i class="fas fa-check-circle mr-2"></i>Profil Complet
+                    </span>
+                    {% else %}
+                    <span class="profile-status profile-incomplete">
+                        <i class="fas fa-exclamation-circle mr-2"></i>Profil Incomplet
+                    </span>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <label class="btn-corporate-primary cursor-pointer">
+                        <i class="fas fa-camera mr-2"></i>Changer la photo
+                        <input type="file" name="photo" accept="image/*" class="hidden">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Choix de l'Ambassade -->
+            <div class="card-corporate p-6 mb-6 slide-up-corporate">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-building text-blue-600"></i>
+                    </div>
+                    Ambassade de Rattachement
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Pays <span class="text-red-500">*</span>
+                        </label>
+                        <select name="ambassade_pays" class="form-input-corporate w-full" required>
+                            <option value="">Sélectionner un pays</option>
+                            <option value="France" {% if current_user.ambassade_pays == 'France' %}selected{% endif %}>France</option>
+                            <option value="Belgique" {% if current_user.ambassade_pays == 'Belgique' %}selected{% endif %}>Belgique</option>
+                            <option value="États-Unis" {% if current_user.ambassade_pays == 'États-Unis' %}selected{% endif %}>États-Unis</option>
+                            <option value="Canada" {% if current_user.ambassade_pays == 'Canada' %}selected{% endif %}>Canada</option>
+                            <option value="Royaume-Uni" {% if current_user.ambassade_pays == 'Royaume-Uni' %}selected{% endif %}>Royaume-Uni</option>
+                            <option value="Allemagne" {% if current_user.ambassade_pays == 'Allemagne' %}selected{% endif %}>Allemagne</option>
+                            <option value="Suisse" {% if current_user.ambassade_pays == 'Suisse' %}selected{% endif %}>Suisse</option>
+                            <option value="Afrique du Sud" {% if current_user.ambassade_pays == 'Afrique du Sud' %}selected{% endif %}>Afrique du Sud</option>
+                            <option value="Angola" {% if current_user.ambassade_pays == 'Angola' %}selected{% endif %}>Angola</option>
+                            <option value="Kenya" {% if current_user.ambassade_pays == 'Kenya' %}selected{% endif %}>Kenya</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Ville <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="ambassade_ville" value="{{ current_user.ambassade_ville or '' }}" 
+                               class="form-input-corporate w-full" placeholder="Ex: Paris, Bruxelles, Washington" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations Personnelles -->
+            <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.1s;">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-user text-yellow-600"></i>
+                    </div>
+                    Informations Personnelles
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Nom <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="last_name" value="{{ current_user.last_name }}" 
+                               class="form-input-corporate w-full" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Post-nom
+                        </label>
+                        <input type="text" name="middle_name" value="{{ current_user.middle_name or '' }}" 
+                               class="form-input-corporate w-full">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Prénom <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="first_name" value="{{ current_user.first_name }}" 
+                               class="form-input-corporate w-full" required>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Genre <span class="text-red-500">*</span>
+                        </label>
+                        <select name="genre" class="form-input-corporate w-full" required>
+                            <option value="">Sélectionner</option>
+                            <option value="M" {% if current_user.genre == 'M' %}selected{% endif %}>Masculin</option>
+                            <option value="F" {% if current_user.genre == 'F' %}selected{% endif %}>Féminin</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Date de Naissance <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" name="date_naissance" 
+                               value="{% if current_user.date_naissance %}{{ current_user.date_naissance.strftime('%Y-%m-%d') }}{% endif %}" 
+                               class="form-input-corporate w-full" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Lieu de Naissance <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="lieu_naissance" value="{{ current_user.lieu_naissance or '' }}" 
+                               class="form-input-corporate w-full" placeholder="Ville, Province" required>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            État Civil
+                        </label>
+                        <select name="etat_civil" class="form-input-corporate w-full">
+                            <option value="">Sélectionner</option>
+                            <option value="celibataire" {% if current_user.etat_civil == 'celibataire' %}selected{% endif %}>Célibataire</option>
+                            <option value="marie" {% if current_user.etat_civil == 'marie' %}selected{% endif %}>Marié(e)</option>
+                            <option value="divorce" {% if current_user.etat_civil == 'divorce' %}selected{% endif %}>Divorcé(e)</option>
+                            <option value="veuf" {% if current_user.etat_civil == 'veuf' %}selected{% endif %}>Veuf/Veuve</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Profession
+                        </label>
+                        <input type="text" name="profession" value="{{ current_user.profession or '' }}" 
+                               class="form-input-corporate w-full" placeholder="Ex: Ingénieur, Médecin, Étudiant">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Téléphone
+                        </label>
+                        <input type="tel" name="phone" value="{{ current_user.phone or '' }}" 
+                               class="form-input-corporate w-full" placeholder="+33 6 12 34 56 78">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coordonnées -->
+            <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.2s;">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-map-marker-alt text-green-600"></i>
+                    </div>
+                    Adresse de Résidence
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Adresse <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="adresse_rue" value="{{ current_user.adresse_rue or '' }}" 
+                               class="form-input-corporate w-full" placeholder="Numéro et nom de rue" required>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Ville <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="adresse_ville" value="{{ current_user.adresse_ville or '' }}" 
+                               class="form-input-corporate w-full" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Code Postal
+                        </label>
+                        <input type="text" name="code_postal" value="{{ current_user.code_postal or '' }}" 
+                               class="form-input-corporate w-full">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Pays <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="adresse_pays" value="{{ current_user.adresse_pays or '' }}" 
+                               class="form-input-corporate w-full" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents d'Identité -->
+            <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.3s;">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-passport text-red-600"></i>
+                    </div>
+                    Documents d'Identité
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Numéro de Passeport
+                        </label>
+                        <input type="text" name="numero_passeport" value="{{ current_user.numero_passeport or '' }}" 
+                               class="form-input-corporate w-full" placeholder="Ex: OB1234567">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Date d'Émission
+                        </label>
+                        <input type="date" name="passeport_date_emission" 
+                               value="{% if current_user.passeport_date_emission %}{{ current_user.passeport_date_emission.strftime('%Y-%m-%d') }}{% endif %}" 
+                               class="form-input-corporate w-full">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Date d'Expiration
+                        </label>
+                        <input type="date" name="passeport_date_expiration" 
+                               value="{% if current_user.passeport_date_expiration %}{{ current_user.passeport_date_expiration.strftime('%Y-%m-%d') }}{% endif %}" 
+                               class="form-input-corporate w-full">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compte et Sécurité -->
+            <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.4s;">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-shield-alt text-purple-600"></i>
+                    </div>
+                    Compte et Sécurité
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Email
+                        </label>
+                        <input type="email" value="{{ current_user.email }}" 
+                               class="form-input-corporate w-full bg-gray-100" disabled>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Nom d'utilisateur
+                        </label>
+                        <input type="text" value="{{ current_user.username }}" 
+                               class="form-input-corporate w-full bg-gray-100" disabled>
+                    </div>
+                </div>
+                
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <p class="text-sm text-blue-900 mb-2">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Pour changer votre mot de passe, cliquez sur le bouton ci-dessous.
+                    </p>
+                    <button type="button" class="btn-corporate-secondary" onclick="togglePasswordSection()">
+                        <i class="fas fa-key mr-2"></i>Changer le mot de passe
+                    </button>
+                </div>
+                
+                <div id="passwordSection" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Mot de passe actuel
+                            </label>
+                            <input type="password" name="current_password" class="form-input-corporate w-full">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Nouveau mot de passe
+                            </label>
+                            <input type="password" name="new_password" class="form-input-corporate w-full">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Confirmer le mot de passe
+                            </label>
+                            <input type="password" name="confirm_password" class="form-input-corporate w-full">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="flex justify-end space-x-4">
+                <a href="{{ url_for('user_dashboard') }}" class="btn-corporate-secondary">
+                    <i class="fas fa-times mr-2"></i>Annuler
+                </a>
+                <button type="submit" class="btn-corporate-primary">
+                    <i class="fas fa-save mr-2"></i>Enregistrer les modifications
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-16 bg-gray-50 border-t">
+        <div class="container mx-auto px-4 py-8">
+            <div class="text-center">
+                <p class="text-sm text-gray-600">&copy; 2025 République Démocratique du Congo</p>
+                <p class="text-xs text-gray-500 mt-1">Ministère des Affaires Étrangères - Services Consulaires Numériques</p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<script>
+function togglePasswordSection() {
+    const section = document.getElementById('passwordSection');
+    section.classList.toggle('hidden');
+}
+
+// Preview photo upload
+document.querySelector('input[name="photo"]').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const photoDiv = document.querySelector('.profile-photo');
+            photoDiv.innerHTML = `<img src="${e.target.result}" alt="Photo de profil">`;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+{% endblock %}

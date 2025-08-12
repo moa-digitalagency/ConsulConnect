@@ -141,6 +141,10 @@ def user_dashboard():
             return redirect(url_for('admin_dashboard'))
         abort(403)
     
+    # Check if profile is complete
+    if not current_user.profile_complete:
+        flash('Veuillez compléter votre profil pour accéder à tous les services.', 'info')
+    
     # User dashboard
     applications = Application.query.filter_by(user_id=current_user.id).order_by(Application.created_at.desc()).all()
     notifications = Notification.query.filter_by(user_id=current_user.id, is_read=False).order_by(Notification.created_at.desc()).limit(5).all()
@@ -177,9 +181,58 @@ def consulate_dashboard():
                          rejected_applications=rejected_applications,
                          recent_applications=recent_applications)
 
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def user_profile():
+    if current_user.role != 'usager':
+        abort(403)
+    
+    if request.method == 'POST':
+        # Update profile
+        current_user.first_name = request.form.get('first_name', current_user.first_name)
+        current_user.last_name = request.form.get('last_name', current_user.last_name)
+        current_user.middle_name = request.form.get('middle_name')
+        current_user.phone = request.form.get('phone')
+        current_user.genre = request.form.get('genre')
+        current_user.lieu_naissance = request.form.get('lieu_naissance')
+        current_user.etat_civil = request.form.get('etat_civil')
+        current_user.profession = request.form.get('profession')
+        current_user.adresse_rue = request.form.get('adresse_rue')
+        current_user.adresse_ville = request.form.get('adresse_ville')
+        current_user.adresse_pays = request.form.get('adresse_pays')
+        current_user.code_postal = request.form.get('code_postal')
+        current_user.numero_passeport = request.form.get('numero_passeport')
+        current_user.ambassade_ville = request.form.get('ambassade_ville')
+        current_user.ambassade_pays = request.form.get('ambassade_pays')
+        
+        # Parse dates
+        date_naissance = request.form.get('date_naissance')
+        if date_naissance:
+            from datetime import datetime
+            current_user.date_naissance = datetime.strptime(date_naissance, '%Y-%m-%d').date()
+        
+        # Check if profile is complete
+        required_fields = [
+            current_user.first_name, current_user.last_name, current_user.genre,
+            current_user.date_naissance, current_user.lieu_naissance,
+            current_user.adresse_ville, current_user.adresse_pays
+        ]
+        current_user.profile_complete = all(required_fields)
+        
+        db.session.commit()
+        flash('Votre profil a été mis à jour avec succès.', 'success')
+        return redirect(url_for('user_profile'))
+    
+    return render_template('profile/user_profile.html')
+
 @app.route('/services/consular-card', methods=['GET', 'POST'])
 @login_required
 def consular_card():
+    # Check if profile is complete
+    if not current_user.profile_complete:
+        flash('Veuillez compléter votre profil avant de faire une demande.', 'warning')
+        return redirect(url_for('user_profile'))
+    
     form = ConsularCardForm()
     if form.validate_on_submit():
         # Create application

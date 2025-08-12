@@ -10,12 +10,41 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     first_name = db.Column(db.String(64), nullable=False)
     last_name = db.Column(db.String(64), nullable=False)
+    middle_name = db.Column(db.String(64))
     phone = db.Column(db.String(20))
     role = db.Column(db.String(20), default='usager')  # usager, agent, superviseur
     active = db.Column(db.Boolean, default=True)
     language = db.Column(db.String(2), default='fr')  # fr, en
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime)
+    
+    # Profile complet
+    photo_url = db.Column(db.String(500))
+    genre = db.Column(db.String(10))  # M, F
+    date_naissance = db.Column(db.Date)
+    lieu_naissance = db.Column(db.String(100))
+    etat_civil = db.Column(db.String(20))  # célibataire, marié, divorcé, veuf
+    nationalite = db.Column(db.String(50), default='Congolaise')
+    profession = db.Column(db.String(100))
+    
+    # Adresse
+    adresse_rue = db.Column(db.String(200))
+    adresse_ville = db.Column(db.String(100))
+    adresse_pays = db.Column(db.String(100))
+    code_postal = db.Column(db.String(20))
+    
+    # Documents
+    numero_passeport = db.Column(db.String(50))
+    passeport_date_emission = db.Column(db.Date)
+    passeport_date_expiration = db.Column(db.Date)
+    
+    # Ambassade de rattachement
+    ambassade_id = db.Column(db.String(50))
+    ambassade_ville = db.Column(db.String(100))
+    ambassade_pays = db.Column(db.String(100))
+    
+    # Statut du profil
+    profile_complete = db.Column(db.Boolean, default=False)
     
     # Relationships
     applications = db.relationship('Application', foreign_keys='Application.user_id', backref='user', lazy=True)
