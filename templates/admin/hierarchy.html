@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Hiérarchie du Système - e-Consulaire{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h2 mb-4">🏛️ Hiérarchie du Système e-Consulaire</h1>
+            
+            <!-- Statistiques générales -->
+            <div class="row mb-5">
+                <div class="col-md-3">
+                    <div class="card border-primary">
+                        <div class="card-body text-center">
+                            <h3 class="text-primary">{{ stats.total_units }}</h3>
+                            <p class="text-muted mb-0">Unités Consulaires</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            <h3 class="text-success">{{ stats.total_agents }}</h3>
+                            <p class="text-muted mb-0">Agents Consulaires</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-warning">
+                        <div class="card-body text-center">
+                            <h3 class="text-warning">{{ stats.total_configurations }}</h3>
+                            <p class="text-muted mb-0">Services Configurés</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-info">
+                        <div class="card-body text-center">
+                            <h3 class="text-info">{{ stats.total_applications }}</h3>
+                            <p class="text-muted mb-0">Demandes Traitées</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Répartition des utilisateurs -->
+            <div class="row mb-5">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">👥 Répartition des Utilisateurs</h5>
+                        </div>
+                        <div class="card-body">
+                            {% for role, count in stats.users_by_role.items() %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-capitalize">
+                                    {% if role == 'superviseur' %}👑 Super Admin
+                                    {% elif role == 'admin' %}🔧 Admin
+                                    {% elif role == 'agent' %}👔 Agent
+                                    {% else %}🏠 Usager
+                                    {% endif %}
+                                </span>
+                                <span class="badge bg-secondary">{{ count }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">⚙️ Services Disponibles</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">{{ stats.total_services }} types de services</p>
+                            <p class="text-muted">{{ stats.total_configurations }} configurations actives</p>
+                            <small class="text-muted">Les agents configurent les services et tarifs pour leur unité</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unités par pays -->
+            <div class="row">
+                <div class="col-12">
+                    <h3 class="mb-4">🌍 Unités Consulaires par Pays</h3>
+                    
+                    {% for country, country_units in units_by_country.items() %}
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-flag me-2"></i>{{ country }}
+                                <span class="badge bg-primary ms-2">{{ country_units|length }} unité(s)</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% for unit_data in country_units %}
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card h-100 border-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                {% if unit_data.unit.type == 'ambassade' %}🏛️
+                                                {% elif unit_data.unit.type == 'consulat' %}🏢
+                                                {% else %}🏛️
+                                                {% endif %}
+                                                {{ unit_data.unit.nom }}
+                                            </h6>
+                                            <p class="card-text text-muted small">
+                                                📍 {{ unit_data.unit.ville }}<br>
+                                                📞 {{ unit_data.unit.telephone or 'N/A' }}<br>
+                                                ✉️ {{ unit_data.unit.email or 'N/A' }}
+                                            </p>
+                                            
+                                            <div class="mt-3">
+                                                <span class="badge bg-success me-1">{{ unit_data.agents|length }} agent(s)</span>
+                                                <span class="badge bg-warning me-1">{{ unit_data.services_count }} services</span>
+                                            </div>
+                                            
+                                            {% if unit_data.agents %}
+                                            <hr>
+                                            <h6 class="small text-muted">Agents assignés:</h6>
+                                            {% for agent in unit_data.agents %}
+                                            <small class="text-muted d-block">
+                                                👔 {{ agent.get_full_name() }}
+                                            </small>
+                                            {% endfor %}
+                                            {% endif %}
+                                            
+                                            <div class="mt-3">
+                                                <a href="{{ url_for('unit_services', unit_id=unit_data.unit.id) }}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    Voir Services
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Actions rapides -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">🔧 Actions Rapides</h5>
+                            <div class="btn-toolbar">
+                                <a href="{{ url_for('list_consular_units') }}" class="btn btn-primary me-2">
+                                    📋 Gérer les Unités
+                                </a>
+                                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary me-2">
+                                    🏠 Tableau de Bord Admin
+                                </a>
+                                <a href="{{ url_for('list_applications') }}" class="btn btn-info">
+                                    📄 Voir les Demandes
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block title %}Système e-Consulaire RDC - Vue d'ensemble{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h2 mb-4">🏛️ Système e-Consulaire de la République Démocratique du Congo</h1>
+            
+            <!-- Description du système -->
+            <div class="row mb-5">
+                <div class="col-md-8">
+                    <div class="card border-primary">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">Architecture Hiérarchique Moderne</h5>
+                            <p class="card-text">
+                                Le système e-consulaire RDC utilise une architecture hiérarchique avancée qui permet :
+                            </p>
+                            <ul class="list-unstyled">
+                                <li>✅ <strong>Gestion centralisée</strong> - Super Admins créent des unités consulaires</li>
+                                <li>✅ <strong>Configuration décentralisée</strong> - Agents configurent les services pour leur unité</li>
+                                <li>✅ <strong>Tarification flexible</strong> - Tarifs personnalisés par ambassade/consulat</li>
+                                <li>✅ <strong>Routage géographique</strong> - Demandes automatiquement dirigées selon la localisation</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Statistiques du système</h6>
+                            <div class="row">
+                                <div class="col-12">
+                                    <h3 class="text-primary">{{ stats.total_units }}</h3>
+                                    <small class="text-muted">Unités consulaires</small>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-6">
+                                    <h4 class="text-success">{{ stats.countries_served }}</h4>
+                                    <small class="text-muted">Pays desservis</small>
+                                </div>
+                                <div class="col-6">
+                                    <h4 class="text-warning">{{ stats.total_services_types }}</h4>
+                                    <small class="text-muted">Types de services</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unités consulaires par pays -->
+            <div class="row">
+                <div class="col-12">
+                    <h3 class="mb-4">🌍 Réseau consulaire international</h3>
+                    
+                    {% set countries = {} %}
+                    {% for unit in units %}
+                        {% if countries.update({unit.pays: countries.get(unit.pays, []) + [unit]}) %}{% endif %}
+                    {% endfor %}
+                    
+                    {% for country, country_units in countries.items() %}
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-flag me-2"></i>{{ country }}
+                                <span class="badge bg-light text-primary ms-2">{{ country_units|length }} unité(s)</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% for unit in country_units %}
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card h-100 border-light shadow-sm">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                {% if unit.type == 'ambassade' %}🏛️
+                                                {% elif unit.type == 'consulat' %}🏢
+                                                {% else %}🏛️
+                                                {% endif %}
+                                                {{ unit.nom }}
+                                            </h6>
+                                            <p class="card-text text-muted small">
+                                                <i class="fas fa-map-marker-alt me-1"></i> {{ unit.ville }}<br>
+                                                <i class="fas fa-phone me-1"></i> {{ unit.contact_public.telephone or 'Non disponible' }}<br>
+                                                <i class="fas fa-envelope me-1"></i> 
+                                                {% if unit.contact_public.email %}
+                                                    <a href="mailto:{{ unit.contact_public.email }}" class="text-decoration-none">
+                                                        {{ unit.contact_public.email }}
+                                                    </a>
+                                                {% else %}
+                                                    Non disponible
+                                                {% endif %}
+                                            </p>
+                                            
+                                            <div class="mt-3">
+                                                <span class="badge bg-success">{{ unit.services_count }} services disponibles</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Types de services disponibles -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">📋 Services consulaires disponibles</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2">
+                                            <i class="fas fa-id-card text-primary me-2"></i>
+                                            <strong>Carte Consulaire</strong> - Identification officielle
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-heart text-success me-2"></i>
+                                            <strong>Attestation de Prise en Charge</strong> - Support familial
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-stamp text-warning me-2"></i>
+                                            <strong>Légalisations</strong> - Certification de documents
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2">
+                                            <i class="fas fa-passport text-info me-2"></i>
+                                            <strong>Passeport</strong> - Pré-demande consulaire
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-certificate text-secondary me-2"></i>
+                                            <strong>Actes d'État Civil</strong> - Transcription officielle
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-gavel text-danger me-2"></i>
+                                            <strong>Procuration</strong> - Mandat légal
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <hr>
+                            
+                            <div class="alert alert-info mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Tarification flexible :</strong> Chaque unité consulaire définit ses tarifs en fonction du contexte local et des coûts opérationnels.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Access administratif -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card border-warning">
+                        <div class="card-body">
+                            <h5 class="card-title text-warning">
+                                <i class="fas fa-tools me-2"></i>Accès administratif
+                            </h5>
+                            <p class="text-muted mb-3">
+                                Pour accéder aux fonctionnalités d'administration complètes et voir les détails de gestion du système :
+                            </p>
+                            <div class="btn-toolbar">
+                                <a href="{{ url_for('auth.admin_login') }}" class="btn btn-warning me-2">
+                                    <i class="fas fa-sign-in-alt me-1"></i>Connexion Admin
+                                </a>
+                                <a href="{{ url_for('auth.user_login') }}" class="btn btn-primary me-2">
+                                    <i class="fas fa-user me-1"></i>Espace Usager
+                                </a>
+                                <a href="{{ url_for('auth.consulate_login') }}" class="btn btn-success">
+                                    <i class="fas fa-building me-1"></i>Portail Agent
+                                </a>
+                            </div>
+                            
+                            <hr>
+                            
+                            <small class="text-muted">
+                                <strong>Compte de démonstration admin :</strong> admin@diplomatie.gouv.cd / admin123<br>
+                                Une fois connecté, accédez à <code>/admin/hierarchy</code> pour voir l'interface complète de gestion.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -6,7 +6,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from app import app, db, mail
-from models import User, Application, Document, StatusHistory, AuditLog, Notification
+from models import User, Application, Document, StatusHistory, AuditLog, Notification, UniteConsulaire, Service, UniteConsulaire_Service
 from forms import (LoginForm, RegisterForm, ConsularCardForm, CareAttestationForm, 
                    LegalizationsForm, PassportForm, OtherDocumentsForm, ApplicationStatusForm,
                    EmergencyPassForm, CivilStatusForm, PowerAttorneyForm)
@@ -908,3 +908,169 @@ def forbidden_error(error):
 def internal_error(error):
     db.session.rollback()
     return render_template('errors/500.html'), 500
+
+# Nouvelles routes pour le système hiérarchique des unités consulaires
+
+@app.route('/admin/units')
+@login_required
+def list_consular_units():
+    """Liste toutes les unités consulaires pour les admins"""
+    if not current_user.is_admin():
+        abort(403)
+    
+    units = UniteConsulaire.query.order_by(UniteConsulaire.pays, UniteConsulaire.ville).all()
+    
+    # Enrichir avec les statistiques
+    units_data = []
+    for unit in units:
+        units_data.append({
+            'unit': unit,
+            'agents_count': unit.get_agents_count(),
+            'services_count': len(unit.get_services_actifs()),
+            'applications_count': len(unit.applications) if unit.applications else 0
+        })
+    
+    return render_template('admin/units_list.html', units_data=units_data)
+
+@app.route('/admin/units/<int:unit_id>/services')
+@login_required
+def unit_services(unit_id):
+    """Voir les services configurés pour une unité consulaire"""
+    if not current_user.is_admin():
+        abort(403)
+    
+    unit = UniteConsulaire.query.get_or_404(unit_id)
+    configured_services = unit.get_services_actifs()
+    all_services = Service.query.all()
+    
+    # Préparer les données des services avec tarifs
+    services_data = []
+    for service in all_services:
+        # Trouver si ce service est configuré pour cette unité
+        unit_service = next((us for us in configured_services if us.service_id == service.id), None)
+        services_data.append({
+            'service': service,
+            'configured': unit_service is not None,
+            'tarif': unit_service.tarif_personnalise if unit_service else service.tarif_de_base,
+            'actif': unit_service.actif if unit_service else False
+        })
+    
+    return render_template('admin/unit_services.html', unit=unit, services_data=services_data)
+
+@app.route('/admin/hierarchy')
+@login_required
+def system_hierarchy():
+    """Vue d'ensemble de la hiérarchie du système"""
+    if not current_user.is_admin():
+        abort(403)
+    
+    # Statistiques générales
+    stats = {
+        'total_units': UniteConsulaire.query.count(),
+        'total_agents': User.query.filter_by(role='agent').count(),
+        'total_services': Service.query.count(),
+        'total_configurations': UniteConsulaire_Service.query.filter_by(actif=True).count(),
+        'total_applications': Application.query.count(),
+        'users_by_role': dict(db.session.query(User.role, func.count(User.id)).group_by(User.role).all())
+    }
+    
+    # Unités par pays
+    units_by_country = {}
+    units = UniteConsulaire.query.all()
+    for unit in units:
+        country = unit.pays
+        if country not in units_by_country:
+            units_by_country[country] = []
+        units_by_country[country].append({
+            'unit': unit,
+            'agents': [agent for agent in unit.agents if agent.role == 'agent'],
+            'services_count': len(unit.get_services_actifs())
+        })
+    
+    return render_template('admin/hierarchy.html', stats=stats, units_by_country=units_by_country)
+
+@app.route('/agent/my-unit')
+@login_required
+def agent_unit_dashboard():
+    """Interface pour les agents pour gérer leur unité"""
+    if current_user.role != 'agent':
+        abort(403)
+    
+    if not current_user.unite_consulaire_id:
+        flash('Vous n\'êtes pas encore assigné à une unité consulaire.', 'warning')
+        return redirect(url_for('admin_dashboard'))
+    
+    unit = current_user.unite_consulaire
+    configured_services = unit.get_services_actifs()
+    recent_applications = Application.query.filter_by(unite_consulaire_id=unit.id).order_by(Application.created_at.desc()).limit(10).all()
+    
+    return render_template('agent/unit_dashboard.html', 
+                         unit=unit, 
+                         configured_services=configured_services,
+                         recent_applications=recent_applications)
+
+@app.route('/api/units-by-location')
+def api_units_by_location():
+    """API pour récupérer les unités consulaires par localisation (pour les formulaires)"""
+    country = request.args.get('country', '')
+    city = request.args.get('city', '')
+    
+    query = UniteConsulaire.query.filter_by(active=True)
+    
+    if country:
+        query = query.filter(UniteConsulaire.pays.ilike(f'%{country}%'))
+    if city:
+        query = query.filter(UniteConsulaire.ville.ilike(f'%{city}%'))
+    
+    units = query.all()
+    
+    return jsonify([{
+        'id': unit.id,
+        'nom': unit.nom,
+        'type': unit.type,
+        'ville': unit.ville,
+        'pays': unit.pays,
+        'services_count': len(unit.get_services_actifs())
+    } for unit in units])
+
+@app.route('/api/unit-services/<int:unit_id>')
+def api_unit_services(unit_id):
+    """API pour récupérer les services disponibles pour une unité"""
+    unit = UniteConsulaire.query.get_or_404(unit_id)
+    configured_services = unit.get_services_actifs()
+    
+    return jsonify([{
+        'service_code': us.service.code,
+        'service_name': us.service.nom,
+        'tarif': us.tarif_personnalise,
+        'delai': us.service.delai_traitement
+    } for us in configured_services])
+
+@app.route('/system-overview')
+def system_overview():
+    """Vue publique du système e-consulaire hiérarchique (sans données sensibles)"""
+    
+    # Statistiques générales (non-sensibles)
+    stats = {
+        'total_units': UniteConsulaire.query.count(),
+        'total_services_types': Service.query.count(),
+        'countries_served': len(set([unit.pays for unit in UniteConsulaire.query.all()]))
+    }
+    
+    # Unités consulaires publiques
+    units = UniteConsulaire.query.filter_by(active=True).all()
+    units_data = []
+    for unit in units:
+        units_data.append({
+            'nom': unit.nom,
+            'type': unit.type,
+            'ville': unit.ville,
+            'pays': unit.pays,
+            'services_count': len(unit.get_services_actifs()),
+            'contact_public': {
+                'email': unit.email,
+                'telephone': unit.telephone
+            }
+        })
+    
+    return render_template('public/system_overview.html', stats=stats, units=units_data)

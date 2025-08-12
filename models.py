@@ -12,7 +12,7 @@ class User(UserMixin, db.Model):
     last_name = db.Column(db.String(64), nullable=False)
     middle_name = db.Column(db.String(64))
     phone = db.Column(db.String(20))
-    role = db.Column(db.String(20), default='usager')  # usager, agent, superviseur
+    role = db.Column(db.String(20), default='usager')  # usager, agent, superviseur, admin
     active = db.Column(db.Boolean, default=True)
     language = db.Column(db.String(2), default='fr')  # fr, en
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -38,10 +38,8 @@ class User(UserMixin, db.Model):
     passeport_date_emission = db.Column(db.Date)
     passeport_date_expiration = db.Column(db.Date)
     
-    # Ambassade de rattachement
-    ambassade_id = db.Column(db.String(50))
-    ambassade_ville = db.Column(db.String(100))
-    ambassade_pays = db.Column(db.String(100))
+    # Unité consulaire de rattachement (pour les agents)
+    unite_consulaire_id = db.Column(db.Integer, db.ForeignKey('unite_consulaire.id'), nullable=True)
     
     # Statut du profil
     profile_complete = db.Column(db.Boolean, default=False)
@@ -53,7 +51,10 @@ class User(UserMixin, db.Model):
         return f"{self.first_name} {self.last_name}"
     
     def is_admin(self):
-        return self.role in ['agent', 'superviseur']
+        return self.role in ['agent', 'superviseur', 'admin']
+        
+    def is_super_admin(self):
+        return self.role == 'superviseur'
     
     def is_supervisor(self):
         return self.role == 'superviseur'
@@ -65,6 +66,7 @@ class User(UserMixin, db.Model):
 class Application(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    unite_consulaire_id = db.Column(db.Integer, db.ForeignKey('unite_consulaire.id'), nullable=False)
     service_type = db.Column(db.String(50), nullable=False)  # carte_consulaire, attestation_prise_charge, etc.
     reference_number = db.Column(db.String(20), unique=True, nullable=False)
     status = db.Column(db.String(20), default='soumise')  # soumise, en_traitement, validee, rejetee
@@ -81,6 +83,7 @@ class Application(db.Model):
     documents = db.relationship('Document', backref='application', lazy=True, cascade='all, delete-orphan')
     status_history = db.relationship('StatusHistory', backref='application', lazy=True, cascade='all, delete-orphan')
     processor = db.relationship('User', foreign_keys=[processed_by], backref='processed_applications')
+    unite_consulaire = db.relationship('UniteConsulaire', foreign_keys=[unite_consulaire_id], backref='applications')
     
     def __init__(self, **kwargs):
         super(Application, self).__init__(**kwargs)
@@ -167,3 +170,78 @@ class Notification(db.Model):
     
     # Relationships
     user = db.relationship('User', foreign_keys=[user_id], backref='notifications')
+
+# Nouveaux modèles pour la gestion des unités consulaires et services
+
+class UniteConsulaire(db.Model):
+    """Représente une ambassade, consulat ou mission diplomatique"""
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(200), nullable=False)  # "Ambassade RDC Rabat"
+    type = db.Column(db.String(50), nullable=False)  # ambassade, consulat, mission_diplomatique
+    ville = db.Column(db.String(100), nullable=False)
+    pays = db.Column(db.String(100), nullable=False)
+    adresse_complete = db.Column(db.Text)
+    telephone = db.Column(db.String(20))
+    email = db.Column(db.String(120))
+    code_pays = db.Column(db.String(3))  # MAR, FRA, BEL, etc.
+    timezone = db.Column(db.String(50), default='UTC')
+    active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    # Relationships
+    agents = db.relationship('User', foreign_keys='User.unite_consulaire_id', backref='unite_consulaire', lazy=True)
+    services_disponibles = db.relationship('UniteConsulaire_Service', backref='unite_consulaire', lazy=True, cascade='all, delete-orphan')
+    createur = db.relationship('User', foreign_keys=[created_by], backref='unites_crees')
+    
+    def __repr__(self):
+        return f'<UniteConsulaire {self.nom}>'
+    
+    def get_agents_count(self):
+        return db.session.query(func.count(User.id)).filter(
+            User.unite_consulaire_id == self.id, 
+            User.role == 'agent'
+        ).scalar() or 0
+    
+    def get_services_actifs(self):
+        return db.session.query(UniteConsulaire_Service).filter(
+            UniteConsulaire_Service.unite_consulaire_id == self.id,
+            UniteConsulaire_Service.actif == True
+        ).all()
+
+class Service(db.Model):
+    """Les différents services consulaires disponibles"""
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(50), unique=True, nullable=False)  # carte_consulaire, passeport, etc.
+    nom = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    tarif_de_base = db.Column(db.Float, default=0.0)  # Tarif suggéré
+    documents_requis = db.Column(db.Text)  # JSON list des documents requis
+    delai_traitement = db.Column(db.Integer, default=7)  # En jours
+    actif = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    unites_proposant = db.relationship('UniteConsulaire_Service', backref='service', lazy=True)
+    
+    def __repr__(self):
+        return f'<Service {self.nom}>'
+
+class UniteConsulaire_Service(db.Model):
+    """Table de liaison entre unités consulaires et services avec tarifs personnalisés"""
+    __tablename__ = 'unite_service'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    unite_consulaire_id = db.Column(db.Integer, db.ForeignKey('unite_consulaire.id'), nullable=False)
+    service_id = db.Column(db.Integer, db.ForeignKey('service.id'), nullable=False)
+    tarif_personnalise = db.Column(db.Float, nullable=False)  # Le tarif défini par l'agent
+    actif = db.Column(db.Boolean, default=True)  # L'agent peut désactiver un service
+    configuration = db.Column(db.Text)  # JSON pour des configurations spéciales
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    configured_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    # Relationships  
+    configurateur = db.relationship('User', foreign_keys=[configured_by], backref='services_configures')
+    
+    __table_args__ = (db.UniqueConstraint('unite_consulaire_id', 'service_id', name='uq_unite_service'),)
