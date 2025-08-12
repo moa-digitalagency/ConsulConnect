@@ -538,7 +538,7 @@ def other_documents():
         flash(f'Votre demande a été soumise. Référence: {application.reference_number}', 'success')
         return redirect(url_for('view_application', id=application.id))
     
-    return render_template('services/other_documents.html', form=form)
+    return render_template('services/other_documents_corporate.html', form=form)
 
 @app.route('/services/emergency-pass', methods=['GET', 'POST'])
 @login_required

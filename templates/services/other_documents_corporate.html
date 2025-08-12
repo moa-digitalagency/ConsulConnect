@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}Autres Documents - e-Consulaire RDC{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+<style>
+    .service-fee {
+        background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .document-type-card {
+        border: 2px solid #E5E7EB;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+        margin-bottom: 1rem;
+    }
+    
+    .document-type-card:hover {
+        border-color: #6B7280;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    .document-type-card.selected {
+        border-color: #6B7280;
+        background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pattern-overlay">
+    <!-- Header Corporate -->
+    <header class="bg-white shadow-lg border-b-4 border-gray-600">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-6">
+                    <div class="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-800 rounded-xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-folder-open text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Autres Documents</h1>
+                        <p class="text-gray-600 mt-1">Attestations et certificats divers</p>
+                    </div>
+                </div>
+                <a href="{{ url_for('user_dashboard') }}" class="btn-corporate-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour au Dashboard
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            
+            <!-- Information sur les Frais -->
+            <div class="service-fee">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Frais de Service</h3>
+                        <p class="text-gray-100">Attestations officielles et certificats divers</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-3xl font-bold">$20 USD</div>
+                        <p class="text-gray-100 text-sm">Par document</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulaire -->
+            <form method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                
+                <!-- Types de Documents Disponibles -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-list text-gray-600"></i>
+                        </div>
+                        Types de Documents Disponibles
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label class="document-type-card cursor-pointer">
+                            <input type="radio" name="document_type" value="attestation_residence" class="sr-only" required>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">Attestation de Résidence</h4>
+                                <p class="text-sm text-gray-600">Certification de votre adresse actuelle</p>
+                            </div>
+                        </label>
+                        
+                        <label class="document-type-card cursor-pointer">
+                            <input type="radio" name="document_type" value="certificat_vie" class="sr-only" required>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">Certificat de Vie</h4>
+                                <p class="text-sm text-gray-600">Attestation que vous êtes vivant</p>
+                            </div>
+                        </label>
+                        
+                        <label class="document-type-card cursor-pointer">
+                            <input type="radio" name="document_type" value="attestation_nationalite" class="sr-only" required>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">Attestation de Nationalité</h4>
+                                <p class="text-sm text-gray-600">Certification de votre nationalité congolaise</p>
+                            </div>
+                        </label>
+                        
+                        <label class="document-type-card cursor-pointer">
+                            <input type="radio" name="document_type" value="duplicata_carte" class="sr-only" required>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">Duplicata de Carte</h4>
+                                <p class="text-sm text-gray-600">Copie de votre carte consulaire</p>
+                            </div>
+                        </label>
+                        
+                        <label class="document-type-card cursor-pointer">
+                            <input type="radio" name="document_type" value="autre" class="sr-only" required>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">Autre Attestation</h4>
+                                <p class="text-sm text-gray-600">Autre type de document officiel</p>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- Champ pour "Autre" -->
+                    <div id="autre_specification" class="mt-4" style="display: none;">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Précisez le type de document <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="document_type_other" class="form-input-corporate w-full" 
+                               placeholder="Décrivez le type d'attestation souhaité">
+                    </div>
+                </div>
+
+                <!-- Objet et Finalité -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.1s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-bullseye text-yellow-600"></i>
+                        </div>
+                        Objet et Finalité
+                    </h3>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Description précise de l'objet de votre demande <span class="text-red-500">*</span>
+                        </label>
+                        <textarea name="purpose" rows="4" class="form-input-corporate w-full" required
+                                  placeholder="Expliquez précisément l'objet de votre demande et l'usage prévu du document (démarches administratives, inscription, demande de visa, etc.)"></textarea>
+                        <p class="text-xs text-gray-500 mt-1">Soyez précis sur l'usage prévu pour faciliter le traitement de votre dossier</p>
+                    </div>
+                </div>
+
+                <!-- Informations Personnelles -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.2s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-user text-blue-600"></i>
+                        </div>
+                        Vos Informations
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nom complet</label>
+                            <input type="text" value="{{ current_user.first_name }} {{ current_user.last_name }}" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input type="email" value="{{ current_user.email }}" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Adresse actuelle</label>
+                            <input type="text" value="{{ current_user.adresse_complete or '' }}" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documents Justificatifs -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.3s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-file-upload text-green-600"></i>
+                        </div>
+                        Documents Justificatifs
+                    </h3>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Documents de soutien <span class="text-red-500">*</span>
+                        </label>
+                        <input type="file" name="supporting_documents" multiple accept=".jpg,.jpeg,.png,.pdf" 
+                               class="form-input-corporate w-full" required>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Joignez tous les documents pertinents pour votre demande (PDF, JPG, PNG - max 5 MB par fichier)
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Informations Importantes -->
+                <div class="bg-gray-50 border-l-4 border-gray-500 p-4 mb-6">
+                    <div class="flex">
+                        <i class="fas fa-info-circle text-gray-500 mr-3 mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Informations Importantes</h4>
+                            <ul class="text-sm text-gray-700 mt-1 space-y-1">
+                                <li>• Délai de traitement : 3-5 jours ouvrables</li>
+                                <li>• Les documents seront certifiés conformes par le consulat</li>
+                                <li>• Vérifiez que tous vos documents sont lisibles et complets</li>
+                                <li>• Un accusé de réception vous sera envoyé par email</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boutons d'action -->
+                <div class="flex justify-between">
+                    <a href="{{ url_for('user_dashboard') }}" class="btn-corporate-secondary">
+                        <i class="fas fa-times mr-2"></i>Annuler
+                    </a>
+                    <button type="submit" class="btn-corporate-primary" style="background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%); border: none;">
+                        Soumettre la Demande <i class="fas fa-paper-plane ml-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Gestion des types de documents
+document.addEventListener('DOMContentLoaded', function() {
+    const radioButtons = document.querySelectorAll('input[name="document_type"]');
+    const autreField = document.getElementById('autre_specification');
+    
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Enlever la classe selected de toutes les cartes
+            document.querySelectorAll('.document-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Ajouter la classe selected à la carte sélectionnée
+            this.closest('.document-type-card').classList.add('selected');
+            
+            // Montrer/cacher le champ "Autre"
+            if (this.value === 'autre') {
+                autreField.style.display = 'block';
+            } else {
+                autreField.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
