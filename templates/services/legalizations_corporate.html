@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block title %}Légalisations de Documents - e-Consulaire RDC{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+<style>
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+    
+    .step-indicator::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #E5E7EB;
+        z-index: 0;
+    }
+    
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: white;
+        border: 2px solid #E5E7EB;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .step.active .step-circle {
+        background: #10B981;
+        border-color: #10B981;
+        color: white;
+    }
+    
+    .step.completed .step-circle {
+        background: #10B981;
+        border-color: #10B981;
+        color: white;
+    }
+    
+    .step-label {
+        font-size: 0.875rem;
+        color: #6B7280;
+        text-align: center;
+    }
+    
+    .step.active .step-label {
+        color: #10B981;
+        font-weight: 600;
+    }
+    
+    .service-fee {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pattern-overlay">
+    <!-- Header Corporate -->
+    <header class="bg-white shadow-lg border-b-4 border-green-600">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-6">
+                    <div class="w-16 h-16 bg-gradient-to-br from-green-600 to-green-800 rounded-xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-stamp text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Légalisations de Documents</h1>
+                        <p class="text-gray-600 mt-1">Certification officielle de vos documents</p>
+                    </div>
+                </div>
+                <a href="{{ url_for('user_dashboard') }}" class="btn-corporate-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour au Dashboard
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-5xl mx-auto">
+            
+            <!-- Indicateur de Progression -->
+            <div class="step-indicator mb-8">
+                <div class="step active">
+                    <div class="step-circle">1</div>
+                    <span class="step-label">Informations</span>
+                </div>
+                <div class="step">
+                    <div class="step-circle">2</div>
+                    <span class="step-label">Documents</span>
+                </div>
+                <div class="step">
+                    <div class="step-circle">3</div>
+                    <span class="step-label">Paiement</span>
+                </div>
+                <div class="step">
+                    <div class="step-circle">4</div>
+                    <span class="step-label">Confirmation</span>
+                </div>
+            </div>
+
+            <!-- Information sur les Frais -->
+            <div class="service-fee">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Frais de Service</h3>
+                        <p class="text-green-100">Légalisation officielle avec cachet consulaire</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-3xl font-bold">$30-50 USD</div>
+                        <p class="text-green-100 text-sm">Selon l'urgence</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulaire -->
+            <form method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                
+                <!-- Type de Document -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-file-alt text-green-600"></i>
+                        </div>
+                        Type de Document à Légaliser
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Catégorie de document <span class="text-red-500">*</span>
+                            </label>
+                            <select name="document_category" class="form-input-corporate w-full" required>
+                                <option value="">Sélectionnez une catégorie</option>
+                                <option value="etat_civil">État Civil (Acte de naissance, mariage, décès)</option>
+                                <option value="education">Éducation (Diplômes, certificats)</option>
+                                <option value="commercial">Commercial (Statuts, contrats)</option>
+                                <option value="medical">Médical (Certificats médicaux)</option>
+                                <option value="judiciaire">Judiciaire (Casier judiciaire)</option>
+                                <option value="autre">Autre</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Nombre de documents <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" name="document_count" min="1" max="10" 
+                                   class="form-input-corporate w-full" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Urgence du Traitement -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.1s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-clock text-orange-600"></i>
+                        </div>
+                        Délai de Traitement
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label class="border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-green-500 hover:bg-green-50 transition-all">
+                            <input type="radio" name="urgency" value="normal" class="sr-only" required>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">Normal (7-10 jours)</h4>
+                                <p class="text-sm text-gray-600 mb-2">Traitement standard</p>
+                                <div class="text-lg font-bold text-green-600">$30 USD</div>
+                            </div>
+                        </label>
+                        
+                        <label class="border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-green-500 hover:bg-green-50 transition-all">
+                            <input type="radio" name="urgency" value="urgent" class="sr-only" required>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">Urgent (3-5 jours)</h4>
+                                <p class="text-sm text-gray-600 mb-2">Traitement prioritaire</p>
+                                <div class="text-lg font-bold text-orange-600">$50 USD</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Documents à Télécharger -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.2s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-upload text-blue-600"></i>
+                        </div>
+                        Documents à Légaliser
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Documents à légaliser <span class="text-red-500">*</span>
+                            </label>
+                            <input type="file" name="documents_to_legalize" multiple accept=".jpg,.jpeg,.png,.pdf" 
+                                   class="form-input-corporate w-full" required>
+                            <p class="text-xs text-gray-500 mt-1">Sélectionnez tous les documents (PDF, JPG, PNG - max 5 MB par fichier)</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Votre pièce d'identité <span class="text-red-500">*</span>
+                            </label>
+                            <input type="file" name="identity_document" accept=".jpg,.jpeg,.png,.pdf" 
+                                   class="form-input-corporate w-full" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informations de Contact -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.3s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-address-card text-purple-600"></i>
+                        </div>
+                        Informations de Contact
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Adresse de retour <span class="text-red-500">*</span>
+                            </label>
+                            <textarea name="return_address" rows="3" class="form-input-corporate w-full" required>{{ current_user.adresse_complete or '' }}</textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Téléphone <span class="text-red-500">*</span>
+                            </label>
+                            <input type="tel" name="phone" value="{{ current_user.phone or '' }}" 
+                                   class="form-input-corporate w-full" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boutons d'action -->
+                <div class="flex justify-between">
+                    <a href="{{ url_for('user_dashboard') }}" class="btn-corporate-secondary">
+                        <i class="fas fa-times mr-2"></i>Annuler
+                    </a>
+                    <button type="submit" class="btn-corporate-primary" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); border: none;">
+                        Continuer <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

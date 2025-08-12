@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Laissez-passer d'Urgence - e-Consulaire RDC{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+<style>
+    .emergency-alert {
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pattern-overlay">
+    <!-- Header Corporate -->
+    <header class="bg-white shadow-lg border-b-4 border-red-600">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-6">
+                    <div class="w-16 h-16 bg-gradient-to-br from-red-600 to-red-800 rounded-xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-plane-departure text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Laissez-passer d'Urgence</h1>
+                        <p class="text-gray-600 mt-1">Document de voyage temporaire</p>
+                    </div>
+                </div>
+                <a href="{{ url_for('user_dashboard') }}" class="btn-corporate-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour au Dashboard
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            
+            <!-- Alerte d'Urgence -->
+            <div class="emergency-alert">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-triangle text-3xl mr-4"></i>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Service d'Urgence</h3>
+                        <p>Ce document est réservé aux situations d'urgence uniquement. 
+                           Contactez le consulat par téléphone avant de faire cette demande.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulaire -->
+            <form method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                
+                <!-- Situation d'Urgence -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-exclamation-circle text-red-600"></i>
+                        </div>
+                        Nature de l'Urgence
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Motif de l'urgence <span class="text-red-500">*</span>
+                            </label>
+                            <select name="emergency_reason" class="form-input-corporate w-full" required>
+                                <option value="">Sélectionnez le motif</option>
+                                <option value="deces_famille">Décès dans la famille</option>
+                                <option value="maladie_grave">Maladie grave</option>
+                                <option value="perte_vol_passeport">Perte ou vol de passeport</option>
+                                <option value="urgence_medicale">Urgence médicale</option>
+                                <option value="autre">Autre urgence</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Description détaillée <span class="text-red-500">*</span>
+                            </label>
+                            <textarea name="emergency_description" rows="4" 
+                                      class="form-input-corporate w-full" required
+                                      placeholder="Décrivez en détail votre situation d'urgence..."></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Date de voyage prévue <span class="text-red-500">*</span>
+                            </label>
+                            <input type="date" name="travel_date" class="form-input-corporate w-full" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informations Personnelles -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.1s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-user text-blue-600"></i>
+                        </div>
+                        Informations Personnelles
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nom complet</label>
+                            <input type="text" value="{{ current_user.first_name }} {{ current_user.last_name }}" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Date de naissance</label>
+                            <input type="date" value="{{ current_user.date_naissance.strftime('%Y-%m-%d') if current_user.date_naissance else '' }}" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documents Requis -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.2s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-file-upload text-yellow-600"></i>
+                        </div>
+                        Documents Requis
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Photo d'identité récente <span class="text-red-500">*</span>
+                            </label>
+                            <input type="file" name="photo" accept=".jpg,.jpeg,.png" class="form-input-corporate w-full" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Pièce d'identité <span class="text-red-500">*</span>
+                            </label>
+                            <input type="file" name="identity_document" accept=".jpg,.jpeg,.png,.pdf" class="form-input-corporate w-full" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Justificatifs de l'urgence <span class="text-red-500">*</span>
+                            </label>
+                            <input type="file" name="emergency_proof" multiple accept=".jpg,.jpeg,.png,.pdf" class="form-input-corporate w-full" required>
+                            <p class="text-xs text-gray-500 mt-1">Certificat médical, acte de décès, rapport de police, etc.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact d'Urgence -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.3s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-phone text-green-600"></i>
+                        </div>
+                        Contact Immédiat
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Téléphone <span class="text-red-500">*</span>
+                            </label>
+                            <input type="tel" name="emergency_phone" class="form-input-corporate w-full" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Email <span class="text-red-500">*</span>
+                            </label>
+                            <input type="email" name="emergency_email" value="{{ current_user.email }}" class="form-input-corporate w-full" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Avertissement -->
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+                    <div class="flex">
+                        <i class="fas fa-exclamation-triangle text-red-500 mr-3 mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold text-red-800">Important</h4>
+                            <p class="text-sm text-red-700 mt-1">
+                                Le laissez-passer d'urgence est un document temporaire valable uniquement pour un voyage simple. 
+                                Il ne remplace pas un passeport régulier. Des frais d'urgence s'appliquent.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boutons d'action -->
+                <div class="flex justify-between">
+                    <a href="{{ url_for('user_dashboard') }}" class="btn-corporate-secondary">
+                        <i class="fas fa-times mr-2"></i>Annuler
+                    </a>
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-paper-plane mr-2"></i>Soumettre la Demande d'Urgence
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -300,6 +300,8 @@ def consular_card():
     
     return render_template('services/consular_card_corporate.html', form=form)
 
+
+
 @app.route('/services/care-attestation', methods=['GET', 'POST'])
 @login_required
 def care_attestation():
@@ -420,7 +422,7 @@ def legalizations():
         flash(f'Votre rendez-vous a été pris. Référence: {application.reference_number}', 'success')
         return redirect(url_for('view_application', id=application.id))
     
-    return render_template('services/legalizations.html', form=form)
+    return render_template('services/legalizations_corporate.html', form=form)
 
 @app.route('/services/passport', methods=['GET', 'POST'])
 @login_required
@@ -483,7 +485,7 @@ def passport():
         flash(f'Votre pré-demande a été soumise. Référence: {application.reference_number}', 'success')
         return redirect(url_for('view_application', id=application.id))
     
-    return render_template('services/passport.html', form=form)
+    return render_template('services/passport_corporate.html', form=form)
 
 @app.route('/services/other-documents', methods=['GET', 'POST'])
 @login_required
@@ -536,6 +538,246 @@ def other_documents():
         return redirect(url_for('view_application', id=application.id))
     
     return render_template('services/other_documents.html', form=form)
+
+@app.route('/services/emergency-pass', methods=['GET', 'POST'])
+@login_required
+def emergency_pass():
+    form = EmergencyPassForm()
+    if form.validate_on_submit():
+        # Create application
+        application = Application(
+            user_id=current_user.id,
+            service_type='laissez_passer',
+            form_data=json.dumps({
+                'emergency_reason': request.form.get('emergency_reason'),
+                'emergency_description': request.form.get('emergency_description'),
+                'travel_date': request.form.get('travel_date'),
+                'emergency_phone': request.form.get('emergency_phone'),
+                'emergency_email': request.form.get('emergency_email')
+            }),
+            payment_amount=75.0,  # Emergency fee
+            status='urgent'
+        )
+        db.session.add(application)
+        db.session.flush()
+        
+        # Save uploaded files with simplified handling
+        files_to_save = [
+            ('photo', request.files.get('photo')),
+            ('identity_document', request.files.get('identity_document')),
+            ('emergency_proof', request.files.getlist('emergency_proof'))
+        ]
+        
+        for doc_type, file_data in files_to_save:
+            if file_data:
+                if isinstance(file_data, list):
+                    for i, file in enumerate(file_data):
+                        if file and file.filename:
+                            filename = secure_filename(file.filename)
+                            unique_filename = f"{application.id}_{doc_type}_{i}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+                            file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                            file.save(file_path)
+                            
+                            document = Document(
+                                application_id=application.id,
+                                filename=unique_filename,
+                                original_filename=filename,
+                                file_path=file_path,
+                                file_size=os.path.getsize(file_path),
+                                document_type=f"{doc_type}_{i}"
+                            )
+                            db.session.add(document)
+                else:
+                    if file_data.filename:
+                        filename = secure_filename(file_data.filename)
+                        unique_filename = f"{application.id}_{doc_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+                        file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                        file_data.save(file_path)
+                        
+                        document = Document(
+                            application_id=application.id,
+                            filename=unique_filename,
+                            original_filename=filename,
+                            file_path=file_path,
+                            file_size=os.path.getsize(file_path),
+                            document_type=doc_type
+                        )
+                        db.session.add(document)
+        
+        status_history = StatusHistory(
+            application_id=application.id,
+            new_status='urgent',
+            changed_by=current_user.id
+        )
+        db.session.add(status_history)
+        
+        db.session.commit()
+        
+        flash(f'Votre demande d\'urgence a été soumise. Référence: {application.reference_number}', 'success')
+        return redirect(url_for('view_application', id=application.id))
+    
+    return render_template('services/emergency_pass_corporate.html', form=form)
+
+@app.route('/services/civil-status', methods=['GET', 'POST'])
+@login_required
+def civil_status():
+    form = CivilStatusForm()
+    if form.validate_on_submit():
+        # Create application
+        application = Application(
+            user_id=current_user.id,
+            service_type='etat_civil',
+            form_data=json.dumps({
+                'document_type': request.form.get('document_type'),
+                'relationship': request.form.get('relationship'),
+                'subject_name': request.form.get('subject_name'),
+                'event_date': request.form.get('event_date'),
+                'event_place': request.form.get('event_place'),
+                'copies_count': request.form.get('copies_count')
+            }),
+            payment_amount=35.0
+        )
+        db.session.add(application)
+        db.session.flush()
+        
+        # Save uploaded files
+        files_to_save = [
+            ('identity_document', request.files.get('identity_document')),
+            ('relationship_proof', request.files.get('relationship_proof')),
+            ('reference_documents', request.files.getlist('reference_documents'))
+        ]
+        
+        for doc_type, file_data in files_to_save:
+            if file_data:
+                if isinstance(file_data, list):
+                    for i, file in enumerate(file_data):
+                        if file and file.filename:
+                            filename = secure_filename(file.filename)
+                            unique_filename = f"{application.id}_{doc_type}_{i}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+                            file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                            file.save(file_path)
+                            
+                            document = Document(
+                                application_id=application.id,
+                                filename=unique_filename,
+                                original_filename=filename,
+                                file_path=file_path,
+                                file_size=os.path.getsize(file_path),
+                                document_type=f"{doc_type}_{i}"
+                            )
+                            db.session.add(document)
+                else:
+                    if file_data.filename:
+                        filename = secure_filename(file_data.filename)
+                        unique_filename = f"{application.id}_{doc_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+                        file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                        file_data.save(file_path)
+                        
+                        document = Document(
+                            application_id=application.id,
+                            filename=unique_filename,
+                            original_filename=filename,
+                            file_path=file_path,
+                            file_size=os.path.getsize(file_path),
+                            document_type=doc_type
+                        )
+                        db.session.add(document)
+        
+        status_history = StatusHistory(
+            application_id=application.id,
+            new_status='soumise',
+            changed_by=current_user.id
+        )
+        db.session.add(status_history)
+        
+        db.session.commit()
+        
+        flash(f'Votre demande d\'état civil a été soumise. Référence: {application.reference_number}', 'success')
+        return redirect(url_for('view_application', id=application.id))
+    
+    return render_template('services/civil_status_corporate.html', form=form)
+
+@app.route('/services/power-attorney', methods=['GET', 'POST'])
+@login_required
+def power_attorney():
+    form = PowerAttorneyForm()
+    if form.validate_on_submit():
+        # Create application
+        application = Application(
+            user_id=current_user.id,
+            service_type='procuration',
+            form_data=json.dumps({
+                'power_type': request.form.get('power_type'),
+                'agent_name': request.form.get('agent_name'),
+                'agent_birth_date': request.form.get('agent_birth_date'),
+                'agent_address': request.form.get('agent_address'),
+                'agent_profession': request.form.get('agent_profession'),
+                'agent_phone': request.form.get('agent_phone'),
+                'agent_email': request.form.get('agent_email'),
+                'powers_description': request.form.get('powers_description'),
+                'validity_duration': request.form.get('validity_duration')
+            }),
+            payment_amount=40.0
+        )
+        db.session.add(application)
+        db.session.flush()
+        
+        # Save uploaded files
+        files_to_save = [
+            ('mandant_identity', request.files.get('mandant_identity')),
+            ('agent_identity', request.files.get('agent_identity')),
+            ('supporting_documents', request.files.getlist('supporting_documents'))
+        ]
+        
+        for doc_type, file_data in files_to_save:
+            if file_data:
+                if isinstance(file_data, list):
+                    for i, file in enumerate(file_data):
+                        if file and file.filename:
+                            filename = secure_filename(file.filename)
+                            unique_filename = f"{application.id}_{doc_type}_{i}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+                            file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                            file.save(file_path)
+                            
+                            document = Document(
+                                application_id=application.id,
+                                filename=unique_filename,
+                                original_filename=filename,
+                                file_path=file_path,
+                                file_size=os.path.getsize(file_path),
+                                document_type=f"{doc_type}_{i}"
+                            )
+                            db.session.add(document)
+                else:
+                    if file_data.filename:
+                        filename = secure_filename(file_data.filename)
+                        unique_filename = f"{application.id}_{doc_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+                        file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                        file_data.save(file_path)
+                        
+                        document = Document(
+                            application_id=application.id,
+                            filename=unique_filename,
+                            original_filename=filename,
+                            file_path=file_path,
+                            file_size=os.path.getsize(file_path),
+                            document_type=doc_type
+                        )
+                        db.session.add(document)
+        
+        status_history = StatusHistory(
+            application_id=application.id,
+            new_status='soumise',
+            changed_by=current_user.id
+        )
+        db.session.add(status_history)
+        
+        db.session.commit()
+        
+        flash(f'Votre demande de procuration a été soumise. Référence: {application.reference_number}', 'success')
+        return redirect(url_for('view_application', id=application.id))
+    
+    return render_template('services/power_attorney_corporate.html', form=form)
 
 @app.route('/application/<int:id>')
 @login_required

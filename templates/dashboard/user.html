@@ -162,7 +162,10 @@
                     </div>
                     <h4 class="font-semibold text-gray-900 mb-2">Laissez-passer</h4>
                     <p class="text-sm text-gray-600 mb-4">Document d'urgence</p>
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    <a href="{{ url_for('emergency_pass') }}" class="text-blue-600 font-medium text-sm hover:text-blue-700">
+                        Faire une demande <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 mt-2">
                         <i class="fas fa-exclamation-triangle mr-1"></i>Urgence
                     </span>
                 </div>
@@ -174,7 +177,7 @@
                     </div>
                     <h4 class="font-semibold text-gray-900 mb-2">État Civil</h4>
                     <p class="text-sm text-gray-600 mb-4">Transcriptions et actes</p>
-                    <a href="#" class="text-blue-600 font-medium text-sm hover:text-blue-700">
+                    <a href="{{ url_for('civil_status') }}" class="text-blue-600 font-medium text-sm hover:text-blue-700">
                         Faire une demande <i class="fas fa-arrow-right ml-1"></i>
                     </a>
                 </div>
@@ -186,7 +189,7 @@
                     </div>
                     <h4 class="font-semibold text-gray-900 mb-2">Procurations</h4>
                     <p class="text-sm text-gray-600 mb-4">Actes notariés</p>
-                    <a href="#" class="text-blue-600 font-medium text-sm hover:text-blue-700">
+                    <a href="{{ url_for('power_attorney') }}" class="text-blue-600 font-medium text-sm hover:text-blue-700">
                         Faire une demande <i class="fas fa-arrow-right ml-1"></i>
                     </a>
                 </div>

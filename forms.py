@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
-from wtforms import StringField, TextAreaField, SelectField, DateField, FloatField, BooleanField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, Email, Length, Optional, ValidationError
+from wtforms import StringField, TextAreaField, SelectField, DateField, FloatField, BooleanField, PasswordField, SubmitField, IntegerField
+from wtforms.validators import DataRequired, Email, Length, Optional, ValidationError, NumberRange
 from models import User
 
 class LoginForm(FlaskForm):
@@ -193,3 +193,87 @@ class ApplicationStatusForm(FlaskForm):
     rejection_reason = TextAreaField('Motif de rejet', validators=[Optional(), Length(max=1000)])
     
     submit = SubmitField('Mettre à jour')
+
+class EmergencyPassForm(FlaskForm):
+    emergency_reason = SelectField('Motif de l\'urgence', choices=[
+        ('deces_famille', 'Décès dans la famille'),
+        ('maladie_grave', 'Maladie grave'),
+        ('perte_vol_passeport', 'Perte ou vol de passeport'),
+        ('urgence_medicale', 'Urgence médicale'),
+        ('autre', 'Autre urgence')
+    ], validators=[DataRequired()])
+    
+    emergency_description = TextAreaField('Description détaillée', validators=[DataRequired(), Length(max=1000)])
+    travel_date = DateField('Date de voyage prévue', validators=[DataRequired()])
+    
+    # Documents
+    photo = FileField('Photo d\'identité récente', validators=[FileRequired(), FileAllowed(['jpg', 'jpeg', 'png'])])
+    identity_document = FileField('Pièce d\'identité', validators=[FileRequired(), FileAllowed(['jpg', 'jpeg', 'png', 'pdf'])])
+    emergency_proof = FileField('Justificatifs de l\'urgence', validators=[FileRequired(), FileAllowed(['jpg', 'jpeg', 'png', 'pdf'])])
+    
+    # Contact
+    emergency_phone = StringField('Téléphone', validators=[DataRequired(), Length(max=20)])
+    emergency_email = StringField('Email', validators=[DataRequired(), Email()])
+    
+    submit = SubmitField('Soumettre la demande d\'urgence')
+
+class CivilStatusForm(FlaskForm):
+    document_type = SelectField('Type de document', choices=[
+        ('naissance', 'Acte de Naissance'),
+        ('mariage', 'Acte de Mariage'),
+        ('deces', 'Acte de Décès'),
+        ('livret', 'Livret de Famille')
+    ], validators=[DataRequired()])
+    
+    relationship = SelectField('Lien avec la personne concernée', choices=[
+        ('moi-meme', 'Moi-même'),
+        ('conjoint', 'Conjoint(e)'),
+        ('enfant', 'Enfant'),
+        ('parent', 'Parent'),
+        ('representant_legal', 'Représentant légal')
+    ], validators=[DataRequired()])
+    
+    subject_name = StringField('Nom de la personne concernée', validators=[DataRequired(), Length(max=200)])
+    event_date = DateField('Date de l\'événement', validators=[DataRequired()])
+    event_place = StringField('Lieu de l\'événement', validators=[DataRequired(), Length(max=200)])
+    copies_count = IntegerField('Nombre de copies', validators=[DataRequired(), NumberRange(min=1, max=5)])
+    
+    # Documents
+    identity_document = FileField('Votre pièce d\'identité', validators=[FileRequired(), FileAllowed(['jpg', 'jpeg', 'png', 'pdf'])])
+    relationship_proof = FileField('Justificatif de lien de parenté', validators=[Optional(), FileAllowed(['jpg', 'jpeg', 'png', 'pdf'])])
+    reference_documents = FileField('Documents de référence', validators=[Optional(), FileAllowed(['jpg', 'jpeg', 'png', 'pdf'])])
+    
+    submit = SubmitField('Soumettre la demande')
+
+class PowerAttorneyForm(FlaskForm):
+    power_type = SelectField('Type de procuration', choices=[
+        ('generale', 'Procuration Générale'),
+        ('speciale', 'Procuration Spéciale'),
+        ('immobiliere', 'Procuration Immobilière'),
+        ('bancaire', 'Procuration Bancaire')
+    ], validators=[DataRequired()])
+    
+    # Informations du mandataire
+    agent_name = StringField('Nom complet du mandataire', validators=[DataRequired(), Length(max=200)])
+    agent_birth_date = DateField('Date de naissance du mandataire', validators=[DataRequired()])
+    agent_address = TextAreaField('Adresse complète du mandataire', validators=[DataRequired(), Length(max=500)])
+    agent_profession = StringField('Profession du mandataire', validators=[DataRequired(), Length(max=200)])
+    agent_phone = StringField('Téléphone du mandataire', validators=[DataRequired(), Length(max=20)])
+    agent_email = StringField('Email du mandataire', validators=[Optional(), Email()])
+    
+    # Pouvoirs accordés
+    powers_description = TextAreaField('Description détaillée des pouvoirs', validators=[DataRequired(), Length(max=2000)])
+    validity_duration = SelectField('Durée de validité', choices=[
+        ('illimitee', 'Illimitée (jusqu\'à révocation)'),
+        ('1_an', '1 an'),
+        ('2_ans', '2 ans'),
+        ('5_ans', '5 ans'),
+        ('personnalisee', 'Durée personnalisée')
+    ], validators=[DataRequired()])
+    
+    # Documents
+    mandant_identity = FileField('Votre pièce d\'identité', validators=[FileRequired(), FileAllowed(['jpg', 'jpeg', 'png', 'pdf'])])
+    agent_identity = FileField('Pièce d\'identité du mandataire', validators=[FileRequired(), FileAllowed(['jpg', 'jpeg', 'png', 'pdf'])])
+    supporting_documents = FileField('Documents justificatifs', validators=[Optional(), FileAllowed(['jpg', 'jpeg', 'png', 'pdf'])])
+    
+    submit = SubmitField('Soumettre la demande')

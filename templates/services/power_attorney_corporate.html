@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block title %}Procurations - e-Consulaire RDC{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+<style>
+    .service-fee {
+        background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pattern-overlay">
+    <!-- Header Corporate -->
+    <header class="bg-white shadow-lg border-b-4 border-indigo-600">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-6">
+                    <div class="w-16 h-16 bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-file-signature text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Procurations</h1>
+                        <p class="text-gray-600 mt-1">Actes notariés et mandats officiels</p>
+                    </div>
+                </div>
+                <a href="{{ url_for('user_dashboard') }}" class="btn-corporate-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour au Dashboard
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            
+            <!-- Information sur les Frais -->
+            <div class="service-fee">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Frais de Service</h3>
+                        <p class="text-indigo-100">Établissement et certification de procurations</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-3xl font-bold">$40 USD</div>
+                        <p class="text-indigo-100 text-sm">Par procuration</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulaire -->
+            <form method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                
+                <!-- Type de Procuration -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-gavel text-indigo-600"></i>
+                        </div>
+                        Type de Procuration
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label class="border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all">
+                            <input type="radio" name="power_type" value="generale" class="sr-only" required>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">Procuration Générale</h4>
+                                <p class="text-sm text-gray-600">Pouvoirs étendus pour tous actes</p>
+                            </div>
+                        </label>
+                        
+                        <label class="border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all">
+                            <input type="radio" name="power_type" value="speciale" class="sr-only" required>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">Procuration Spéciale</h4>
+                                <p class="text-sm text-gray-600">Pouvoirs limités à des actes précis</p>
+                            </div>
+                        </label>
+                        
+                        <label class="border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all">
+                            <input type="radio" name="power_type" value="immobiliere" class="sr-only" required>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">Procuration Immobilière</h4>
+                                <p class="text-sm text-gray-600">Vente, achat, gestion de biens</p>
+                            </div>
+                        </label>
+                        
+                        <label class="border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all">
+                            <input type="radio" name="power_type" value="bancaire" class="sr-only" required>
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">Procuration Bancaire</h4>
+                                <p class="text-sm text-gray-600">Opérations bancaires et financières</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Informations du Mandant -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.1s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-user-tie text-blue-600"></i>
+                        </div>
+                        Informations du Mandant (Vous)
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nom complet</label>
+                            <input type="text" value="{{ current_user.first_name }} {{ current_user.last_name }}" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Date de naissance</label>
+                            <input type="date" value="{{ current_user.date_naissance.strftime('%Y-%m-%d') if current_user.date_naissance else '' }}" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Adresse</label>
+                            <input type="text" value="{{ current_user.adresse_complete or '' }}" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Profession</label>
+                            <input type="text" value="{{ current_user.profession or '' }}" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informations du Mandataire -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.2s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-user-check text-green-600"></i>
+                        </div>
+                        Informations du Mandataire
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Nom complet <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="agent_name" class="form-input-corporate w-full" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Date de naissance <span class="text-red-500">*</span>
+                            </label>
+                            <input type="date" name="agent_birth_date" class="form-input-corporate w-full" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Adresse complète <span class="text-red-500">*</span>
+                            </label>
+                            <textarea name="agent_address" rows="2" class="form-input-corporate w-full" required></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Profession <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="agent_profession" class="form-input-corporate w-full" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Téléphone <span class="text-red-500">*</span>
+                            </label>
+                            <input type="tel" name="agent_phone" class="form-input-corporate w-full" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Email
+                            </label>
+                            <input type="email" name="agent_email" class="form-input-corporate w-full">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pouvoirs Accordés -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.3s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-list-check text-yellow-600"></i>
+                        </div>
+                        Pouvoirs Accordés
+                    </h3>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Description détaillée des pouvoirs <span class="text-red-500">*</span>
+                        </label>
+                        <textarea name="powers_description" rows="6" class="form-input-corporate w-full" required
+                                  placeholder="Décrivez précisément les actes que le mandataire est autorisé à accomplir en votre nom..."></textarea>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Durée de validité
+                        </label>
+                        <select name="validity_duration" class="form-input-corporate w-full">
+                            <option value="illimitee">Illimitée (jusqu'à révocation)</option>
+                            <option value="1_an">1 an</option>
+                            <option value="2_ans">2 ans</option>
+                            <option value="5_ans">5 ans</option>
+                            <option value="personnalisee">Durée personnalisée</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Documents Requis -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.4s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-file-upload text-red-600"></i>
+                        </div>
+                        Documents Requis
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Votre pièce d'identité <span class="text-red-500">*</span>
+                            </label>
+                            <input type="file" name="mandant_identity" accept=".jpg,.jpeg,.png,.pdf" 
+                                   class="form-input-corporate w-full" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Pièce d'identité du mandataire <span class="text-red-500">*</span>
+                            </label>
+                            <input type="file" name="agent_identity" accept=".jpg,.jpeg,.png,.pdf" 
+                                   class="form-input-corporate w-full" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Documents justificatifs
+                            </label>
+                            <input type="file" name="supporting_documents" multiple accept=".jpg,.jpeg,.png,.pdf" 
+                                   class="form-input-corporate w-full">
+                            <p class="text-xs text-gray-500 mt-1">Documents relatifs aux actes à accomplir (contrats, titres de propriété, etc.)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Avertissement -->
+                <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6">
+                    <div class="flex">
+                        <i class="fas fa-info-circle text-indigo-500 mr-3 mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold text-indigo-800">Information Importante</h4>
+                            <p class="text-sm text-indigo-700 mt-1">
+                                La procuration sera établie selon le droit congolais et devra être utilisée conformément 
+                                aux lois en vigueur. Vous restez responsable des actes accomplis par votre mandataire.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boutons d'action -->
+                <div class="flex justify-between">
+                    <a href="{{ url_for('user_dashboard') }}" class="btn-corporate-secondary">
+                        <i class="fas fa-times mr-2"></i>Annuler
+                    </a>
+                    <button type="submit" class="btn-corporate-primary" style="background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%); border: none;">
+                        Continuer <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
