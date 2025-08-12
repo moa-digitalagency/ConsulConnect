@@ -1,104 +1,149 @@
 {% extends "base.html" %}
 
-{% block title %}Connexion Administrateur - e-Consulaire RDC{% endblock %}
+{% block title %}Administration - e-Consulaire RDC{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center p-4">
+<div class="min-h-screen flex items-center justify-center p-6 pattern-overlay">
     <div class="w-full max-w-md">
-        <!-- Logo and Title -->
-        <div class="text-center mb-8 animate-fade-in">
-            <div class="glass rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                <i class="fas fa-user-shield text-4xl text-white"></i>
+        <!-- Header Corporate -->
+        <div class="text-center mb-8 fade-in-corporate">
+            <div class="logo-corporate mx-auto mb-6">
+                <i class="fas fa-shield-alt text-4xl text-white"></i>
             </div>
-            <h1 class="text-3xl font-bold text-white mb-2">Administration</h1>
-            <p class="text-white/80">Espace réservé aux administrateurs du système</p>
+            <h1 class="title-corporate">Administration</h1>
+            <p class="subtitle-corporate">Accès sécurisé à l'interface d'administration</p>
         </div>
 
-        <!-- Login Form -->
-        <div class="glass-strong rounded-2xl p-8 animate-slide-up">
+        <!-- Formulaire de Connexion -->
+        <div class="card-corporate panel-admin p-8 slide-up-corporate">
+            <!-- Badge identification du panneau -->
+            <div class="text-center mb-6">
+                <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-red-50 text-red-700 border border-red-200">
+                    <i class="fas fa-user-shield mr-2 icon-rdc-red"></i>
+                    Portail Administration
+                </span>
+            </div>
+
+            <!-- Avertissement Sécurisé -->
+            <div class="alert-corporate-info mb-6">
+                <div class="flex items-center">
+                    <i class="fas fa-lock text-blue-600 mr-3"></i>
+                    <div>
+                        <h4 class="font-semibold text-sm">Accès Sécurisé</h4>
+                        <p class="text-xs mt-1">Cette interface est réservée aux administrateurs autorisés</p>
+                    </div>
+                </div>
+            </div>
+
             <form method="POST" class="space-y-6">
                 {{ form.hidden_tag() }}
                 
                 <!-- Email Field -->
                 <div class="space-y-2">
-                    <label for="email" class="block text-sm font-semibold text-white/90">
-                        <i class="fas fa-envelope mr-2"></i>Adresse Email
+                    <label for="email" class="label-corporate">
+                        <i class="fas fa-envelope mr-2 icon-rdc-red"></i>Adresse Email Administrateur
                     </label>
-                    <div class="relative">
-                        {{ form.email(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="admin@diplomatie.gouv.cd") }}
-                        {% if form.email.errors %}
-                            <div class="absolute -bottom-6 left-0 text-red-400 text-xs">
-                                {% for error in form.email.errors %}
-                                    <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
+                    {{ form.email(class="input-corporate w-full", placeholder="admin@consulat.cd") }}
+                    {% if form.email.errors %}
+                        <div class="alert-corporate-error">
+                            {% for error in form.email.errors %}
+                                <i class="fas fa-exclamation-triangle mr-2"></i>{{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
 
                 <!-- Password Field -->
-                <div class="space-y-2 pt-2">
-                    <label for="password" class="block text-sm font-semibold text-white/90">
-                        <i class="fas fa-lock mr-2"></i>Mot de Passe
+                <div class="space-y-2">
+                    <label for="password" class="label-corporate">
+                        <i class="fas fa-lock mr-2 icon-rdc-red"></i>Mot de Passe Sécurisé
                     </label>
                     <div class="relative">
-                        {{ form.password(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="••••••••") }}
-                        <button type="button" onclick="togglePassword('password')" class="absolute right-3 top-3 text-white/60 hover:text-white">
+                        {{ form.password(class="input-corporate w-full pr-12", placeholder="Mot de passe administrateur") }}
+                        <button type="button" onclick="togglePassword('password')" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
                             <i class="fas fa-eye" id="password-eye"></i>
                         </button>
-                        {% if form.password.errors %}
-                            <div class="absolute -bottom-6 left-0 text-red-400 text-xs">
-                                {% for error in form.password.errors %}
-                                    <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
                     </div>
+                    {% if form.password.errors %}
+                        <div class="alert-corporate-error">
+                            {% for error in form.password.errors %}
+                                <i class="fas fa-exclamation-triangle mr-2"></i>{{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
 
-                <!-- Remember Me -->
-                <div class="flex items-center pt-2">
-                    {{ form.remember_me(class="w-4 h-4 text-primary-600 bg-white/10 border-white/20 rounded focus:ring-primary-500 focus:ring-2") }}
-                    <label for="remember_me" class="ml-2 text-sm text-white/80">Se souvenir de moi</label>
+                <!-- Security Options -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            {{ form.remember_me(class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500") }}
+                            <label for="remember_me" class="ml-2 text-sm text-gray-600">
+                                Session étendue (30 jours)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="text-xs text-gray-500 bg-yellow-50 p-3 rounded border border-yellow-200">
+                        <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                        <strong>Sécurité:</strong> Cette session sera enregistrée dans les journaux d'audit
+                    </div>
                 </div>
 
                 <!-- Submit Button -->
-                <button type="submit" class="btn-glass w-full py-3 rounded-xl text-white font-semibold text-lg hover:shadow-lg transform transition-all duration-300 hover:-translate-y-1">
-                    <i class="fas fa-sign-in-alt mr-2"></i>Se Connecter
+                <button type="submit" class="btn-corporate-primary w-full" style="background: linear-gradient(135deg, var(--rdc-red) 0%, var(--rdc-red-dark) 100%);">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Accès Administration
                 </button>
             </form>
 
-            <!-- Security Notice -->
-            <div class="mt-6 p-4 glass rounded-lg">
-                <div class="flex items-start space-x-3">
-                    <i class="fas fa-shield-alt text-yellow-400 mt-1"></i>
-                    <div>
-                        <h4 class="text-white font-semibold text-sm">Accès Sécurisé</h4>
-                        <p class="text-white/70 text-xs mt-1">
-                            Cet espace est protégé et surveillé. Toute tentative d'accès non autorisé sera signalée.
-                        </p>
+            <!-- Informations de test -->
+            <div class="mt-8 p-4 bg-red-50 rounded-lg border border-red-200">
+                <h4 class="text-sm font-semibold text-red-800 mb-3">
+                    <i class="fas fa-info-circle mr-2"></i>Identifiants de Test - Administration
+                </h4>
+                <div class="space-y-2 text-xs text-red-700">
+                    <div class="bg-white p-2 rounded border">
+                        <strong>Superviseur:</strong><br>
+                        <strong>Email:</strong> superviseur@test.cd<br>
+                        <strong>Mot de passe:</strong> superviseur123
+                    </div>
+                    <div class="bg-white p-2 rounded border">
+                        <strong>Agent Admin:</strong><br>
+                        <strong>Email:</strong> agent@test.cd<br>
+                        <strong>Mot de passe:</strong> agent123
                     </div>
                 </div>
             </div>
 
-            <!-- Alternative Login Links -->
-            <div class="mt-8 text-center">
-                <p class="text-white/60 text-sm mb-4">Vous n'êtes pas administrateur ?</p>
-                <div class="flex space-x-4 justify-center">
-                    <a href="{{ url_for('auth.user_login') }}" class="text-white/80 hover:text-white text-sm underline">
-                        <i class="fas fa-users mr-1"></i>Citoyens
-                    </a>
-                    <a href="{{ url_for('auth.consulate_login') }}" class="text-white/80 hover:text-white text-sm underline">
-                        <i class="fas fa-building mr-1"></i>Diplomates
-                    </a>
-                </div>
+            <!-- Aide et Support -->
+            <div class="mt-6 text-center">
+                <a href="#" class="text-sm text-red-600 hover:text-red-500 font-medium">
+                    <i class="fas fa-question-circle mr-1"></i>Support Technique
+                </a>
             </div>
         </div>
 
-        <!-- Footer -->
-        <div class="text-center mt-8 text-white/60 text-xs">
-            <p>&copy; 2025 République Démocratique du Congo</p>
-            <p>Ministère des Affaires Étrangères - Services Consulaires</p>
+        <!-- Autres portails -->
+        <div class="mt-8 text-center space-y-3">
+            <p class="text-sm text-gray-500">Accès aux autres portails :</p>
+            <div class="flex justify-center space-x-4">
+                <a href="{{ url_for('auth.user_login') }}" class="text-sm text-blue-600 hover:text-blue-500 font-medium">
+                    <i class="fas fa-users mr-1"></i>Citoyens
+                </a>
+                <a href="{{ url_for('auth.consulate_login') }}" class="text-sm text-yellow-600 hover:text-yellow-500 font-medium">
+                    <i class="fas fa-building mr-1"></i>Personnel Consulaire
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer Corporate -->
+        <div class="footer-corporate">
+            <p>&copy; 2025 <span class="rdc-accent">République Démocratique du Congo</span></p>
+            <p>Ministère des Affaires Étrangères - Administration Numérique Sécurisée</p>
         </div>
     </div>
 </div>

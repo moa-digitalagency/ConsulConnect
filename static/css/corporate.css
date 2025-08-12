@@ -1,0 +1,364 @@
+/* e-Consulaire RDC - Design Corporate Professionnel */
+
+:root {
+    /* Couleurs officielles RDC */
+    --rdc-blue: #0066CC;
+    --rdc-yellow: #FFD700;
+    --rdc-red: #CE1126;
+    
+    /* Nuances professionnelles */
+    --rdc-blue-light: #3399FF;
+    --rdc-blue-dark: #004499;
+    --rdc-yellow-light: #FFEB3B;
+    --rdc-yellow-dark: #FFC107;
+    --rdc-red-light: #F44336;
+    --rdc-red-dark: #B71C1C;
+    
+    /* Corporate colors */
+    --corporate-white: #FFFFFF;
+    --corporate-gray-50: #FAFAFA;
+    --corporate-gray-100: #F5F5F5;
+    --corporate-gray-200: #E5E5E5;
+    --corporate-gray-300: #D4D4D4;
+    --corporate-gray-500: #737373;
+    --corporate-gray-700: #404040;
+    --corporate-gray-900: #171717;
+    
+    /* Shadows */
+    --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.06);
+    --shadow-strong: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Arrière-plan avec motifs RDC subtils */
+body {
+    background: var(--corporate-white);
+    background-image: 
+        radial-gradient(circle at 20% 50%, rgba(0, 102, 204, 0.02) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 215, 0, 0.02) 0%, transparent 50%),
+        radial-gradient(circle at 40% 80%, rgba(206, 17, 38, 0.02) 0%, transparent 50%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* Motifs géométriques subtils inspirés de l'art congolais */
+.pattern-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        linear-gradient(45deg, transparent 49%, rgba(0, 102, 204, 0.01) 50%, transparent 51%),
+        linear-gradient(-45deg, transparent 49%, rgba(255, 215, 0, 0.01) 50%, transparent 51%);
+    background-size: 60px 60px, 40px 40px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Cards corporate avec élégance RDC */
+.card-corporate {
+    background: var(--corporate-white);
+    border: 1px solid var(--corporate-gray-200);
+    border-radius: 16px;
+    box-shadow: var(--shadow-medium);
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 2;
+}
+
+.card-corporate::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, 
+        var(--rdc-blue) 0%, 
+        var(--rdc-yellow) 50%, 
+        var(--rdc-red) 100%
+    );
+    border-radius: 16px 16px 0 0;
+}
+
+/* Boutons corporate RDC */
+.btn-corporate-primary {
+    background: linear-gradient(135deg, var(--rdc-blue) 0%, var(--rdc-blue-dark) 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 28px;
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-medium);
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-corporate-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-corporate-primary:hover::before {
+    left: 100%;
+}
+
+.btn-corporate-primary:hover {
+    background: linear-gradient(135deg, var(--rdc-blue-light) 0%, var(--rdc-blue) 100%);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-strong);
+}
+
+.btn-corporate-secondary {
+    background: transparent;
+    color: var(--rdc-blue);
+    border: 2px solid var(--rdc-blue);
+    border-radius: 12px;
+    padding: 12px 26px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-corporate-secondary:hover {
+    background: var(--rdc-blue);
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Champs de formulaire corporate */
+.input-corporate {
+    background: var(--corporate-white);
+    border: 2px solid var(--corporate-gray-200);
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--corporate-gray-900);
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-soft);
+}
+
+.input-corporate:focus {
+    outline: none;
+    border-color: var(--rdc-blue);
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    background: var(--corporate-gray-50);
+}
+
+.input-corporate::placeholder {
+    color: var(--corporate-gray-500);
+    font-weight: 400;
+}
+
+/* Labels élégants */
+.label-corporate {
+    color: var(--corporate-gray-700);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* Icônes avec couleurs RDC */
+.icon-rdc-blue { color: var(--rdc-blue); }
+.icon-rdc-yellow { color: var(--rdc-yellow-dark); }
+.icon-rdc-red { color: var(--rdc-red); }
+
+/* Headers professionnels */
+.header-corporate {
+    background: linear-gradient(135deg, 
+        var(--corporate-white) 0%, 
+        var(--corporate-gray-50) 100%
+    );
+    border-bottom: 3px solid transparent;
+    border-image: linear-gradient(90deg, 
+        var(--rdc-blue) 0%, 
+        var(--rdc-yellow) 50%, 
+        var(--rdc-red) 100%
+    ) 1;
+    padding: 24px 0;
+    margin-bottom: 32px;
+}
+
+.logo-corporate {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--rdc-blue) 0%, var(--rdc-blue-dark) 100%);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-medium);
+    position: relative;
+}
+
+.logo-corporate::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+    border-radius: 16px;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+/* Titles corporates */
+.title-corporate {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--corporate-gray-900);
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+}
+
+.subtitle-corporate {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--corporate-gray-500);
+    letter-spacing: 0.3px;
+}
+
+/* Messages de notification corporate */
+.alert-corporate-success {
+    background: linear-gradient(135deg, #E8F5E8 0%, #F1F8E9 100%);
+    border-left: 4px solid #4CAF50;
+    color: #2E7D32;
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.alert-corporate-error {
+    background: linear-gradient(135deg, #FFEBEE 0%, #FCE4EC 100%);
+    border-left: 4px solid var(--rdc-red);
+    color: var(--rdc-red-dark);
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.alert-corporate-info {
+    background: linear-gradient(135deg, #E3F2FD 0%, #E8F4F8 100%);
+    border-left: 4px solid var(--rdc-blue);
+    color: var(--rdc-blue-dark);
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Animations professionnelles */
+.fade-in-corporate {
+    animation: fadeInCorporate 0.6s ease-out;
+}
+
+.slide-up-corporate {
+    animation: slideUpCorporate 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeInCorporate {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUpCorporate {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Footer corporate */
+.footer-corporate {
+    color: var(--corporate-gray-500);
+    text-align: center;
+    padding: 32px 0;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.footer-corporate .rdc-accent {
+    background: linear-gradient(90deg, 
+        var(--rdc-blue) 0%, 
+        var(--rdc-yellow) 50%, 
+        var(--rdc-red) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 600;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .title-corporate {
+        font-size: 24px;
+    }
+    
+    .subtitle-corporate {
+        font-size: 14px;
+    }
+    
+    .btn-corporate-primary {
+        padding: 12px 24px;
+        font-size: 14px;
+    }
+    
+    .input-corporate {
+        padding: 14px 18px;
+        font-size: 16px;
+    }
+}
+
+/* États de chargement */
+.loading-corporate {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--corporate-white);
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Distinction entre les panneaux */
+.panel-admin {
+    border-top: 4px solid var(--rdc-red);
+}
+
+.panel-user {
+    border-top: 4px solid var(--rdc-blue);
+}
+
+.panel-consulate {
+    border-top: 4px solid var(--rdc-yellow-dark);
+}
