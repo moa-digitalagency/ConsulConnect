@@ -228,11 +228,6 @@ def user_profile():
 @app.route('/services/consular-card', methods=['GET', 'POST'])
 @login_required
 def consular_card():
-    # Check if profile is complete
-    if not current_user.profile_complete:
-        flash('Veuillez compléter votre profil avant de faire une demande.', 'warning')
-        return redirect(url_for('user_profile'))
-    
     form = ConsularCardForm()
     if form.validate_on_submit():
         # Create application
@@ -368,7 +363,7 @@ def care_attestation():
         flash(f'Votre demande a été soumise. Référence: {application.reference_number}', 'success')
         return redirect(url_for('view_application', id=application.id))
     
-    return render_template('services/care_attestation.html', form=form)
+    return render_template('services/care_attestation_corporate.html', form=form)
 
 @app.route('/services/legalizations', methods=['GET', 'POST'])
 @login_required

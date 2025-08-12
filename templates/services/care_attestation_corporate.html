@@ -1,0 +1,432 @@
+{% extends "base.html" %}
+
+{% block title %}Attestation de Prise en Charge - e-Consulaire RDC{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+<style>
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+    
+    .step-indicator::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #E5E7EB;
+        z-index: 0;
+    }
+    
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: white;
+        border: 2px solid #E5E7EB;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .step.active .step-circle {
+        background: #FFD700;
+        border-color: #FFD700;
+        color: #333;
+    }
+    
+    .step.completed .step-circle {
+        background: #10B981;
+        border-color: #10B981;
+        color: white;
+    }
+    
+    .step-label {
+        font-size: 0.875rem;
+        color: #6B7280;
+        text-align: center;
+    }
+    
+    .step.active .step-label {
+        color: #FFD700;
+        font-weight: 600;
+    }
+    
+    .service-fee {
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        color: #333;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pattern-overlay">
+    <!-- Header Corporate avec Navigation -->
+    <header class="bg-white shadow-sm border-b-4 border-yellow-500">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <!-- Logo et Titre -->
+                <div class="flex items-center space-x-4">
+                    <div class="logo-corporate w-14 h-14">
+                        <i class="fas fa-flag text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Attestation de Prise en Charge</h1>
+                        <p class="text-sm text-gray-600">Document officiel de garantie</p>
+                    </div>
+                </div>
+                
+                <!-- Navigation -->
+                <div class="flex items-center space-x-4">
+                    <a href="{{ url_for('user_dashboard') }}" class="btn-corporate-secondary px-4 py-2 text-sm">
+                        <i class="fas fa-arrow-left mr-2"></i>Retour au Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu Principal -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-5xl mx-auto">
+            
+            <!-- Indicateur de Progression -->
+            <div class="step-indicator mb-8">
+                <div class="step active">
+                    <div class="step-circle">1</div>
+                    <span class="step-label">Informations</span>
+                </div>
+                <div class="step">
+                    <div class="step-circle">2</div>
+                    <span class="step-label">Documents</span>
+                </div>
+                <div class="step">
+                    <div class="step-circle">3</div>
+                    <span class="step-label">Paiement</span>
+                </div>
+                <div class="step">
+                    <div class="step-circle">4</div>
+                    <span class="step-label">Confirmation</span>
+                </div>
+            </div>
+
+            <!-- Information sur les Frais -->
+            <div class="service-fee">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Frais de Service</h3>
+                        <p class="text-gray-700">Attestation officielle avec cachet consulaire</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-3xl font-bold">$25 USD</div>
+                        <p class="text-gray-700 text-sm">Paiement sécurisé</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulaire -->
+            <form method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                
+                <!-- Informations du Garant (Vous) -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-user-shield text-blue-600"></i>
+                        </div>
+                        Informations du Garant (Vous)
+                    </h3>
+                    
+                    {% if current_user.profile_complete %}
+                    <div class="bg-blue-50 p-3 rounded-lg mb-4">
+                        <p class="text-sm text-blue-800">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Ces informations sont automatiquement remplies depuis votre profil.
+                        </p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Nom complet <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" value="{{ current_user.first_name }} {{ current_user.last_name }}" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Profession <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.guarantor_profession(class="form-input-corporate w-full", value=current_user.profession or '') }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Téléphone
+                            </label>
+                            <input type="tel" value="{{ current_user.phone or '' }}" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Revenus mensuels (USD) <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.guarantor_income(class="form-input-corporate w-full", placeholder="Ex: 2500") }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informations du Bénéficiaire -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.1s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-user-friends text-yellow-600"></i>
+                        </div>
+                        Informations du Bénéficiaire
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Nom <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.beneficiary_last_name(class="form-input-corporate w-full") }}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Prénom <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.beneficiary_first_name(class="form-input-corporate w-full") }}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Date de naissance <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.beneficiary_birth_date(class="form-input-corporate w-full") }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Nationalité <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.beneficiary_nationality(class="form-input-corporate w-full", value="Congolaise") }}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Lien avec le bénéficiaire <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.relationship(class="form-input-corporate w-full", placeholder="Ex: Frère, Ami, Cousin") }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Détails de la Prise en Charge -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.2s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-file-contract text-green-600"></i>
+                        </div>
+                        Détails de la Prise en Charge
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Motif du séjour <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.purpose(class="form-input-corporate w-full", onchange="toggleOtherPurpose()") }}
+                        </div>
+                        
+                        <div id="otherPurposeField" style="display: none;">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Préciser le motif
+                            </label>
+                            {{ form.purpose_other(class="form-input-corporate w-full") }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Durée du séjour <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.duration(class="form-input-corporate w-full", placeholder="Ex: 3 mois, 6 semaines") }}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Pays de destination
+                            </label>
+                            <input type="text" value="{{ current_user.adresse_pays or 'France' }}" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documents Requis -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.3s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-file-upload text-red-600"></i>
+                        </div>
+                        Documents Requis
+                    </h3>
+                    
+                    <div class="bg-yellow-50 p-4 rounded-lg mb-4">
+                        <p class="text-sm text-yellow-800">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Tous les documents doivent être en format PDF, JPG ou PNG (max 5 MB par fichier)
+                        </p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Votre pièce d'identité <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.guarantor_identity(class="form-input-corporate w-full") }}
+                            <p class="text-xs text-gray-500 mt-1">Passeport ou carte d'identité valide</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Justificatif de revenus <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.income_proof(class="form-input-corporate w-full") }}
+                            <p class="text-xs text-gray-500 mt-1">Bulletins de salaire, attestation employeur ou relevés bancaires</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Pièce d'identité du bénéficiaire <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.beneficiary_identity(class="form-input-corporate w-full") }}
+                            <p class="text-xs text-gray-500 mt-1">Passeport ou carte d'identité du bénéficiaire</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Engagement et Déclaration -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.4s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-file-signature text-indigo-600"></i>
+                        </div>
+                        Engagement et Déclaration
+                    </h3>
+                    
+                    <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                        <h4 class="font-semibold text-blue-900 mb-2">En signant ce document, je m'engage à :</h4>
+                        <ul class="list-disc list-inside text-sm text-blue-800 space-y-1">
+                            <li>Prendre en charge tous les frais de séjour du bénéficiaire</li>
+                            <li>Assurer l'hébergement pendant toute la durée du séjour</li>
+                            <li>Garantir le retour du bénéficiaire à la fin du séjour</li>
+                            <li>Respecter les lois du pays d'accueil</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <label class="flex items-start">
+                            <input type="checkbox" name="declaration_accuracy" class="mt-1 mr-3" required>
+                            <span class="text-sm text-gray-700">
+                                Je certifie sur l'honneur que les informations fournies sont exactes et complètes.
+                            </span>
+                        </label>
+                        
+                        <label class="flex items-start">
+                            <input type="checkbox" name="declaration_engagement" class="mt-1 mr-3" required>
+                            <span class="text-sm text-gray-700">
+                                Je reconnais ma responsabilité légale en cas de non-respect de mes engagements.
+                            </span>
+                        </label>
+                        
+                        <label class="flex items-start">
+                            <input type="checkbox" name="declaration_terms" class="mt-1 mr-3" required>
+                            <span class="text-sm text-gray-700">
+                                J'accepte les conditions générales d'utilisation du service e-Consulaire.
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Boutons d'action -->
+                <div class="flex justify-between">
+                    <a href="{{ url_for('user_dashboard') }}" class="btn-corporate-secondary">
+                        <i class="fas fa-times mr-2"></i>Annuler
+                    </a>
+                    <button type="submit" class="btn-corporate-primary" style="background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); border: none;">
+                        Continuer vers le paiement <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-16 bg-gray-50 border-t">
+        <div class="container mx-auto px-4 py-8">
+            <div class="text-center">
+                <p class="text-sm text-gray-600">&copy; 2025 République Démocratique du Congo</p>
+                <p class="text-xs text-gray-500 mt-1">Ministère des Affaires Étrangères - Services Consulaires Numériques</p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<script>
+function toggleOtherPurpose() {
+    const purposeSelect = document.querySelector('[name="purpose"]');
+    const otherField = document.getElementById('otherPurposeField');
+    
+    if (purposeSelect.value === 'autre') {
+        otherField.style.display = 'block';
+    } else {
+        otherField.style.display = 'none';
+    }
+}
+
+// Preview des fichiers uploadés
+document.querySelectorAll('input[type="file"]').forEach(input => {
+    input.addEventListener('change', function() {
+        const fileName = this.files[0]?.name;
+        if (fileName) {
+            const label = this.previousElementSibling;
+            if (label && label.tagName === 'LABEL') {
+                const existingCheck = label.querySelector('.text-green-600');
+                if (!existingCheck) {
+                    label.innerHTML += ` <span class="text-green-600">✓ ${fileName}</span>`;
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
