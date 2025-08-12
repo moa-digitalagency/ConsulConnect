@@ -5,68 +5,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
 <style>
-    .step-indicator {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 2rem;
-        position: relative;
-    }
-    
-    .step-indicator::before {
-        content: '';
-        position: absolute;
-        top: 20px;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: #E5E7EB;
-        z-index: 0;
-    }
-    
-    .step {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        position: relative;
-        z-index: 1;
-    }
-    
-    .step-circle {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: white;
-        border: 2px solid #E5E7EB;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-    }
-    
-    .step.active .step-circle {
-        background: #0066CC;
-        border-color: #0066CC;
-        color: white;
-    }
-    
-    .step.completed .step-circle {
-        background: #10B981;
-        border-color: #10B981;
-        color: white;
-    }
-    
-    .step-label {
-        font-size: 0.875rem;
-        color: #6B7280;
-        text-align: center;
-    }
-    
-    .step.active .step-label {
-        color: #0066CC;
-        font-weight: 600;
-    }
-    
+
     .service-fee {
         background: linear-gradient(135deg, #0066CC 0%, #0052A3 100%);
         color: white;
@@ -131,25 +70,7 @@
     <div class="container mx-auto px-4 py-8">
         <div class="max-w-5xl mx-auto">
             
-            <!-- Indicateur de Progression -->
-            <div class="step-indicator mb-8">
-                <div class="step active">
-                    <div class="step-circle">1</div>
-                    <span class="step-label">Informations</span>
-                </div>
-                <div class="step">
-                    <div class="step-circle">2</div>
-                    <span class="step-label">Documents</span>
-                </div>
-                <div class="step">
-                    <div class="step-circle">3</div>
-                    <span class="step-label">Paiement</span>
-                </div>
-                <div class="step">
-                    <div class="step-circle">4</div>
-                    <span class="step-label">Confirmation</span>
-                </div>
-            </div>
+
 
             <!-- Information sur les Frais -->
             <div class="service-fee">
