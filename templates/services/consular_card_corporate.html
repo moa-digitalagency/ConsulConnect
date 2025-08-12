@@ -1,0 +1,599 @@
+{% extends "base.html" %}
+
+{% block title %}Demande de Carte Consulaire - e-Consulaire RDC{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+<style>
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+    
+    .step-indicator::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #E5E7EB;
+        z-index: 0;
+    }
+    
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: white;
+        border: 2px solid #E5E7EB;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .step.active .step-circle {
+        background: #0066CC;
+        border-color: #0066CC;
+        color: white;
+    }
+    
+    .step.completed .step-circle {
+        background: #10B981;
+        border-color: #10B981;
+        color: white;
+    }
+    
+    .step-label {
+        font-size: 0.875rem;
+        color: #6B7280;
+        text-align: center;
+    }
+    
+    .step.active .step-label {
+        color: #0066CC;
+        font-weight: 600;
+    }
+    
+    .service-fee {
+        background: linear-gradient(135deg, #0066CC 0%, #0052A3 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .card-type-option {
+        border: 2px solid #E5E7EB;
+        border-radius: 1rem;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+    }
+    
+    .card-type-option:hover {
+        border-color: #0066CC;
+        background: #F8FAFC;
+    }
+    
+    .card-type-option.selected {
+        border-color: #0066CC;
+        background: linear-gradient(135deg, #EBF4FF 0%, #DBEAFE 100%);
+    }
+    
+    .card-type-option input[type="radio"] {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pattern-overlay">
+    <!-- Header Corporate avec Navigation -->
+    <header class="bg-white shadow-sm border-b-4 border-blue-600">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <!-- Logo et Titre -->
+                <div class="flex items-center space-x-4">
+                    <div class="logo-corporate w-14 h-14">
+                        <i class="fas fa-flag text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Carte Consulaire</h1>
+                        <p class="text-sm text-gray-600">Immatriculation et renouvellement</p>
+                    </div>
+                </div>
+                
+                <!-- Navigation -->
+                <div class="flex items-center space-x-4">
+                    <a href="{{ url_for('user_dashboard') }}" class="btn-corporate-secondary px-4 py-2 text-sm">
+                        <i class="fas fa-arrow-left mr-2"></i>Retour au Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu Principal -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-5xl mx-auto">
+            
+            <!-- Indicateur de Progression -->
+            <div class="step-indicator mb-8">
+                <div class="step active">
+                    <div class="step-circle">1</div>
+                    <span class="step-label">Informations</span>
+                </div>
+                <div class="step">
+                    <div class="step-circle">2</div>
+                    <span class="step-label">Documents</span>
+                </div>
+                <div class="step">
+                    <div class="step-circle">3</div>
+                    <span class="step-label">Paiement</span>
+                </div>
+                <div class="step">
+                    <div class="step-circle">4</div>
+                    <span class="step-label">Confirmation</span>
+                </div>
+            </div>
+
+            <!-- Information sur les Frais -->
+            <div class="service-fee">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Frais de Service</h3>
+                        <p class="text-blue-100">Carte consulaire officielle avec puce sécurisée</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-3xl font-bold">$50 USD</div>
+                        <p class="text-blue-100 text-sm">Paiement sécurisé</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulaire -->
+            <form method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                
+                <!-- Type de Demande -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-id-card text-blue-600"></i>
+                        </div>
+                        Type de Demande
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label class="card-type-option" onclick="selectCardType('premiere')">
+                            <input type="radio" name="card_type" value="premiere" required>
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                                    <i class="fas fa-plus-circle text-green-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900 mb-1">Première demande</h4>
+                                    <p class="text-sm text-gray-600">Je n'ai jamais eu de carte consulaire</p>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="card-type-option" onclick="selectCardType('renouvellement')">
+                            <input type="radio" name="card_type" value="renouvellement" required>
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mr-4">
+                                    <i class="fas fa-redo text-orange-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900 mb-1">Renouvellement</h4>
+                                    <p class="text-sm text-gray-600">Ma carte expire ou est expirée</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Ambassade de Rattachement -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.1s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-building text-yellow-600"></i>
+                        </div>
+                        Ambassade de Rattachement
+                    </h3>
+                    
+                    {% if current_user.ambassade_ville and current_user.ambassade_pays %}
+                    <div class="bg-blue-50 p-3 rounded-lg mb-4">
+                        <p class="text-sm text-blue-800">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Ambassade sélectionnée depuis votre profil.
+                        </p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Pays de résidence <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="embassy_country" 
+                                   value="{{ current_user.ambassade_pays or current_user.adresse_pays or 'France' }}" 
+                                   class="form-input-corporate w-full" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Ville/Consulat <span class="text-red-500">*</span>
+                            </label>
+                            <select name="embassy_city" class="form-input-corporate w-full" required>
+                                <option value="">Sélectionnez un consulat</option>
+                                <option value="Paris" {{ 'selected' if current_user.ambassade_ville == 'Paris' }}>Paris</option>
+                                <option value="Marseille" {{ 'selected' if current_user.ambassade_ville == 'Marseille' }}>Marseille</option>
+                                <option value="Bruxelles" {{ 'selected' if current_user.ambassade_ville == 'Bruxelles' }}>Bruxelles</option>
+                                <option value="Londres" {{ 'selected' if current_user.ambassade_ville == 'Londres' }}>Londres</option>
+                                <option value="Berlin" {{ 'selected' if current_user.ambassade_ville == 'Berlin' }}>Berlin</option>
+                                <option value="Rome" {{ 'selected' if current_user.ambassade_ville == 'Rome' }}>Rome</option>
+                                <option value="Madrid" {{ 'selected' if current_user.ambassade_ville == 'Madrid' }}>Madrid</option>
+                                <option value="Washington" {{ 'selected' if current_user.ambassade_ville == 'Washington' }}>Washington DC</option>
+                                <option value="New York" {{ 'selected' if current_user.ambassade_ville == 'New York' }}>New York</option>
+                                <option value="Ottawa" {{ 'selected' if current_user.ambassade_ville == 'Ottawa' }}>Ottawa</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informations Personnelles -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.2s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-user text-green-600"></i>
+                        </div>
+                        Informations Personnelles
+                    </h3>
+                    
+                    {% if current_user.profile_complete %}
+                    <div class="bg-green-50 p-3 rounded-lg mb-4">
+                        <p class="text-sm text-green-800">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            Ces informations sont automatiquement remplies depuis votre profil.
+                        </p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Nom <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" value="{{ current_user.last_name or '' }}" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Prénom <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" value="{{ current_user.first_name or '' }}" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Date de naissance <span class="text-red-500">*</span>
+                            </label>
+                            <input type="date" value="{{ current_user.date_naissance.strftime('%Y-%m-%d') if current_user.date_naissance else '' }}" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Lieu de naissance <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" value="{{ current_user.lieu_naissance or '' }}" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Nationalité
+                            </label>
+                            <input type="text" value="Congolaise (RDC)" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informations de Contact -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.3s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-address-card text-purple-600"></i>
+                        </div>
+                        Informations de Contact
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Adresse actuelle <span class="text-red-500">*</span>
+                            </label>
+                            <textarea name="current_address" rows="3" class="form-input-corporate w-full" required>{{ current_user.adresse_complete or '' }}</textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Ville de résidence <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" value="{{ current_user.adresse_ville or '' }}" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Téléphone <span class="text-red-500">*</span>
+                            </label>
+                            <input type="tel" name="phone" value="{{ current_user.phone or '' }}" 
+                                   class="form-input-corporate w-full" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Email
+                            </label>
+                            <input type="email" value="{{ current_user.email }}" 
+                                   class="form-input-corporate w-full bg-gray-100" readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Profession <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="profession" value="{{ current_user.profession or '' }}" 
+                                   class="form-input-corporate w-full" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact d'Urgence -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.4s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-phone-alt text-red-600"></i>
+                        </div>
+                        Contact d'Urgence
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Nom complet <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="emergency_contact_name" 
+                                   class="form-input-corporate w-full" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Lien de parenté <span class="text-red-500">*</span>
+                            </label>
+                            <select name="emergency_relationship" class="form-input-corporate w-full" required>
+                                <option value="">Sélectionnez</option>
+                                <option value="Père">Père</option>
+                                <option value="Mère">Mère</option>
+                                <option value="Époux/Épouse">Époux/Épouse</option>
+                                <option value="Frère">Frère</option>
+                                <option value="Sœur">Sœur</option>
+                                <option value="Enfant">Enfant</option>
+                                <option value="Ami proche">Ami proche</option>
+                                <option value="Autre">Autre</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Téléphone <span class="text-red-500">*</span>
+                            </label>
+                            <input type="tel" name="emergency_phone" 
+                                   class="form-input-corporate w-full" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Email
+                            </label>
+                            <input type="email" name="emergency_email" 
+                                   class="form-input-corporate w-full">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documents Requis -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.5s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-file-upload text-indigo-600"></i>
+                        </div>
+                        Documents Requis
+                    </h3>
+                    
+                    <div class="bg-yellow-50 p-4 rounded-lg mb-4">
+                        <p class="text-sm text-yellow-800">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Tous les documents doivent être en format PDF, JPG ou PNG (max 5 MB par fichier)
+                        </p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Photo d'identité récente <span class="text-red-500">*</span>
+                            </label>
+                            <input type="file" name="photo" accept=".jpg,.jpeg,.png,.pdf" 
+                                   class="form-input-corporate w-full" required>
+                            <p class="text-xs text-gray-500 mt-1">Photo format passeport, fond blanc, 35x45mm</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Pièce d'identité valide <span class="text-red-500">*</span>
+                            </label>
+                            <input type="file" name="identity_document" accept=".jpg,.jpeg,.png,.pdf" 
+                                   class="form-input-corporate w-full" required>
+                            <p class="text-xs text-gray-500 mt-1">Passeport congolais ou carte d'identité valide</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Justificatif de résidence <span class="text-red-500">*</span>
+                            </label>
+                            <input type="file" name="residence_proof" accept=".jpg,.jpeg,.png,.pdf" 
+                                   class="form-input-corporate w-full" required>
+                            <p class="text-xs text-gray-500 mt-1">Facture récente (moins de 3 mois) ou attestation d'hébergement</p>
+                        </div>
+                        
+                        <div id="renewalDocuments" style="display: none;">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Ancienne carte consulaire
+                            </label>
+                            <input type="file" name="old_card" accept=".jpg,.jpeg,.png,.pdf" 
+                                   class="form-input-corporate w-full">
+                            <p class="text-xs text-gray-500 mt-1">Recto-verso de votre ancienne carte (si disponible)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Déclaration -->
+                <div class="card-corporate p-6 mb-6 slide-up-corporate" style="animation-delay: 0.6s;">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-file-signature text-gray-600"></i>
+                        </div>
+                        Déclaration sur l'Honneur
+                    </h3>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                        <p class="text-sm text-gray-700 leading-relaxed">
+                            Je soussigné(e), <strong>{{ current_user.first_name }} {{ current_user.last_name }}</strong>, 
+                            certifie sur l'honneur que les informations fournies dans cette demande de carte consulaire 
+                            sont exactes et complètes. Je m'engage à signaler tout changement de situation et à respecter 
+                            les obligations liées à la possession d'une carte consulaire de la République Démocratique du Congo.
+                        </p>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <label class="flex items-start">
+                            <input type="checkbox" name="declaration_accuracy" class="mt-1 mr-3" required>
+                            <span class="text-sm text-gray-700">
+                                Je certifie l'exactitude des informations fournies.
+                            </span>
+                        </label>
+                        
+                        <label class="flex items-start">
+                            <input type="checkbox" name="declaration_obligations" class="mt-1 mr-3" required>
+                            <span class="text-sm text-gray-700">
+                                Je m'engage à respecter mes obligations consulaires.
+                            </span>
+                        </label>
+                        
+                        <label class="flex items-start">
+                            <input type="checkbox" name="declaration_terms" class="mt-1 mr-3" required>
+                            <span class="text-sm text-gray-700">
+                                J'accepte les conditions générales d'utilisation.
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Boutons d'action -->
+                <div class="flex justify-between">
+                    <a href="{{ url_for('user_dashboard') }}" class="btn-corporate-secondary">
+                        <i class="fas fa-times mr-2"></i>Annuler
+                    </a>
+                    <button type="submit" class="btn-corporate-primary" style="background: linear-gradient(135deg, #0066CC 0%, #0052A3 100%); border: none;">
+                        Continuer vers le paiement <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-16 bg-gray-50 border-t">
+        <div class="container mx-auto px-4 py-8">
+            <div class="text-center">
+                <p class="text-sm text-gray-600">&copy; 2025 République Démocratique du Congo</p>
+                <p class="text-xs text-gray-500 mt-1">Ministère des Affaires Étrangères - Services Consulaires Numériques</p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<script>
+function selectCardType(type) {
+    // Remove selected class from all options
+    document.querySelectorAll('.card-type-option').forEach(option => {
+        option.classList.remove('selected');
+    });
+    
+    // Add selected class to clicked option
+    event.currentTarget.classList.add('selected');
+    
+    // Check the radio button
+    event.currentTarget.querySelector('input[type="radio"]').checked = true;
+    
+    // Show/hide renewal documents
+    const renewalDocs = document.getElementById('renewalDocuments');
+    if (type === 'renouvellement') {
+        renewalDocs.style.display = 'block';
+        renewalDocs.querySelector('input[type="file"]').required = true;
+    } else {
+        renewalDocs.style.display = 'none';
+        renewalDocs.querySelector('input[type="file"]').required = false;
+    }
+}
+
+// Preview des fichiers uploadés
+document.querySelectorAll('input[type="file"]').forEach(input => {
+    input.addEventListener('change', function() {
+        const fileName = this.files[0]?.name;
+        if (fileName) {
+            const label = this.previousElementSibling;
+            if (label && label.tagName === 'LABEL') {
+                const existingCheck = label.querySelector('.text-green-600');
+                if (!existingCheck) {
+                    label.innerHTML += ` <span class="text-green-600">✓ ${fileName}</span>`;
+                }
+            }
+        }
+    });
+});
+
+// Auto-select card type if coming from dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    const firstOption = document.querySelector('.card-type-option');
+    if (firstOption) {
+        firstOption.click();
+    }
+});
+</script>
+{% endblock %}

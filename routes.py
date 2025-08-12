@@ -298,7 +298,7 @@ def consular_card():
         flash(f'Votre demande a été soumise avec succès. Référence: {application.reference_number}', 'success')
         return redirect(url_for('view_application', id=application.id))
     
-    return render_template('services/consular_card.html', form=form)
+    return render_template('services/consular_card_corporate.html', form=form)
 
 @app.route('/services/care-attestation', methods=['GET', 'POST'])
 @login_required
