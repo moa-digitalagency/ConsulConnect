@@ -49,7 +49,7 @@ def user_login():
 @auth.route('/admin', methods=['GET', 'POST'])
 def admin_login():
     if current_user.is_authenticated:
-        if current_user.role in ['agent', 'superviseur']:
+        if current_user.role in ['admin', 'agent', 'superviseur']:
             return redirect(url_for('admin_dashboard'))
         return redirect(url_for('user_dashboard'))
     
@@ -57,7 +57,7 @@ def admin_login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and check_password_hash(user.password_hash, form.password.data):
-            if user.active and user.role in ['agent', 'superviseur']:
+            if user.active and user.role in ['admin', 'agent', 'superviseur']:
                 login_user(user, remember=form.remember_me.data)
                 user.last_login = datetime.utcnow()
                 db.session.commit()
@@ -138,7 +138,7 @@ def logout():
 @login_required
 def user_dashboard():
     if current_user.role != 'usager':
-        if current_user.role in ['agent', 'superviseur']:
+        if current_user.role in ['admin', 'agent', 'superviseur']:
             return redirect(url_for('admin_dashboard'))
         abort(403)
     
@@ -157,6 +157,30 @@ def user_dashboard():
 def admin_dashboard():
     if not current_user.is_admin():
         abort(403)
+    
+    # Statistics for admin dashboard
+    total_applications = Application.query.count()
+    pending_applications = Application.query.filter_by(status='soumise').count()
+    processing_applications = Application.query.filter_by(status='en_traitement').count()
+    approved_applications = Application.query.filter_by(status='validee').count()
+    rejected_applications = Application.query.filter_by(status='rejetee').count()
+    
+    # Recent applications
+    recent_applications = Application.query.order_by(Application.created_at.desc()).limit(10).all()
+    
+    # Consular units stats
+    total_units = UniteConsulaire.query.count()
+    total_services = Service.query.count()
+    
+    return render_template('dashboard/admin.html', 
+                         total_applications=total_applications,
+                         pending_applications=pending_applications,
+                         processing_applications=processing_applications,
+                         approved_applications=approved_applications,
+                         rejected_applications=rejected_applications,
+                         recent_applications=recent_applications,
+                         total_units=total_units,
+                         total_services=total_services)
 
 @app.route('/consulate-dashboard')
 @login_required  
