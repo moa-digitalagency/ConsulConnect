@@ -540,9 +540,25 @@
 
         // Chargement des données
         function loadUsers() {
-            fetch('/api/admin/users')
-                .then(response => response.json())
+            fetch('/api/admin/users', {
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(response => {
+                    if (response.redirected || response.status === 302) {
+                        alert('Session expirée. Veuillez vous reconnecter.');
+                        window.location.href = '/admin';
+                        return;
+                    }
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(users => {
+                    if (!users) return;
                     const usersList = document.getElementById('users-list');
                     usersList.innerHTML = users.map(user => `
                         <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -568,9 +584,26 @@
         }
 
         function loadUnits() {
-            fetch('/api/admin/units')
-                .then(response => response.json())
+            fetch('/api/admin/units', {
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(response => {
+                    if (response.redirected || response.status === 302) {
+                        // Redirection vers login détectée
+                        alert('Session expirée. Veuillez vous reconnecter.');
+                        window.location.href = '/admin';
+                        return;
+                    }
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(units => {
+                    if (!units) return; // Éviter l'erreur si redirected
                     const unitsList = document.getElementById('units-list');
                     unitsList.innerHTML = units.map(unit => `
                         <div class="card-corporate p-6">
@@ -628,9 +661,22 @@
         }
 
         function loadUnitsForSelect() {
-            fetch('/api/admin/units')
-                .then(response => response.json())
+            fetch('/api/admin/units', {
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(response => {
+                    if (response.redirected || response.status === 302) {
+                        alert('Session expirée. Veuillez vous reconnecter.');
+                        window.location.href = '/admin';
+                        return;
+                    }
+                    return response.json();
+                })
                 .then(units => {
+                    if (!units) return;
                     const select = document.querySelector('select[name="unit_id"]');
                     select.innerHTML = '<option value="">Sélectionner une unité</option>' +
                         units.map(unit => `<option value="${unit.id}">${unit.nom}</option>`).join('');
@@ -645,6 +691,7 @@
             
             fetch('/api/admin/users', {
                 method: 'POST',
+                credentials: 'include',
                 body: formData
             })
             .then(response => response.json())
@@ -674,6 +721,7 @@
             
             fetch(url, {
                 method: method,
+                credentials: 'include',
                 body: formData
             })
             .then(response => response.json())
@@ -694,7 +742,9 @@
 
         // Fonctions de gestion des unités
         function editUnit(unitId) {
-            fetch(`/api/admin/units/${unitId}`)
+            fetch(`/api/admin/units/${unitId}`, {
+                credentials: 'include'
+            })
                 .then(response => response.json())
                 .then(unit => {
                     document.getElementById('unitModalTitle').textContent = 'Modifier l\'unité consulaire';
@@ -746,7 +796,8 @@
             const action = currentStatus ? 'désactiver' : 'activer';
             if (confirm(`Êtes-vous sûr de vouloir ${action} cette unité consulaire ?`)) {
                 fetch(`/api/admin/units/${unitId}/toggle`, {
-                    method: 'POST'
+                    method: 'POST',
+                    credentials: 'include'
                 })
                 .then(response => response.json())
                 .then(result => {
@@ -767,7 +818,8 @@
         function deleteUnit(unitId) {
             if (confirm('Êtes-vous sûr de vouloir supprimer définitivement cette unité consulaire ? Cette action est irréversible.')) {
                 fetch(`/api/admin/units/${unitId}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    credentials: 'include'
                 })
                 .then(response => response.json())
                 .then(result => {
@@ -788,8 +840,8 @@
         function assignAgents(unitId) {
             // Charger la liste des agents et l'unité
             Promise.all([
-                fetch('/api/admin/users?role=agent'),
-                fetch(`/api/admin/units/${unitId}`)
+                fetch('/api/admin/users?role=agent', { credentials: 'include' }),
+                fetch(`/api/admin/units/${unitId}`, { credentials: 'include' })
             ])
             .then(responses => Promise.all(responses.map(r => r.json())))
             .then(([agents, unit]) => {
@@ -831,6 +883,7 @@
             
             fetch(`/api/admin/users/${agentId}/assign-unit`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
