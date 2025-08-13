@@ -179,7 +179,7 @@
                         </button>
                     </div>
                     <div class="p-6">
-                        <div id="units-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div id="units-list" class="space-y-4">
                             <!-- Contenu chargé dynamiquement -->
                         </div>
                     </div>
@@ -275,24 +275,25 @@
         </div>
     </div>
 
-    <!-- Modal Ajouter Unité -->
+    <!-- Modal Ajouter/Modifier Unité -->
     <div id="addUnitModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
         <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Ajouter une unité consulaire</h3>
-                <button onclick="hideAddUnitModal()" class="text-gray-400 hover:text-gray-600">
+                <h3 id="unitModalTitle" class="text-lg font-medium text-gray-900">Ajouter une unité consulaire</h3>
+                <button onclick="hideUnitModal()" class="text-gray-400 hover:text-gray-600">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <form id="addUnitForm" onsubmit="addUnit(event)">
+            <form id="unitForm" onsubmit="saveUnit(event)">
+                <input type="hidden" id="unitId" name="unit_id" value="">
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Nom</label>
-                        <input type="text" name="nom" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <input type="text" id="unitNom" name="nom" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Type</label>
-                        <select name="type" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <select id="unitType" name="type" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">Sélectionner un type</option>
                             <option value="ambassade">Ambassade</option>
                             <option value="consulat">Consulat</option>
@@ -301,22 +302,42 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Pays</label>
-                        <input type="text" name="pays" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <input type="text" id="unitPays" name="pays" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Ville</label>
-                        <input type="text" name="ville" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <input type="text" id="unitVille" name="ville" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </div>
                 </div>
                 <div class="mt-6 flex justify-end space-x-3">
-                    <button type="button" onclick="hideAddUnitModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                    <button type="button" onclick="hideUnitModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
                         Annuler
                     </button>
                     <button type="submit" class="btn-primary">
-                        Ajouter
+                        <span id="unitSubmitText">Ajouter</span>
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal Assigner Agents -->
+    <div id="assignAgentsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Assigner des agents</h3>
+                <button onclick="hideAssignAgentsModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="assignAgentsContent" class="space-y-4">
+                <!-- Contenu chargé dynamiquement -->
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="hideAssignAgentsModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                    Fermer
+                </button>
+            </div>
         </div>
     </div>
 
@@ -371,13 +392,22 @@
         }
 
         function showAddUnitModal() {
+            document.getElementById('unitModalTitle').textContent = 'Ajouter une unité consulaire';
+            document.getElementById('unitSubmitText').textContent = 'Ajouter';
+            document.getElementById('unitForm').reset();
+            document.getElementById('unitId').value = '';
             document.getElementById('addUnitModal').classList.remove('hidden');
             document.getElementById('addUnitModal').classList.add('flex');
         }
 
-        function hideAddUnitModal() {
+        function hideUnitModal() {
             document.getElementById('addUnitModal').classList.add('hidden');
             document.getElementById('addUnitModal').classList.remove('flex');
+        }
+
+        function hideAssignAgentsModal() {
+            document.getElementById('assignAgentsModal').classList.add('hidden');
+            document.getElementById('assignAgentsModal').classList.remove('flex');
         }
 
         // Gestion du changement de rôle
@@ -427,16 +457,51 @@
                     unitsList.innerHTML = units.map(unit => `
                         <div class="card-corporate p-6">
                             <div class="flex items-center justify-between mb-4">
-                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-building text-blue-600 text-xl"></i>
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                                        <i class="fas fa-building text-blue-600 text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-lg font-medium text-gray-900">${unit.nom}</h4>
+                                        <p class="text-sm text-gray-500">${unit.ville}, ${unit.pays}</p>
+                                    </div>
                                 </div>
-                                <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">${unit.type}</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="px-2 py-1 text-xs font-medium ${unit.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} rounded-full">
+                                        ${unit.active ? 'Actif' : 'Inactif'}
+                                    </span>
+                                    <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">${unit.type}</span>
+                                </div>
                             </div>
-                            <h4 class="text-lg font-medium text-gray-900 mb-2">${unit.nom}</h4>
-                            <p class="text-sm text-gray-500 mb-4">${unit.ville}, ${unit.pays}</p>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-500">${unit.agents_count || 0} agents</span>
-                                <span class="text-gray-500">${unit.services_count || 0} services</span>
+                            
+                            <div class="grid grid-cols-3 gap-4 mb-4 text-center">
+                                <div>
+                                    <span class="block text-lg font-semibold text-gray-900">${unit.agents_count || 0}</span>
+                                    <span class="text-xs text-gray-500">Agents</span>
+                                </div>
+                                <div>
+                                    <span class="block text-lg font-semibold text-gray-900">${unit.services_count || 0}</span>
+                                    <span class="text-xs text-gray-500">Services</span>
+                                </div>
+                                <div>
+                                    <span class="block text-lg font-semibold text-gray-900">${unit.applications_count || 0}</span>
+                                    <span class="text-xs text-gray-500">Demandes</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex space-x-2">
+                                <button onclick="editUnit(${unit.id})" class="flex-1 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100">
+                                    <i class="fas fa-edit mr-1"></i> Modifier
+                                </button>
+                                <button onclick="assignAgents(${unit.id})" class="flex-1 px-3 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-md hover:bg-green-100">
+                                    <i class="fas fa-users mr-1"></i> Agents
+                                </button>
+                                <button onclick="toggleUnitStatus(${unit.id}, ${unit.active})" class="flex-1 px-3 py-2 text-sm font-medium ${unit.active ? 'text-orange-600 bg-orange-50 hover:bg-orange-100' : 'text-green-600 bg-green-50 hover:bg-green-100'} rounded-md">
+                                    <i class="fas ${unit.active ? 'fa-pause' : 'fa-play'} mr-1"></i> ${unit.active ? 'Désactiver' : 'Activer'}
+                                </button>
+                                <button onclick="deleteUnit(${unit.id})" class="px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100">
+                                    <i class="fas fa-trash mr-1"></i>
+                                </button>
                             </div>
                         </div>
                     `).join('');
@@ -455,7 +520,7 @@
                 .catch(error => console.error('Erreur lors du chargement des unités:', error));
         }
 
-        // Fonctions d'ajout
+        // Fonctions d'ajout et modification
         function addUser(event) {
             event.preventDefault();
             const formData = new FormData(event.target);
@@ -480,27 +545,162 @@
             });
         }
 
-        function addUnit(event) {
+        function saveUnit(event) {
             event.preventDefault();
             const formData = new FormData(event.target);
+            const unitId = document.getElementById('unitId').value;
+            const isEdit = unitId !== '';
             
-            fetch('/api/admin/units', {
-                method: 'POST',
+            const url = isEdit ? `/api/admin/units/${unitId}` : '/api/admin/units';
+            const method = isEdit ? 'PUT' : 'POST';
+            
+            fetch(url, {
+                method: method,
                 body: formData
             })
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    hideAddUnitModal();
+                    hideUnitModal();
                     loadUnits();
-                    alert('Unité ajoutée avec succès');
+                    alert(isEdit ? 'Unité modifiée avec succès' : 'Unité ajoutée avec succès');
                 } else {
                     alert('Erreur: ' + result.error);
                 }
             })
             .catch(error => {
                 console.error('Erreur:', error);
-                alert('Erreur lors de l\'ajout de l\'unité');
+                alert('Erreur lors de la sauvegarde de l\'unité');
+            });
+        }
+
+        // Fonctions de gestion des unités
+        function editUnit(unitId) {
+            fetch(`/api/admin/units/${unitId}`)
+                .then(response => response.json())
+                .then(unit => {
+                    document.getElementById('unitModalTitle').textContent = 'Modifier l\'unité consulaire';
+                    document.getElementById('unitSubmitText').textContent = 'Modifier';
+                    document.getElementById('unitId').value = unit.id;
+                    document.getElementById('unitNom').value = unit.nom;
+                    document.getElementById('unitType').value = unit.type;
+                    document.getElementById('unitPays').value = unit.pays;
+                    document.getElementById('unitVille').value = unit.ville;
+                    document.getElementById('addUnitModal').classList.remove('hidden');
+                    document.getElementById('addUnitModal').classList.add('flex');
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors du chargement des données de l\'unité');
+                });
+        }
+
+        function toggleUnitStatus(unitId, currentStatus) {
+            const action = currentStatus ? 'désactiver' : 'activer';
+            if (confirm(`Êtes-vous sûr de vouloir ${action} cette unité consulaire ?`)) {
+                fetch(`/api/admin/units/${unitId}/toggle`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        loadUnits();
+                        alert(`Unité ${currentStatus ? 'désactivée' : 'activée'} avec succès`);
+                    } else {
+                        alert('Erreur: ' + result.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la modification du statut');
+                });
+            }
+        }
+
+        function deleteUnit(unitId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer définitivement cette unité consulaire ? Cette action est irréversible.')) {
+                fetch(`/api/admin/units/${unitId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        loadUnits();
+                        alert('Unité supprimée avec succès');
+                    } else {
+                        alert('Erreur: ' + result.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la suppression');
+                });
+            }
+        }
+
+        function assignAgents(unitId) {
+            // Charger la liste des agents et l'unité
+            Promise.all([
+                fetch('/api/admin/users?role=agent'),
+                fetch(`/api/admin/units/${unitId}`)
+            ])
+            .then(responses => Promise.all(responses.map(r => r.json())))
+            .then(([agents, unit]) => {
+                const content = document.getElementById('assignAgentsContent');
+                content.innerHTML = `
+                    <h4 class="font-medium text-gray-900 mb-4">Unité: ${unit.nom}</h4>
+                    <div class="space-y-3 max-h-96 overflow-y-auto">
+                        ${agents.map(agent => `
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-user text-blue-600 text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">${agent.first_name} ${agent.last_name}</p>
+                                        <p class="text-xs text-gray-500">${agent.email}</p>
+                                        ${agent.unite_consulaire_nom ? `<p class="text-xs text-blue-600">Assigné à: ${agent.unite_consulaire_nom}</p>` : ''}
+                                    </div>
+                                </div>
+                                <button onclick="toggleAgentAssignment(${agent.id}, ${unitId}, ${agent.unite_consulaire_id === unitId})" 
+                                        class="px-3 py-1 text-xs font-medium rounded-md ${agent.unite_consulaire_id === unitId ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}">
+                                    ${agent.unite_consulaire_id === unitId ? 'Retirer' : 'Assigner'}
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                document.getElementById('assignAgentsModal').classList.remove('hidden');
+                document.getElementById('assignAgentsModal').classList.add('flex');
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors du chargement des agents');
+            });
+        }
+
+        function toggleAgentAssignment(agentId, unitId, isCurrentlyAssigned) {
+            const newUnitId = isCurrentlyAssigned ? null : unitId;
+            
+            fetch(`/api/admin/users/${agentId}/assign-unit`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `unit_id=${newUnitId || ''}`
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    assignAgents(unitId); // Recharger la modale
+                    loadUnits(); // Recharger la liste des unités
+                } else {
+                    alert('Erreur: ' + result.error);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de l\'assignation');
             });
         }
 

@@ -1147,6 +1147,22 @@ def api_admin_units():
         abort(403)
     
     if request.method == 'GET':
+        role_filter = request.args.get('role')
+        if role_filter == 'agent':
+            # Retourner seulement les agents
+            agents = User.query.filter_by(role='agent').all()
+            return jsonify([{
+                'id': agent.id,
+                'username': agent.username,
+                'email': agent.email,
+                'first_name': agent.first_name,
+                'last_name': agent.last_name,
+                'role': agent.role,
+                'active': agent.active,
+                'unite_consulaire_id': agent.unite_consulaire_id,
+                'unite_consulaire_nom': agent.unite_consulaire.nom if agent.unite_consulaire else None
+            } for agent in agents])
+        
         units = UniteConsulaire.query.all()
         return jsonify([{
             'id': unit.id,
@@ -1157,6 +1173,7 @@ def api_admin_units():
             'active': unit.active,
             'agents_count': len([agent for agent in unit.agents if agent.role == 'agent']),
             'services_count': len(unit.get_services_actifs()),
+            'applications_count': len(unit.applications) if unit.applications else 0,
             'created_at': unit.created_at.isoformat() if unit.created_at else None
         } for unit in units])
     
@@ -1185,6 +1202,88 @@ def api_admin_units():
         except Exception as e:
             db.session.rollback()
             return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/admin/units/<int:unit_id>', methods=['GET', 'PUT', 'DELETE'])
+@login_required
+def api_admin_unit_detail(unit_id):
+    """API pour gérer une unité consulaire spécifique"""
+    if not current_user.is_admin():
+        abort(403)
+    
+    unit = UniteConsulaire.query.get_or_404(unit_id)
+    
+    if request.method == 'GET':
+        return jsonify({
+            'id': unit.id,
+            'nom': unit.nom,
+            'type': unit.type,
+            'pays': unit.pays,
+            'ville': unit.ville,
+            'active': unit.active,
+            'agents_count': len([agent for agent in unit.agents if agent.role == 'agent']),
+            'services_count': len(unit.get_services_actifs()),
+            'applications_count': len(unit.applications) if unit.applications else 0,
+            'created_at': unit.created_at.isoformat() if unit.created_at else None
+        })
+    
+    elif request.method == 'PUT':
+        try:
+            unit.nom = request.form.get('nom', unit.nom)
+            unit.type = request.form.get('type', unit.type)
+            unit.pays = request.form.get('pays', unit.pays)
+            unit.ville = request.form.get('ville', unit.ville)
+            
+            db.session.commit()
+            
+            log_audit(current_user.id, 'update_unit', 'unite_consulaire', unit.id, f'Unité modifiée: {unit.nom}')
+            
+            return jsonify({'success': True})
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'error': str(e)})
+    
+    elif request.method == 'DELETE':
+        try:
+            # Vérifier s'il y a des agents assignés
+            if any(agent.role == 'agent' for agent in unit.agents):
+                return jsonify({'success': False, 'error': 'Impossible de supprimer une unité avec des agents assignés'})
+            
+            # Vérifier s'il y a des applications
+            if unit.applications:
+                return jsonify({'success': False, 'error': 'Impossible de supprimer une unité avec des demandes existantes'})
+            
+            db.session.delete(unit)
+            db.session.commit()
+            
+            log_audit(current_user.id, 'delete_unit', 'unite_consulaire', unit.id, f'Unité supprimée: {unit.nom}')
+            
+            return jsonify({'success': True})
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/admin/units/<int:unit_id>/toggle', methods=['POST'])
+@login_required
+def api_toggle_unit_status(unit_id):
+    """API pour activer/désactiver une unité consulaire"""
+    if not current_user.is_admin():
+        abort(403)
+    
+    try:
+        unit = UniteConsulaire.query.get_or_404(unit_id)
+        unit.active = not unit.active
+        db.session.commit()
+        
+        status = 'activée' if unit.active else 'désactivée'
+        log_audit(current_user.id, 'toggle_unit_status', 'unite_consulaire', unit.id, f'Unité {status}: {unit.nom}')
+        
+        return jsonify({'success': True, 'active': unit.active})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/admin/users/<int:user_id>/assign-unit', methods=['POST'])
 @login_required
