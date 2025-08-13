@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="{{ url_for('static', filename='js/countries_cities.js') }}"></script>
 </head>
 <body class="bg-gray-50 pattern-overlay">
     <div class="min-h-screen">
@@ -456,17 +457,24 @@
         }
 
         // Gestionnaires d'événements pour les onglets
-        document.querySelectorAll('.tab-link').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const tabName = link.getAttribute('href').substring(1);
-                showTab(tabName);
-                
-                // Charger le contenu si nécessaire
-                if (tabName === 'users') loadUsers();
-                if (tabName === 'units') loadUnits();
+        function initTabListeners() {
+            const tabLinks = document.querySelectorAll('.tab-link');
+            console.log('Initializing tab listeners for', tabLinks.length, 'links');
+            
+            tabLinks.forEach(link => {
+                console.log('Adding listener to:', link.getAttribute('href'));
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const tabName = link.getAttribute('href').substring(1);
+                    console.log('Tab clicked:', tabName);
+                    showTab(tabName);
+                    
+                    // Charger le contenu si nécessaire
+                    if (tabName === 'users') loadUsers();
+                    if (tabName === 'units') loadUnits();
+                });
             });
-        });
+        }
 
         // Fonctions pour les modals
         function showAddUserModal() {
@@ -906,8 +914,18 @@
 
         // Charger les utilisateurs au démarrage
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded - Starting tab initialization');
+            
+            // Vérifier que les éléments existent
+            const tabLinks = document.querySelectorAll('.tab-link');
+            console.log('Found tab links:', tabLinks.length);
+            
+            // Initialiser les listeners d'onglets
+            initTabListeners();
+            
             // Onglet par défaut
             showTab('dashboard');
+            console.log('Default tab dashboard set');
         });
     </script>
 
