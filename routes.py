@@ -1179,10 +1179,27 @@ def api_admin_units():
     
     elif request.method == 'POST':
         try:
+            # Informations générales
             nom = request.form.get('nom')
             type_unite = request.form.get('type')
             pays = request.form.get('pays')
             ville = request.form.get('ville')
+            
+            # Chef d'unité
+            chef_nom = request.form.get('chef_nom')
+            chef_titre = request.form.get('chef_titre')
+            
+            # Contacts (premier email et téléphone obligatoires)
+            email_principal = request.form.get('email_principal')
+            email_secondaire = request.form.get('email_secondaire')
+            telephone_principal = request.form.get('telephone_principal')
+            telephone_secondaire = request.form.get('telephone_secondaire')
+            
+            # Adresse complète
+            adresse_rue = request.form.get('adresse_rue')
+            adresse_ville = request.form.get('adresse_ville')
+            adresse_code_postal = request.form.get('adresse_code_postal')
+            adresse_complement = request.form.get('adresse_complement')
             
             # Créer l'unité consulaire
             unit = UniteConsulaire()
@@ -1191,6 +1208,27 @@ def api_admin_units():
             unit.pays = pays
             unit.ville = ville
             unit.active = True
+            unit.created_by = current_user.id
+            
+            # Chef d'unité
+            unit.chef_nom = chef_nom
+            unit.chef_titre = chef_titre
+            
+            # Contacts
+            unit.email_principal = email_principal
+            unit.email_secondaire = email_secondaire
+            unit.telephone_principal = telephone_principal
+            unit.telephone_secondaire = telephone_secondaire
+            
+            # Adresse
+            unit.adresse_rue = adresse_rue
+            unit.adresse_ville = adresse_ville
+            unit.adresse_code_postal = adresse_code_postal
+            unit.adresse_complement = adresse_complement
+            
+            # Compatibilité avec les anciens champs
+            unit.email = email_principal
+            unit.telephone = telephone_principal
             
             db.session.add(unit)
             db.session.commit()
@@ -1220,6 +1258,28 @@ def api_admin_unit_detail(unit_id):
             'pays': unit.pays,
             'ville': unit.ville,
             'active': unit.active,
+            
+            # Chef d'unité
+            'chef_nom': unit.chef_nom,
+            'chef_titre': unit.chef_titre,
+            
+            # Contacts
+            'email_principal': unit.email_principal,
+            'email_secondaire': unit.email_secondaire,
+            'telephone_principal': unit.telephone_principal,
+            'telephone_secondaire': unit.telephone_secondaire,
+            
+            # Adresse
+            'adresse_rue': unit.adresse_rue,
+            'adresse_ville': unit.adresse_ville,
+            'adresse_code_postal': unit.adresse_code_postal,
+            'adresse_complement': unit.adresse_complement,
+            
+            # Compatibilité
+            'email': unit.email,
+            'telephone': unit.telephone,
+            
+            # Statistiques
             'agents_count': len([agent for agent in unit.agents if agent.role == 'agent']),
             'services_count': len(unit.get_services_actifs()),
             'applications_count': len(unit.applications) if unit.applications else 0,
@@ -1228,10 +1288,33 @@ def api_admin_unit_detail(unit_id):
     
     elif request.method == 'PUT':
         try:
+            # Informations générales
             unit.nom = request.form.get('nom', unit.nom)
             unit.type = request.form.get('type', unit.type)
             unit.pays = request.form.get('pays', unit.pays)
             unit.ville = request.form.get('ville', unit.ville)
+            
+            # Chef d'unité
+            unit.chef_nom = request.form.get('chef_nom', unit.chef_nom)
+            unit.chef_titre = request.form.get('chef_titre', unit.chef_titre)
+            
+            # Contacts
+            unit.email_principal = request.form.get('email_principal', unit.email_principal)
+            unit.email_secondaire = request.form.get('email_secondaire', unit.email_secondaire)
+            unit.telephone_principal = request.form.get('telephone_principal', unit.telephone_principal)
+            unit.telephone_secondaire = request.form.get('telephone_secondaire', unit.telephone_secondaire)
+            
+            # Adresse
+            unit.adresse_rue = request.form.get('adresse_rue', unit.adresse_rue)
+            unit.adresse_ville = request.form.get('adresse_ville', unit.adresse_ville)
+            unit.adresse_code_postal = request.form.get('adresse_code_postal', unit.adresse_code_postal)
+            unit.adresse_complement = request.form.get('adresse_complement', unit.adresse_complement)
+            
+            # Mettre à jour les anciens champs pour compatibilité
+            if unit.email_principal:
+                unit.email = unit.email_principal
+            if unit.telephone_principal:
+                unit.telephone = unit.telephone_principal
             
             db.session.commit()
             

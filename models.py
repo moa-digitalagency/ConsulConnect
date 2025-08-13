@@ -180,6 +180,24 @@ class UniteConsulaire(db.Model):
     type = db.Column(db.String(50), nullable=False)  # ambassade, consulat, mission_diplomatique
     ville = db.Column(db.String(100), nullable=False)
     pays = db.Column(db.String(100), nullable=False)
+    
+    # Informations du chef d'unité diplomatique
+    chef_nom = db.Column(db.String(100))
+    chef_titre = db.Column(db.String(100))  # Ambassadeur, Consul Général, etc.
+    
+    # Contacts multiples (premier obligatoire, second optionnel)
+    email_principal = db.Column(db.String(120), nullable=False)
+    email_secondaire = db.Column(db.String(120))
+    telephone_principal = db.Column(db.String(20), nullable=False)
+    telephone_secondaire = db.Column(db.String(20))
+    
+    # Adresse complète détaillée
+    adresse_rue = db.Column(db.String(200))
+    adresse_ville = db.Column(db.String(100))  # Peut différer de la ville administrative
+    adresse_code_postal = db.Column(db.String(20))
+    adresse_complement = db.Column(db.String(200))  # Étage, bureau, etc.
+    
+    # Anciens champs (pour compatibilité)
     adresse_complete = db.Column(db.Text)
     telephone = db.Column(db.String(20))
     email = db.Column(db.String(120))

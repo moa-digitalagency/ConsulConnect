@@ -277,8 +277,8 @@
 
     <!-- Modal Ajouter/Modifier Unité -->
     <div id="addUnitModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div class="flex justify-between items-center mb-4">
+        <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-screen overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
                 <h3 id="unitModalTitle" class="text-lg font-medium text-gray-900">Ajouter une unité consulaire</h3>
                 <button onclick="hideUnitModal()" class="text-gray-400 hover:text-gray-600">
                     <i class="fas fa-times"></i>
@@ -286,30 +286,119 @@
             </div>
             <form id="unitForm" onsubmit="saveUnit(event)">
                 <input type="hidden" id="unitId" name="unit_id" value="">
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Nom</label>
-                        <input type="text" id="unitNom" name="nom" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Type</label>
-                        <select id="unitType" name="type" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="">Sélectionner un type</option>
-                            <option value="ambassade">Ambassade</option>
-                            <option value="consulat">Consulat</option>
-                            <option value="mission_diplomatique">Mission diplomatique</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Pays</label>
-                        <input type="text" id="unitPays" name="pays" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Ville</label>
-                        <input type="text" id="unitVille" name="ville" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                
+                <!-- Informations générales -->
+                <div class="mb-6">
+                    <h4 class="text-md font-medium text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-info-circle mr-2 text-blue-600"></i>Informations générales
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Nom de l'unité *</label>
+                            <input type="text" id="unitNom" name="nom" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Ex: Ambassade de la RDC en France">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Type d'unité *</label>
+                            <select id="unitType" name="type" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Sélectionner un type</option>
+                                <option value="ambassade">Ambassade</option>
+                                <option value="consulat">Consulat</option>
+                                <option value="consulat_general">Consulat Général</option>
+                                <option value="mission_diplomatique">Mission diplomatique</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Pays *</label>
+                            <select id="unitPays" name="pays" required onchange="updateCities()" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Sélectionner un pays</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Ville *</label>
+                            <select id="unitVille" name="ville" required disabled class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Choisir d'abord un pays</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-                <div class="mt-6 flex justify-end space-x-3">
+
+                <!-- Chef d'unité -->
+                <div class="mb-6">
+                    <h4 class="text-md font-medium text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-user-tie mr-2 text-green-600"></i>Chef d'unité diplomatique
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Nom complet</label>
+                            <input type="text" id="chefNom" name="chef_nom" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Ex: Excellence Monsieur Jean KABILA">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Titre</label>
+                            <select id="chefTitre" name="chef_titre" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Sélectionner un titre</option>
+                                <option value="Ambassadeur">Ambassadeur</option>
+                                <option value="Ambassadrice">Ambassadrice</option>
+                                <option value="Consul Général">Consul Général</option>
+                                <option value="Consul">Consul</option>
+                                <option value="Vice-Consul">Vice-Consul</option>
+                                <option value="Chargé d'Affaires">Chargé d'Affaires</option>
+                                <option value="Conseiller">Conseiller</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contacts -->
+                <div class="mb-6">
+                    <h4 class="text-md font-medium text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-phone-alt mr-2 text-purple-600"></i>Informations de contact
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Email principal *</label>
+                            <input type="email" id="emailPrincipal" name="email_principal" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="contact@ambassade-rdc.fr">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Email secondaire</label>
+                            <input type="email" id="emailSecondaire" name="email_secondaire" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="info@ambassade-rdc.fr">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Téléphone principal *</label>
+                            <input type="tel" id="telephonePrincipal" name="telephone_principal" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="+33 1 23 45 67 89">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Téléphone secondaire</label>
+                            <input type="tel" id="telephoneSecondaire" name="telephone_secondaire" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="+33 1 23 45 67 90">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Adresse complète -->
+                <div class="mb-6">
+                    <h4 class="text-md font-medium text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-map-marker-alt mr-2 text-red-600"></i>Adresse complète
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">Adresse (rue, numéro)</label>
+                            <input type="text" id="adresseRue" name="adresse_rue" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="12 Avenue des Champs-Élysées">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Ville/Localité</label>
+                            <input type="text" id="adresseVille" name="adresse_ville" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Paris 8ème">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Code postal</label>
+                            <input type="text" id="adresseCodePostal" name="adresse_code_postal" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="75008">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">Complément d'adresse</label>
+                            <input type="text" id="adresseComplement" name="adresse_complement" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="2ème étage, Bureau 205">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4 border-t">
                     <button type="button" onclick="hideUnitModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
                         Annuler
                     </button>
@@ -396,8 +485,37 @@
             document.getElementById('unitSubmitText').textContent = 'Ajouter';
             document.getElementById('unitForm').reset();
             document.getElementById('unitId').value = '';
+            
+            // Initialiser les listes déroulantes
+            initializeCountriesAndCities();
+            
             document.getElementById('addUnitModal').classList.remove('hidden');
             document.getElementById('addUnitModal').classList.add('flex');
+        }
+
+        function initializeCountriesAndCities() {
+            const countrySelect = document.getElementById('unitPays');
+            const citySelect = document.getElementById('unitVille');
+            
+            // Populer la liste des pays
+            populateCountrySelect(countrySelect);
+            
+            // Réinitialiser la liste des villes
+            citySelect.innerHTML = '<option value="">Choisir d'abord un pays</option>';
+            citySelect.disabled = true;
+        }
+
+        function updateCities() {
+            const countrySelect = document.getElementById('unitPays');
+            const citySelect = document.getElementById('unitVille');
+            const selectedCountry = countrySelect.value;
+            
+            if (selectedCountry) {
+                populateCitySelect(citySelect, selectedCountry);
+            } else {
+                citySelect.innerHTML = '<option value="">Choisir d'abord un pays</option>';
+                citySelect.disabled = true;
+            }
         }
 
         function hideUnitModal() {
@@ -582,10 +700,39 @@
                     document.getElementById('unitModalTitle').textContent = 'Modifier l\'unité consulaire';
                     document.getElementById('unitSubmitText').textContent = 'Modifier';
                     document.getElementById('unitId').value = unit.id;
-                    document.getElementById('unitNom').value = unit.nom;
-                    document.getElementById('unitType').value = unit.type;
-                    document.getElementById('unitPays').value = unit.pays;
-                    document.getElementById('unitVille').value = unit.ville;
+                    
+                    // Initialiser les listes déroulantes
+                    initializeCountriesAndCities();
+                    
+                    // Remplir les champs de base
+                    document.getElementById('unitNom').value = unit.nom || '';
+                    document.getElementById('unitType').value = unit.type || '';
+                    
+                    // Définir le pays et mettre à jour les villes
+                    setTimeout(() => {
+                        document.getElementById('unitPays').value = unit.pays || '';
+                        updateCities();
+                        setTimeout(() => {
+                            document.getElementById('unitVille').value = unit.ville || '';
+                        }, 100);
+                    }, 100);
+                    
+                    // Remplir les champs du chef d'unité
+                    document.getElementById('chefNom').value = unit.chef_nom || '';
+                    document.getElementById('chefTitre').value = unit.chef_titre || '';
+                    
+                    // Remplir les champs de contact
+                    document.getElementById('emailPrincipal').value = unit.email_principal || unit.email || '';
+                    document.getElementById('emailSecondaire').value = unit.email_secondaire || '';
+                    document.getElementById('telephonePrincipal').value = unit.telephone_principal || unit.telephone || '';
+                    document.getElementById('telephoneSecondaire').value = unit.telephone_secondaire || '';
+                    
+                    // Remplir les champs d'adresse
+                    document.getElementById('adresseRue').value = unit.adresse_rue || '';
+                    document.getElementById('adresseVille').value = unit.adresse_ville || '';
+                    document.getElementById('adresseCodePostal').value = unit.adresse_code_postal || '';
+                    document.getElementById('adresseComplement').value = unit.adresse_complement || '';
+                    
                     document.getElementById('addUnitModal').classList.remove('hidden');
                     document.getElementById('addUnitModal').classList.add('flex');
                 })
