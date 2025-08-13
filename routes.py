@@ -153,7 +153,7 @@ def user_dashboard():
     
     return render_template('dashboard/user.html', applications=applications, notifications=notifications)
 
-@app.route('/admin-dashboard')
+@app.route('/admin')
 @login_required
 def admin_dashboard():
     if not current_user.is_admin():
@@ -173,7 +173,7 @@ def admin_dashboard():
     total_units = UniteConsulaire.query.count()
     total_services = Service.query.count()
     
-    return render_template('dashboard/admin.html', 
+    return render_template('dashboard/admin_simple.html', 
                          total_applications=total_applications,
                          pending_applications=pending_applications,
                          processing_applications=processing_applications,
@@ -182,6 +182,29 @@ def admin_dashboard():
                          recent_applications=recent_applications,
                          total_units=total_units,
                          total_services=total_services)
+
+@app.route('/admin-dashboard')
+@login_required
+def admin_dashboard_redirect():
+    """Redirect ancien lien vers nouveau"""
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/users')
+@login_required
+def admin_users_page():
+    if not current_user.is_admin():
+        abort(403)
+    
+    users = User.query.all()
+    return render_template('dashboard/admin_users.html', users=users)
+
+@app.route('/admin/config')
+@login_required
+def admin_config_page():
+    if not current_user.is_admin():
+        abort(403)
+    
+    return render_template('dashboard/admin_config.html')
 
 @app.route('/consulate-dashboard')
 @login_required  

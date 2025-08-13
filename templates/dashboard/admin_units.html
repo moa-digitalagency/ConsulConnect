@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unités Consulaires - Administration - e-Consulaire RDC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 pattern-overlay">
+    <div class="min-h-screen">
+        <!-- Header avec navigation -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 flex items-center">
+                            <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-university text-white text-sm"></i>
+                            </div>
+                            <span class="ml-3 text-xl font-bold text-gray-900">Administration</span>
+                        </div>
+                        <nav class="hidden md:ml-8 md:flex md:space-x-8">
+                            <a href="/admin" class="tab-button text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">
+                                <i class="fas fa-chart-line mr-2"></i>Tableau de bord
+                            </a>
+                            <a href="/admin/users" class="tab-button text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">
+                                <i class="fas fa-users mr-2"></i>Utilisateurs
+                            </a>
+                            <a href="/admin/units" class="tab-button active text-blue-600 border-blue-600 border-b-2 px-3 py-2 text-sm font-medium">
+                                <i class="fas fa-building mr-2"></i>Unités Consulaires
+                            </a>
+                            <a href="/admin/config" class="tab-button text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">
+                                <i class="fas fa-cog mr-2"></i>Configuration
+                            </a>
+                        </nav>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-sm text-gray-700">{{ current_user.get_full_name() }}</span>
+                        <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">{{ current_user.role|upper }}</span>
+                        <a href="{{ url_for('logout') }}" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Contenu principal -->
+        <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="card-corporate">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-lg font-medium text-gray-900">Unités consulaires</h3>
+                    <button onclick="showAddUnitModal()" class="btn-primary">
+                        <i class="fas fa-plus mr-2"></i>Ajouter une unité
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {% for unit in units %}
+                        <div class="card-corporate hover:shadow-lg transition-shadow duration-200">
+                            <div class="p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-building text-blue-600"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h4 class="text-lg font-medium text-gray-900">{{ unit.nom }}</h4>
+                                            <p class="text-sm text-gray-500">{{ unit.type_unite }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-2 mb-4">
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i class="fas fa-map-marker-alt w-4 h-4 mr-2"></i>
+                                        <span>{{ unit.ville }}, {{ unit.pays }}</span>
+                                    </div>
+                                    
+                                    {% if unit.chef_nom %}
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i class="fas fa-user-tie w-4 h-4 mr-2"></i>
+                                        <span>{{ unit.chef_titre }} {{ unit.chef_nom }}</span>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i class="fas fa-users w-4 h-4 mr-2"></i>
+                                        <span>{{ unit.agents|length }} agent(s)</span>
+                                    </div>
+                                    
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i class="fas fa-cogs w-4 h-4 mr-2"></i>
+                                        <span>{{ unit.services|length }} service(s)</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full
+                                        {% if unit.is_active %}bg-green-100 text-green-800
+                                        {% else %}bg-red-100 text-red-800{% endif %}">
+                                        {% if unit.is_active %}Actif{% else %}Inactif{% endif %}
+                                    </span>
+                                    
+                                    <div class="flex space-x-2">
+                                        <button onclick="editUnit({{ unit.id }})" 
+                                                class="text-indigo-600 hover:text-indigo-900 text-sm">
+                                            Modifier
+                                        </button>
+                                        <button onclick="manageServices({{ unit.id }})" 
+                                                class="text-blue-600 hover:text-blue-900 text-sm">
+                                            Services
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .btn-primary {
+            @apply px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors;
+        }
+    </style>
+</body>
+</html>
