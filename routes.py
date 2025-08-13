@@ -7,6 +7,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from app import app, db, mail
 from models import User, Application, Document, StatusHistory, AuditLog, Notification, UniteConsulaire, Service, UniteConsulaire_Service
+from sqlalchemy import func
 from forms import (LoginForm, RegisterForm, ConsularCardForm, CareAttestationForm, 
                    LegalizationsForm, PassportForm, OtherDocumentsForm, ApplicationStatusForm,
                    EmergencyPassForm, CivilStatusForm, PowerAttorneyForm)
@@ -1069,6 +1070,150 @@ def api_unit_services(unit_id):
         'tarif': us.tarif_personnalise,
         'delai': us.service.delai_traitement
     } for us in configured_services])
+
+# API Routes pour l'administration
+@app.route('/api/admin/users', methods=['GET', 'POST'])
+@login_required
+def api_admin_users():
+    """API pour gérer les utilisateurs"""
+    if not current_user.is_admin():
+        abort(403)
+    
+    if request.method == 'GET':
+        users = User.query.all()
+        return jsonify([{
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'role': user.role,
+            'active': user.active,
+            'unite_consulaire_id': user.unite_consulaire_id,
+            'unite_consulaire_nom': user.unite_consulaire.nom if user.unite_consulaire else None,
+            'created_at': user.created_at.isoformat() if user.created_at else None
+        } for user in users])
+    
+    elif request.method == 'POST':
+        try:
+            email = request.form.get('email')
+            full_name = request.form.get('full_name')
+            role = request.form.get('role')
+            unit_id = request.form.get('unit_id')
+            
+            # Vérifier si l'email existe déjà
+            if User.query.filter_by(email=email).first():
+                return jsonify({'success': False, 'error': 'Email déjà utilisé'})
+            
+            # Séparer nom et prénom
+            if full_name:
+                name_parts = full_name.strip().split(' ', 1)
+                first_name = name_parts[0]
+                last_name = name_parts[1] if len(name_parts) > 1 else ''
+            else:
+                first_name = ''
+                last_name = ''
+            
+            # Créer l'utilisateur
+            user = User()
+            user.email = email
+            user.username = email.split('@')[0]  # Utiliser la partie avant @ comme username
+            user.first_name = first_name
+            user.last_name = last_name
+            user.role = role
+            user.active = True
+            user.profile_complete = True
+            user.password_hash = generate_password_hash('motdepasse123')  # Mot de passe temporaire
+            
+            if role == 'agent' and unit_id:
+                user.unite_consulaire_id = int(unit_id)
+            
+            db.session.add(user)
+            db.session.commit()
+            
+            log_audit(current_user.id, 'create_user', 'user', user.id, f'Utilisateur créé: {user.email}')
+            
+            return jsonify({'success': True, 'user_id': user.id})
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/admin/units', methods=['GET', 'POST'])
+@login_required
+def api_admin_units():
+    """API pour gérer les unités consulaires"""
+    if not current_user.is_admin():
+        abort(403)
+    
+    if request.method == 'GET':
+        units = UniteConsulaire.query.all()
+        return jsonify([{
+            'id': unit.id,
+            'nom': unit.nom,
+            'type': unit.type,
+            'pays': unit.pays,
+            'ville': unit.ville,
+            'active': unit.active,
+            'agents_count': len([agent for agent in unit.agents if agent.role == 'agent']),
+            'services_count': len(unit.get_services_actifs()),
+            'created_at': unit.created_at.isoformat() if unit.created_at else None
+        } for unit in units])
+    
+    elif request.method == 'POST':
+        try:
+            nom = request.form.get('nom')
+            type_unite = request.form.get('type')
+            pays = request.form.get('pays')
+            ville = request.form.get('ville')
+            
+            # Créer l'unité consulaire
+            unit = UniteConsulaire()
+            unit.nom = nom
+            unit.type = type_unite
+            unit.pays = pays
+            unit.ville = ville
+            unit.active = True
+            
+            db.session.add(unit)
+            db.session.commit()
+            
+            log_audit(current_user.id, 'create_unit', 'unite_consulaire', unit.id, f'Unité créée: {unit.nom}')
+            
+            return jsonify({'success': True, 'unit_id': unit.id})
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/admin/users/<int:user_id>/assign-unit', methods=['POST'])
+@login_required
+def api_assign_user_unit(user_id):
+    """API pour assigner un utilisateur à une unité"""
+    if not current_user.is_admin():
+        abort(403)
+    
+    try:
+        user = User.query.get_or_404(user_id)
+        unit_id = request.form.get('unit_id')
+        unit_name = "Aucune"
+        
+        if unit_id:
+            unit = UniteConsulaire.query.get_or_404(int(unit_id))
+            user.unite_consulaire_id = unit.id
+            unit_name = unit.nom
+        else:
+            user.unite_consulaire_id = None
+        
+        db.session.commit()
+        
+        log_audit(current_user.id, 'assign_unit', 'user', user.id, f'Unité assignée: {unit_name}')
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/system-overview')
 def system_overview():

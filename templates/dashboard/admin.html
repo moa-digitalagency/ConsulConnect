@@ -1,246 +1,526 @@
-{% extends "base.html" %}
-
-{% block title %}Administration - e-Consulaire RDC{% endblock %}
-
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>
-        <i class="fas fa-tools me-2"></i>
-        Tableau de Bord Administrateur
-    </h1>
-    <div class="text-muted">
-        Connecté en tant que <strong>{{ current_user.role.title() }}</strong>
-    </div>
-</div>
-
-<!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body text-center">
-                <i class="fas fa-file-alt fa-2x mb-2"></i>
-                <h4 class="mb-1">{{ total_applications }}</h4>
-                <small>Total Demandes</small>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-        <div class="card bg-secondary text-white">
-            <div class="card-body text-center">
-                <i class="fas fa-inbox fa-2x mb-2"></i>
-                <h4 class="mb-1">{{ pending_applications }}</h4>
-                <small>En Attente</small>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-        <div class="card bg-warning text-white">
-            <div class="card-body text-center">
-                <i class="fas fa-clock fa-2x mb-2"></i>
-                <h4 class="mb-1">{{ processing_applications }}</h4>
-                <small>En Traitement</small>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-        <div class="card bg-success text-white">
-            <div class="card-body text-center">
-                <i class="fas fa-check-circle fa-2x mb-2"></i>
-                <h4 class="mb-1">{{ approved_applications }}</h4>
-                <small>Approuvées</small>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-        <div class="card bg-danger text-white">
-            <div class="card-body text-center">
-                <i class="fas fa-times-circle fa-2x mb-2"></i>
-                <h4 class="mb-1">{{ rejected_applications }}</h4>
-                <small>Rejetées</small>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-        <div class="card bg-info text-white">
-            <div class="card-body text-center">
-                <i class="fas fa-percentage fa-2x mb-2"></i>
-                <h4 class="mb-1">
-                    {% if total_applications > 0 %}
-                        {{ ((approved_applications / total_applications) * 100)|round(1) }}%
-                    {% else %}
-                        0%
-                    {% endif %}
-                </h4>
-                <small>Taux d'Approbation</small>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <!-- Recent Applications -->
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="fas fa-list me-2"></i>Demandes Récentes
-                </h5>
-                <a href="{{ url_for('list_applications') }}" class="btn btn-sm btn-outline-primary">
-                    Voir toutes
-                </a>
-            </div>
-            <div class="card-body">
-                {% if recent_applications %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Référence</th>
-                                <th>Utilisateur</th>
-                                <th>Service</th>
-                                <th>Statut</th>
-                                <th>Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for app in recent_applications %}
-                            <tr>
-                                <td>
-                                    <strong>{{ app.reference_number }}</strong>
-                                </td>
-                                <td>
-                                    <div>
-                                        <strong>{{ app.user.get_full_name() }}</strong><br>
-                                        <small class="text-muted">{{ app.user.email }}</small>
-                                    </div>
-                                </td>
-                                <td>{{ app.get_service_display() }}</td>
-                                <td>
-                                    {% if app.status == 'soumise' %}
-                                        <span class="badge bg-secondary">{{ app.get_status_display() }}</span>
-                                    {% elif app.status == 'en_traitement' %}
-                                        <span class="badge bg-warning">{{ app.get_status_display() }}</span>
-                                    {% elif app.status == 'validee' %}
-                                        <span class="badge bg-success">{{ app.get_status_display() }}</span>
-                                    {% else %}
-                                        <span class="badge bg-danger">{{ app.get_status_display() }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ app.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
-                                <td>
-                                    <a href="{{ url_for('view_application', id=app.id) }}" 
-                                       class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center py-4">
-                    <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">Aucune demande récente</h5>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    
-    <!-- Quick Actions & Tools -->
-    <div class="col-lg-4">
-        <!-- Priority Actions -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-exclamation-triangle me-2"></i>Actions Prioritaires
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{{ url_for('list_applications') }}?status=soumise" 
-                       class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-inbox me-2"></i>
-                        Demandes en attente ({{ pending_applications }})
-                    </a>
-                    <a href="{{ url_for('list_applications') }}?status=en_traitement" 
-                       class="btn btn-outline-warning btn-sm">
-                        <i class="fas fa-clock me-2"></i>
-                        En traitement ({{ processing_applications }})
-                    </a>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - e-Consulaire RDC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 pattern-overlay">
+    <div class="min-h-screen">
+        <!-- Header avec navigation -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 flex items-center">
+                            <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-university text-white text-sm"></i>
+                            </div>
+                            <span class="ml-3 text-xl font-bold text-gray-900">Administration</span>
+                        </div>
+                        <nav class="hidden md:ml-8 md:flex md:space-x-8">
+                            <a href="#dashboard" class="tab-link active text-blue-600 border-blue-600 border-b-2 px-3 py-2 text-sm font-medium">
+                                <i class="fas fa-chart-line mr-2"></i>Tableau de bord
+                            </a>
+                            <a href="#users" class="tab-link text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">
+                                <i class="fas fa-users mr-2"></i>Utilisateurs
+                            </a>
+                            <a href="#units" class="tab-link text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">
+                                <i class="fas fa-building mr-2"></i>Unités Consulaires
+                            </a>
+                            <a href="#config" class="tab-link text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">
+                                <i class="fas fa-cog mr-2"></i>Configuration
+                            </a>
+                        </nav>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-sm text-gray-700">{{ current_user.get_full_name() }}</span>
+                        <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">{{ current_user.role|upper }}</span>
+                        <a href="{{ url_for('logout') }}" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
+        </header>
+
+        <!-- Contenu principal -->
+        <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            
+            <!-- Onglet Tableau de bord -->
+            <div id="dashboard-content" class="tab-content">
+                <!-- Statistiques principales -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="card-corporate p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-file-alt text-blue-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">Total Applications</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ total_applications or 0 }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-corporate p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">En attente</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ pending_applications or 0 }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-corporate p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">Approuvées</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ approved_applications or 0 }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-corporate p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-building text-purple-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">Unités Consulaires</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ total_units or 0 }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Applications récentes -->
+                <div class="card-corporate">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Applications récentes</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Référence</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Demandeur</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for app in recent_applications %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ app.reference_number }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ app.service_type }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ app.user.get_full_name() }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full
+                                            {% if app.status == 'soumise' %}bg-blue-100 text-blue-800
+                                            {% elif app.status == 'en_traitement' %}bg-yellow-100 text-yellow-800
+                                            {% elif app.status == 'validee' %}bg-green-100 text-green-800
+                                            {% elif app.status == 'rejetee' %}bg-red-100 text-red-800
+                                            {% endif %}">
+                                            {{ app.status|title }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ app.created_at.strftime('%d/%m/%Y') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglet Gestion des utilisateurs -->
+            <div id="users-content" class="tab-content hidden">
+                <div class="card-corporate">
+                    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                        <h3 class="text-lg font-medium text-gray-900">Gestion des utilisateurs</h3>
+                        <button onclick="showAddUserModal()" class="btn-primary">
+                            <i class="fas fa-plus mr-2"></i>Ajouter un utilisateur
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div id="users-list" class="space-y-4">
+                            <!-- Contenu chargé dynamiquement -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglet Unités consulaires -->
+            <div id="units-content" class="tab-content hidden">
+                <div class="card-corporate">
+                    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                        <h3 class="text-lg font-medium text-gray-900">Unités consulaires</h3>
+                        <button onclick="showAddUnitModal()" class="btn-primary">
+                            <i class="fas fa-plus mr-2"></i>Ajouter une unité
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div id="units-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Contenu chargé dynamiquement -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglet Configuration -->
+            <div id="config-content" class="tab-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="card-corporate">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-lg font-medium text-gray-900">Configuration système</h3>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Email de notification</label>
+                                <input type="email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Délai d'expiration des sessions (minutes)</label>
+                                <input type="number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" value="60">
+                            </div>
+                            <button class="btn-primary">Sauvegarder</button>
+                        </div>
+                    </div>
+
+                    <div class="card-corporate">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-lg font-medium text-gray-900">Liens rapides</h3>
+                        </div>
+                        <div class="p-6 space-y-3">
+                            <a href="{{ url_for('admin_hierarchy') }}" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-sitemap mr-3 text-blue-600"></i>Vue hiérarchique complète
+                            </a>
+                            <a href="{{ url_for('admin_units') }}" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-building mr-3 text-green-600"></i>Gestion des unités
+                            </a>
+                            <a href="/admin/stats" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-chart-bar mr-3 text-purple-600"></i>Statistiques avancées
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal Ajouter Utilisateur -->
+    <div id="addUserModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Ajouter un utilisateur</h3>
+                <button onclick="hideAddUserModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="addUserForm" onsubmit="addUser(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" name="email" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Nom complet</label>
+                        <input type="text" name="full_name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Rôle</label>
+                        <select name="role" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="">Sélectionner un rôle</option>
+                            <option value="admin">Administrateur</option>
+                            <option value="agent">Agent consulaire</option>
+                            <option value="usager">Usager</option>
+                        </select>
+                    </div>
+                    <div id="unitSelect" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700">Unité consulaire</label>
+                        <select name="unit_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="">Sélectionner une unité</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" onclick="hideAddUserModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        Ajouter
+                    </button>
+                </div>
+            </form>
         </div>
+    </div>
+
+    <!-- Modal Ajouter Unité -->
+    <div id="addUnitModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Ajouter une unité consulaire</h3>
+                <button onclick="hideAddUnitModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="addUnitForm" onsubmit="addUnit(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Nom</label>
+                        <input type="text" name="nom" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Type</label>
+                        <select name="type" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="">Sélectionner un type</option>
+                            <option value="ambassade">Ambassade</option>
+                            <option value="consulat">Consulat</option>
+                            <option value="mission_diplomatique">Mission diplomatique</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Pays</label>
+                        <input type="text" name="pays" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Ville</label>
+                        <input type="text" name="ville" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" onclick="hideAddUnitModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        Ajouter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Gestion des onglets
+        function showTab(tabName) {
+            // Masquer tous les contenus
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Désactiver tous les liens d'onglets
+            document.querySelectorAll('.tab-link').forEach(link => {
+                link.classList.remove('active', 'text-blue-600', 'border-blue-600', 'border-b-2');
+                link.classList.add('text-gray-500');
+            });
+            
+            // Afficher le contenu sélectionné
+            document.getElementById(tabName + '-content').classList.remove('hidden');
+            
+            // Activer le lien d'onglet
+            const activeLink = document.querySelector(`[href="#${tabName}"]`);
+            if (activeLink) {
+                activeLink.classList.remove('text-gray-500');
+                activeLink.classList.add('active', 'text-blue-600', 'border-blue-600', 'border-b-2');
+            }
+        }
+
+        // Gestionnaires d'événements pour les onglets
+        document.querySelectorAll('.tab-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tabName = link.getAttribute('href').substring(1);
+                showTab(tabName);
+                
+                // Charger le contenu si nécessaire
+                if (tabName === 'users') loadUsers();
+                if (tabName === 'units') loadUnits();
+            });
+        });
+
+        // Fonctions pour les modals
+        function showAddUserModal() {
+            document.getElementById('addUserModal').classList.remove('hidden');
+            document.getElementById('addUserModal').classList.add('flex');
+            loadUnitsForSelect();
+        }
+
+        function hideAddUserModal() {
+            document.getElementById('addUserModal').classList.add('hidden');
+            document.getElementById('addUserModal').classList.remove('flex');
+        }
+
+        function showAddUnitModal() {
+            document.getElementById('addUnitModal').classList.remove('hidden');
+            document.getElementById('addUnitModal').classList.add('flex');
+        }
+
+        function hideAddUnitModal() {
+            document.getElementById('addUnitModal').classList.add('hidden');
+            document.getElementById('addUnitModal').classList.remove('flex');
+        }
+
+        // Gestion du changement de rôle
+        document.querySelector('select[name="role"]').addEventListener('change', function() {
+            const unitSelect = document.getElementById('unitSelect');
+            if (this.value === 'agent') {
+                unitSelect.classList.remove('hidden');
+            } else {
+                unitSelect.classList.add('hidden');
+            }
+        });
+
+        // Chargement des données
+        function loadUsers() {
+            fetch('/api/admin/users')
+                .then(response => response.json())
+                .then(users => {
+                    const usersList = document.getElementById('users-list');
+                    usersList.innerHTML = users.map(user => `
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-blue-600"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-900">${user.first_name} ${user.last_name}</p>
+                                    <p class="text-sm text-gray-500">${user.email}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">${user.role}</span>
+                                <button onclick="editUser(${user.id})" class="text-blue-600 hover:text-blue-800">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                })
+                .catch(error => console.error('Erreur lors du chargement des utilisateurs:', error));
+        }
+
+        function loadUnits() {
+            fetch('/api/admin/units')
+                .then(response => response.json())
+                .then(units => {
+                    const unitsList = document.getElementById('units-list');
+                    unitsList.innerHTML = units.map(unit => `
+                        <div class="card-corporate p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-building text-blue-600 text-xl"></i>
+                                </div>
+                                <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">${unit.type}</span>
+                            </div>
+                            <h4 class="text-lg font-medium text-gray-900 mb-2">${unit.nom}</h4>
+                            <p class="text-sm text-gray-500 mb-4">${unit.ville}, ${unit.pays}</p>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-500">${unit.agents_count || 0} agents</span>
+                                <span class="text-gray-500">${unit.services_count || 0} services</span>
+                            </div>
+                        </div>
+                    `).join('');
+                })
+                .catch(error => console.error('Erreur lors du chargement des unités:', error));
+        }
+
+        function loadUnitsForSelect() {
+            fetch('/api/admin/units')
+                .then(response => response.json())
+                .then(units => {
+                    const select = document.querySelector('select[name="unit_id"]');
+                    select.innerHTML = '<option value="">Sélectionner une unité</option>' +
+                        units.map(unit => `<option value="${unit.id}">${unit.nom}</option>`).join('');
+                })
+                .catch(error => console.error('Erreur lors du chargement des unités:', error));
+        }
+
+        // Fonctions d'ajout
+        function addUser(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            
+            fetch('/api/admin/users', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    hideAddUserModal();
+                    loadUsers();
+                    alert('Utilisateur ajouté avec succès');
+                } else {
+                    alert('Erreur: ' + result.error);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de l\'ajout de l\'utilisateur');
+            });
+        }
+
+        function addUnit(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            
+            fetch('/api/admin/units', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    hideAddUnitModal();
+                    loadUnits();
+                    alert('Unité ajoutée avec succès');
+                } else {
+                    alert('Erreur: ' + result.error);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de l\'ajout de l\'unité');
+            });
+        }
+
+        // Charger les utilisateurs au démarrage
+        document.addEventListener('DOMContentLoaded', function() {
+            // Onglet par défaut
+            showTab('dashboard');
+        });
+    </script>
+
+    <style>
+        .btn-primary {
+            @apply px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors;
+        }
         
-        <!-- Admin Tools -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-tools me-2"></i>Outils d'Administration
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{{ url_for('list_applications') }}" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-list me-2"></i>Toutes les demandes
-                    </a>
-                    <button class="btn btn-outline-info btn-sm" disabled>
-                        <i class="fas fa-chart-bar me-2"></i>Rapports (Bientôt)
-                    </button>
-                    <button class="btn btn-outline-success btn-sm" disabled>
-                        <i class="fas fa-download me-2"></i>Export données (Bientôt)
-                    </button>
-                    <button class="btn btn-outline-dark btn-sm" disabled>
-                        <i class="fas fa-cog me-2"></i>Configuration (Bientôt)
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Service Statistics -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-chart-pie me-2"></i>Répartition par Service
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="small">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span><i class="fas fa-id-card text-primary me-1"></i>Carte Consulaire</span>
-                        <span class="text-muted">En développement</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span><i class="fas fa-file-contract text-success me-1"></i>Attestations</span>
-                        <span class="text-muted">En développement</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span><i class="fas fa-stamp text-warning me-1"></i>Légalisations</span>
-                        <span class="text-muted">En développement</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span><i class="fas fa-passport text-info me-1"></i>Passeports</span>
-                        <span class="text-muted">En développement</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-file-alt text-secondary me-1"></i>Autres</span>
-                        <span class="text-muted">En développement</span>
-                    </div>
-                </div>
-                <hr>
-                <p class="small text-muted mb-0">
-                    <i class="fas fa-info-circle me-1"></i>
-                    Les statistiques détaillées seront disponibles prochainement.
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+        .card-corporate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+    </style>
+</body>
+</html>
