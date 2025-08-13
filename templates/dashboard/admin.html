@@ -23,18 +23,18 @@
                             <span class="ml-3 text-xl font-bold text-gray-900">Administration</span>
                         </div>
                         <nav class="hidden md:ml-8 md:flex md:space-x-8">
-                            <a href="#dashboard" class="tab-link active text-blue-600 border-blue-600 border-b-2 px-3 py-2 text-sm font-medium">
+                            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-button active text-blue-600 border-blue-600 border-b-2 px-3 py-2 text-sm font-medium">
                                 <i class="fas fa-chart-line mr-2"></i>Tableau de bord
-                            </a>
-                            <a href="#users" class="tab-link text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">
+                            </button>
+                            <button onclick="switchTab('users')" id="tab-users" class="tab-button text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">
                                 <i class="fas fa-users mr-2"></i>Utilisateurs
-                            </a>
-                            <a href="#units" class="tab-link text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">
+                            </button>
+                            <button onclick="switchTab('units')" id="tab-units" class="tab-button text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">
                                 <i class="fas fa-building mr-2"></i>Unités Consulaires
-                            </a>
-                            <a href="#config" class="tab-link text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">
+                            </button>
+                            <button onclick="switchTab('config')" id="tab-config" class="tab-button text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">
                                 <i class="fas fa-cog mr-2"></i>Configuration
-                            </a>
+                            </button>
                         </nav>
                     </div>
                     <div class="flex items-center space-x-4">
@@ -432,48 +432,47 @@
     </div>
 
     <script>
-        // Gestion des onglets
-        function showTab(tabName) {
-            // Masquer tous les contenus
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('hidden');
+        // Fonction simple pour changer d'onglet
+        function switchTab(tabName) {
+            console.log('Switching to tab:', tabName);
+            
+            // Cacher tous les contenus d'onglets
+            const allTabs = ['dashboard', 'users', 'units', 'config'];
+            allTabs.forEach(tab => {
+                const content = document.getElementById(tab + '-content');
+                const button = document.getElementById('tab-' + tab);
+                
+                if (content) content.classList.add('hidden');
+                if (button) {
+                    button.classList.remove('active', 'text-blue-600', 'border-blue-600', 'border-b-2');
+                    button.classList.add('text-gray-500');
+                }
             });
             
-            // Désactiver tous les liens d'onglets
-            document.querySelectorAll('.tab-link').forEach(link => {
-                link.classList.remove('active', 'text-blue-600', 'border-blue-600', 'border-b-2');
-                link.classList.add('text-gray-500');
-            });
+            // Afficher le contenu de l'onglet sélectionné
+            const activeContent = document.getElementById(tabName + '-content');
+            const activeButton = document.getElementById('tab-' + tabName);
             
-            // Afficher le contenu sélectionné
-            document.getElementById(tabName + '-content').classList.remove('hidden');
-            
-            // Activer le lien d'onglet
-            const activeLink = document.querySelector(`[href="#${tabName}"]`);
-            if (activeLink) {
-                activeLink.classList.remove('text-gray-500');
-                activeLink.classList.add('active', 'text-blue-600', 'border-blue-600', 'border-b-2');
+            if (activeContent) {
+                activeContent.classList.remove('hidden');
+                console.log('Showing content for:', tabName);
             }
-        }
-
-        // Gestionnaires d'événements pour les onglets
-        function initTabListeners() {
-            const tabLinks = document.querySelectorAll('.tab-link');
-            console.log('Initializing tab listeners for', tabLinks.length, 'links');
             
-            tabLinks.forEach(link => {
-                console.log('Adding listener to:', link.getAttribute('href'));
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const tabName = link.getAttribute('href').substring(1);
-                    console.log('Tab clicked:', tabName);
-                    showTab(tabName);
-                    
-                    // Charger le contenu si nécessaire
-                    if (tabName === 'users') loadUsers();
-                    if (tabName === 'units') loadUnits();
-                });
-            });
+            if (activeButton) {
+                activeButton.classList.remove('text-gray-500');
+                activeButton.classList.add('active', 'text-blue-600', 'border-blue-600', 'border-b-2');
+                console.log('Activated button for:', tabName);
+            }
+            
+            // Charger le contenu si nécessaire
+            if (tabName === 'users') {
+                console.log('Loading users data...');
+                loadUsers();
+            }
+            if (tabName === 'units') {
+                console.log('Loading units data...');
+                loadUnits();
+            }
         }
 
         // Fonctions pour les modals
@@ -912,20 +911,14 @@
             });
         }
 
-        // Charger les utilisateurs au démarrage
+        // Initialisation au chargement de la page
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded - Starting tab initialization');
+            console.log('Page loaded - Initializing tabs');
             
-            // Vérifier que les éléments existent
-            const tabLinks = document.querySelectorAll('.tab-link');
-            console.log('Found tab links:', tabLinks.length);
+            // Activer l'onglet par défaut
+            switchTab('dashboard');
             
-            // Initialiser les listeners d'onglets
-            initTabListeners();
-            
-            // Onglet par défaut
-            showTab('dashboard');
-            console.log('Default tab dashboard set');
+            console.log('Tab system ready');
         });
     </script>
 
