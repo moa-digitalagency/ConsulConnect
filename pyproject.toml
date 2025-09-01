@@ -22,4 +22,9 @@ dependencies = [
     "flask-dance>=7.1.0",
     "oauthlib>=3.3.1",
     "sendgrid>=6.12.4",
+    "cryptography>=45.0.7",
+    "bcrypt>=4.3.0",
+    "python-decouple>=3.8",
+    "gitpython>=3.1.45",
+    "schedule>=1.2.2",
 ]
