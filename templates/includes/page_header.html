@@ -3,12 +3,12 @@
     <div class="container mx-auto px-4 py-6">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900">{% block page_title %}Titre de la Page{% endblock %}</h1>
-                <p class="text-gray-600">{% block page_description %}Description de la page{% endblock %}</p>
+                <h1 class="text-3xl font-bold text-gray-900">{{ self.page_title() }}</h1>
+                <p class="text-gray-600">{{ self.page_description() }}</p>
             </div>
             <div class="flex items-center space-x-3">
                 <!-- Boutons d'action spécifiques à la page -->
-                {% block page_actions %}{% endblock %}
+                {{ self.page_actions() }}
                 
                 <!-- Menu Hamburger Simple à droite -->
                 <button id="menuToggle" class="flex items-center justify-center w-10 h-10 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 border border-gray-200">
