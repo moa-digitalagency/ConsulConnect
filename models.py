@@ -139,11 +139,25 @@ class StatusHistory(db.Model):
     old_status = db.Column(db.String(20))
     new_status = db.Column(db.String(20), nullable=False)
     changed_by = db.Column(db.Integer, db.ForeignKey('user.id'))
-    comment = db.Column(db.Text)
+    comment = db.Column(db.Text)  # Commentaire obligatoire pour certains changements
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)  # Harmonisation avec email_service
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
     user = db.relationship('User', foreign_keys=[changed_by], backref='status_changes')
+    changed_by_user = db.relationship('User', foreign_keys=[changed_by], overlaps="status_changes,user")  # Alias pour email_service
+    
+    @staticmethod
+    def get_status_display_map():
+        return {
+            'soumise': 'Demande Soumise',
+            'en_traitement': 'En Cours de Traitement', 
+            'validee': 'Demande Approuvée',
+            'rejetee': 'Demande Rejetée',
+            'documents_requis': 'Documents Supplémentaires Requis',
+            'pret_pour_retrait': 'Prêt pour Retrait',
+            'cloture': 'Dossier Clôturé'
+        }
 
 class AuditLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)

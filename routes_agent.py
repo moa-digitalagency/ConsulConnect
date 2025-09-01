@@ -173,7 +173,14 @@ def agent_process_application(app_id):
     
     if request.method == 'POST':
         action = request.form.get('action')
-        comment = request.form.get('comment', '')
+        comment = request.form.get('comment', '').strip()
+        
+        # Validation du commentaire obligatoire
+        if not comment:
+            flash('Un commentaire est obligatoire pour traiter la demande.', 'error')
+            return redirect(request.url)
+        
+        old_status = application.status
         
         if action == 'approve':
             application.status = 'validee'
@@ -184,16 +191,28 @@ def agent_process_application(app_id):
             application.rejection_reason = comment
             flash_message = f'Demande {application.reference_number} rejetée.'
             audit_action = 'reject_application'
+        elif action == 'request_documents':
+            application.status = 'documents_requis'
+            flash_message = f'Documents supplémentaires requis pour {application.reference_number}.'
+            audit_action = 'request_documents'
+        elif action == 'ready_for_pickup':
+            application.status = 'pret_pour_retrait'
+            flash_message = f'Demande {application.reference_number} prête pour retrait.'
+            audit_action = 'ready_for_pickup'
+        elif action == 'close':
+            application.status = 'cloture'
+            flash_message = f'Dossier {application.reference_number} clôturé.'
+            audit_action = 'close_application'
         else:
             flash('Action invalide.', 'error')
             return redirect(request.url)
         
         application.updated_at = datetime.utcnow()
         
-        # Ajouter l'historique
+        # Ajouter l'historique avec commentaire obligatoire
         status_history = StatusHistory(
             application_id=application.id,
-            old_status='en_traitement',
+            old_status=old_status,
             new_status=application.status,
             changed_by=current_user.id,
             comment=comment
@@ -205,12 +224,18 @@ def agent_process_application(app_id):
             user_id=application.user_id,
             type_notification='demande_traitee',
             title=f'Demande {application.reference_number}',
-            message=f'Votre demande a été {"approuvée" if action == "approve" else "rejetée"}.',
+            message=f'Statut mis à jour: {application.get_status_display()}',
             reference_id=application.id
         )
         db.session.add(notification)
         
         db.session.commit()
+        
+        # Envoyer les notifications (interface + email)
+        from notification_service import NotificationService
+        NotificationService.notify_application_status_change(
+            application, old_status, application.status, comment
+        )
         
         # Audit log
         AuditLog.log_action(

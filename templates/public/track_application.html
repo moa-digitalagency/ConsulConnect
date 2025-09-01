@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Suivi de Demande - e-Consulaire RDC{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pattern-overlay">
+    <!-- Header Corporate -->
+    <header class="bg-white shadow-sm border-b-4 border-red-600">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="logo-corporate w-14 h-14">
+                        <i class="fas fa-search text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Suivi de Demande</h1>
+                        <p class="text-sm text-gray-600">Consultez le statut de votre dossier consulaire</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <a href="{{ url_for('auth.user_login') }}" class="btn-corporate-secondary px-4 py-2 text-sm">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Se Connecter
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu Principal -->
+    <div class="container mx-auto px-4 py-12">
+        
+        <!-- Formulaire de Recherche -->
+        <div class="max-w-2xl mx-auto">
+            <div class="card-corporate p-8">
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-search text-blue-600 text-3xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Rechercher votre Demande</h2>
+                    <p class="text-gray-600">Saisissez le numéro de référence de votre demande pour consulter son statut</p>
+                </div>
+
+                <form method="POST" class="space-y-6">
+                    <div>
+                        <label for="reference_number" class="block text-sm font-medium text-gray-700 mb-2">
+                            Numéro de Référence
+                        </label>
+                        <input type="text" 
+                               id="reference_number" 
+                               name="reference_number" 
+                               required 
+                               value="{{ request.form.get('reference_number', '') }}"
+                               placeholder="Ex: CAR202412345678"
+                               class="modern-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg">
+                        <p class="text-sm text-gray-500 mt-1">Le numéro de référence vous a été communiqué par email lors de la soumission</p>
+                    </div>
+
+                    <button type="submit" class="btn-corporate-primary w-full py-3 text-lg">
+                        <i class="fas fa-search mr-2"></i>Rechercher ma Demande
+                    </button>
+                </form>
+            </div>
+
+            <!-- Résultat de la Recherche -->
+            {% if application %}
+            <div class="card-corporate p-8 mt-8">
+                <div class="flex items-center mb-6">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-file-alt text-green-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">Demande Trouvée</h3>
+                        <p class="text-gray-600">{{ application.reference_number }}</p>
+                    </div>
+                </div>
+
+                <!-- Informations de la Demande -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div>
+                        <h4 class="font-semibold text-gray-700 mb-3">Informations Générales</h4>
+                        <div class="space-y-2 text-sm">
+                            <p><span class="font-medium">Service :</span> {{ application.get_service_display() }}</p>
+                            <p><span class="font-medium">Date de soumission :</span> {{ application.created_at.strftime('%d/%m/%Y à %H:%M') }}</p>
+                            <p><span class="font-medium">Unité consulaire :</span> {{ application.unite_consulaire.nom }}</p>
+                            <p><span class="font-medium">Dernière mise à jour :</span> {{ application.updated_at.strftime('%d/%m/%Y à %H:%M') }}</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold text-gray-700 mb-3">Statut Actuel</h4>
+                        <div class="flex items-center space-x-3">
+                            {% if application.status == 'soumise' %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                    <i class="fas fa-clock mr-1"></i>{{ application.get_status_display() }}
+                                </span>
+                            {% elif application.status == 'en_traitement' %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                    <i class="fas fa-spinner mr-1"></i>{{ application.get_status_display() }}
+                                </span>
+                            {% elif application.status == 'validee' %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                    <i class="fas fa-check-circle mr-1"></i>{{ application.get_status_display() }}
+                                </span>
+                            {% elif application.status == 'rejetee' %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                    <i class="fas fa-times-circle mr-1"></i>{{ application.get_status_display() }}
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                                    <i class="fas fa-info-circle mr-1"></i>{{ application.get_status_display() }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historique des Statuts -->
+                {% if status_history %}
+                <div class="mb-8">
+                    <h4 class="font-semibold text-gray-700 mb-4">
+                        <i class="fas fa-history mr-2"></i>Historique de Traitement
+                    </h4>
+                    <div class="space-y-4">
+                        {% for history in status_history %}
+                        <div class="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                            <div class="flex-shrink-0">
+                                {% if history.new_status == 'soumise' %}
+                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-file-plus text-blue-600"></i>
+                                    </div>
+                                {% elif history.new_status == 'en_traitement' %}
+                                    <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-cogs text-yellow-600"></i>
+                                    </div>
+                                {% elif history.new_status == 'validee' %}
+                                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-check text-green-600"></i>
+                                    </div>
+                                {% elif history.new_status == 'rejetee' %}
+                                    <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-times text-red-600"></i>
+                                    </div>
+                                {% else %}
+                                    <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-circle text-gray-600"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-sm font-medium text-gray-900">
+                                        {{ history.new_status|replace('_', ' ')|title }}
+                                    </p>
+                                    <p class="text-sm text-gray-500">
+                                        {{ history.timestamp.strftime('%d/%m/%Y %H:%M') }}
+                                    </p>
+                                </div>
+                                {% if history.comment %}
+                                <p class="text-sm text-gray-600 mt-1">{{ history.comment }}</p>
+                                {% endif %}
+                                {% if history.changed_by_user %}
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Par: {{ history.changed_by_user.get_full_name() }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Informations de Contact -->
+                <div class="bg-blue-50 p-6 rounded-lg">
+                    <h4 class="font-semibold text-blue-900 mb-3">
+                        <i class="fas fa-info-circle mr-2"></i>Informations Importantes
+                    </h4>
+                    <div class="text-sm text-blue-800 space-y-2">
+                        <p>• Vous recevrez un email à chaque changement de statut de votre demande</p>
+                        <p>• Pour toute question, contactez l'unité consulaire : {{ application.unite_consulaire.email_principal }}</p>
+                        <p>• Conservez précieusement votre numéro de référence : <strong>{{ application.reference_number }}</strong></p>
+                    </div>
+                </div>
+            </div>
+
+            {% elif request.method == 'POST' %}
+            <div class="card-corporate p-8 mt-8">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Demande Non Trouvée</h3>
+                    <p class="text-gray-600 mb-4">
+                        Aucune demande trouvée avec le numéro de référence : 
+                        <strong>{{ request.form.get('reference_number') }}</strong>
+                    </p>
+                    <div class="text-sm text-gray-500">
+                        <p>• Vérifiez que vous avez saisi le bon numéro de référence</p>
+                        <p>• Le numéro est sensible à la casse (majuscules/minuscules)</p>
+                        <p>• Consultez l'email de confirmation reçu lors de la soumission</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}

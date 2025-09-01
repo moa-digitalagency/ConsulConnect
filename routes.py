@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 from app import app, db, mail
 from models import User, Application, Document, StatusHistory, AuditLog, Notification, UniteConsulaire, Service, UniteConsulaire_Service
 from notification_service import NotificationService
+from email_service import email_service
 from sqlalchemy import func
 from forms import (LoginForm, RegisterForm, ConsularCardForm, CareAttestationForm, 
                    LegalizationsForm, PassportForm, OtherDocumentsForm, ApplicationStatusForm,
@@ -136,6 +137,29 @@ import routes_admin
 
 # Import agent routes
 import routes_agent
+
+# Route publique pour le suivi de demande
+@app.route('/track', methods=['GET', 'POST'])
+def track_application():
+    """Suivi de demande par numéro de référence (accessible sans connexion)"""
+    application = None
+    status_history = None
+    
+    if request.method == 'POST':
+        reference_number = request.form.get('reference_number', '').strip()
+        if reference_number:
+            # Rechercher l'application par numéro de référence
+            application = Application.query.filter_by(reference_number=reference_number).first()
+            
+            if application:
+                # Récupérer l'historique des statuts
+                status_history = StatusHistory.query.filter_by(
+                    application_id=application.id
+                ).order_by(StatusHistory.timestamp.desc()).all()
+    
+    return render_template('public/track_application.html', 
+                         application=application,
+                         status_history=status_history)
 
 @app.route('/logout')
 @login_required

@@ -265,3 +265,95 @@ def superviseur_dashboard():
                          stats=stats, 
                          roles_stats=roles_stats,
                          recent_actions=recent_actions)
+
+@app.route('/superviseur/email-config', methods=['GET', 'POST'])
+@login_required
+@superviseur_required
+def superviseur_email_config():
+    """Configuration des paramètres email SendGrid"""
+    from email_service import email_service
+    import os
+    from datetime import datetime, timedelta
+    
+    # Configuration par défaut
+    default_config = {
+        'from_email': 'noreply@econsulaire-rdc.com',
+        'from_name': 'e-Consulaire RDC',
+        'enabled_notifications': ['application_received', 'status_change', 'agent_alert']
+    }
+    
+    # Statistiques fictives (à remplacer par de vraies stats)
+    stats = {
+        'today': 0,
+        'week': 0,
+        'month': 0
+    }
+    
+    if request.method == 'POST':
+        action = request.form.get('action')
+        
+        if action == 'save_config':
+            # Sauvegarder la configuration
+            email_service.from_email = request.form.get('from_email', default_config['from_email'])
+            email_service.from_name = request.form.get('from_name', default_config['from_name'])
+            
+            flash('Configuration email sauvegardée avec succès.', 'success')
+            
+        elif action == 'test_email':
+            # Envoyer un email de test
+            success = email_service.send_email(
+                to_email=current_user.email,
+                subject='Test de Configuration SendGrid - e-Consulaire RDC',
+                html_content=f"""
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <div style="background: linear-gradient(135deg, #dc2626, #b91c1c); padding: 20px; text-align: center;">
+                        <h1 style="color: white; margin: 0;">e-Consulaire RDC</h1>
+                        <p style="color: #fecaca; margin: 5px 0;">Test de Configuration Email</p>
+                    </div>
+                    
+                    <div style="padding: 30px; background: #f9fafb;">
+                        <h2 style="color: #1f2937;">✅ Configuration SendGrid Testée</h2>
+                        
+                        <p>Bonjour <strong>{current_user.get_full_name()}</strong>,</p>
+                        
+                        <p>Ce message confirme que votre configuration SendGrid fonctionne correctement pour le système e-Consulaire RDC.</p>
+                        
+                        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
+                            <h3 style="margin-top: 0; color: #10b981;">Détails du Test</h3>
+                            <p><strong>Email expéditeur :</strong> {email_service.from_email}</p>
+                            <p><strong>Nom expéditeur :</strong> {email_service.from_name}</p>
+                            <p><strong>Date/Heure :</strong> {datetime.now().strftime('%d/%m/%Y à %H:%M')}</p>
+                            <p><strong>Statut API :</strong> {'Actif' if email_service.enabled else 'Inactif'}</p>
+                        </div>
+                        
+                        <p>Les utilisateurs recevront désormais des notifications par email pour :</p>
+                        <ul>
+                            <li>Confirmation de réception de demande</li>
+                            <li>Changements de statut de demande</li>
+                            <li>Alertes pour les agents consulaires</li>
+                        </ul>
+                        
+                        <p>Cordialement,<br>
+                        <strong>Système e-Consulaire RDC</strong></p>
+                    </div>
+                    
+                    <div style="background: #374151; padding: 15px; text-align: center;">
+                        <p style="color: #9ca3af; margin: 0; font-size: 12px;">
+                            Email de test généré automatiquement par le super administrateur.
+                        </p>
+                    </div>
+                </div>
+                """
+            )
+            
+            if success:
+                flash(f'Email de test envoyé avec succès à {current_user.email}', 'success')
+            else:
+                flash('Erreur lors de l\'envoi de l\'email de test. Vérifiez la configuration SendGrid.', 'error')
+        
+        return redirect(url_for('superviseur_email_config'))
+    
+    return render_template('superviseur/email_config.html',
+                         sendgrid_status=email_service.enabled,
+                         config=default_config,
+                         stats=stats)

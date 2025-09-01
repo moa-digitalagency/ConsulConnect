@@ -2,6 +2,7 @@
 from app import db
 from models import Notification, User, Application, UniteConsulaire
 from datetime import datetime
+from email_service import email_service
 
 class NotificationService:
     
@@ -21,6 +22,9 @@ class NotificationService:
     @staticmethod
     def notify_new_application(application):
         """Notifier tous les agents de l'unité consulaire qu'une nouvelle demande est arrivée"""
+        # Envoyer email de confirmation à l'usager
+        email_service.send_application_received_email(application.user, application)
+        
         # Récupérer tous les agents de l'unité consulaire
         agents = User.query.filter_by(
             unite_consulaire_id=application.unite_consulaire_id,
@@ -29,6 +33,7 @@ class NotificationService:
         ).all()
         
         for agent in agents:
+            # Notification dans l'interface
             NotificationService.create_notification(
                 user_id=agent.id,
                 type_notification='nouvelle_demande',
@@ -36,6 +41,9 @@ class NotificationService:
                 message=f'Demande {application.reference_number} reçue de {application.user.get_full_name()}',
                 reference_id=application.id
             )
+            
+            # Email à l'agent
+            email_service.send_new_application_email_to_agent(agent, application)
         
         # Notifier aussi l'admin de l'unité s'il existe
         admin = User.query.filter_by(
@@ -54,25 +62,38 @@ class NotificationService:
             )
     
     @staticmethod
-    def notify_application_status_change(application, new_status, comment=None):
+    def notify_application_status_change(application, old_status, new_status, comment=None):
         """Notifier l'usager d'un changement de statut de sa demande"""
         status_messages = {
             'en_traitement': 'Votre demande est maintenant en cours de traitement.',
             'validee': 'Votre demande a été approuvée !',
-            'rejetee': 'Votre demande a été rejetée.'
+            'rejetee': 'Votre demande a été rejetée.',
+            'documents_requis': 'Des documents supplémentaires sont requis.',
+            'pret_pour_retrait': 'Votre document est prêt pour retrait.',
+            'cloture': 'Votre dossier a été clôturé.'
         }
         
         message = status_messages.get(new_status, f'Statut de votre demande changé: {new_status}')
         
-        if comment and new_status == 'rejetee':
-            message += f' Raison: {comment}'
+        if comment:
+            message += f' Commentaire: {comment}'
         
+        # Notification dans l'interface
         NotificationService.create_notification(
             user_id=application.user_id,
             type_notification='demande_traitee',
             title=f'Demande {application.reference_number}',
             message=message,
             reference_id=application.id
+        )
+        
+        # Email à l'usager
+        email_service.send_status_change_email(
+            application.user, 
+            application, 
+            old_status, 
+            new_status, 
+            comment
         )
     
     @staticmethod

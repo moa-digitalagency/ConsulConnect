@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Configuration Email - Super Admin{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    {% include 'includes/superviseur_sidebar.html' %}
+    
+    <div class="lg:ml-64">
+        <div class="p-8">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900">Configuration des Emails</h1>
+                <p class="text-gray-600">Gestion des paramètres SendGrid pour les notifications automatiques</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Configuration SendGrid -->
+                <div class="lg:col-span-2">
+                    <div class="card-corporate p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                            <i class="fas fa-cog mr-2"></i>Paramètres SendGrid
+                        </h2>
+
+                        <form method="POST" class="space-y-6">
+                            <!-- Statut API -->
+                            <div class="bg-gray-50 p-6 rounded-lg">
+                                <h3 class="font-semibold text-gray-700 mb-4">État de l'API SendGrid</h3>
+                                {% if sendgrid_status %}
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                                        <span class="text-green-700 font-medium">SendGrid configuré et actif</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-2">Les notifications email sont opérationnelles</p>
+                                {% else %}
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                                        <span class="text-red-700 font-medium">SendGrid non configuré</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-2">La clé API SendGrid n'est pas configurée</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Configuration Email par Défaut -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="from_email" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Email Expéditeur <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="email" 
+                                           id="from_email" 
+                                           name="from_email" 
+                                           required
+                                           value="{{ config.get('from_email', 'noreply@econsulaire-rdc.com') }}"
+                                           class="modern-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                </div>
+                                
+                                <div>
+                                    <label for="from_name" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Nom Expéditeur <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           id="from_name" 
+                                           name="from_name" 
+                                           required
+                                           value="{{ config.get('from_name', 'e-Consulaire RDC') }}"
+                                           class="modern-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                </div>
+                            </div>
+
+                            <!-- Types de Notifications -->
+                            <div>
+                                <h3 class="font-semibold text-gray-700 mb-4">Types de Notifications Email</h3>
+                                <div class="space-y-3">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="notifications[]" value="application_received" 
+                                               {{ 'checked' if 'application_received' in config.get('enabled_notifications', ['application_received', 'status_change', 'agent_alert']) }}
+                                               class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                                        <span class="ml-2 text-sm text-gray-700">Confirmation de réception de demande (usager)</span>
+                                    </label>
+                                    
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="notifications[]" value="status_change" 
+                                               {{ 'checked' if 'status_change' in config.get('enabled_notifications', ['application_received', 'status_change', 'agent_alert']) }}
+                                               class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                                        <span class="ml-2 text-sm text-gray-700">Changement de statut (usager)</span>
+                                    </label>
+                                    
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="notifications[]" value="agent_alert" 
+                                               {{ 'checked' if 'agent_alert' in config.get('enabled_notifications', ['application_received', 'status_change', 'agent_alert']) }}
+                                               class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                                        <span class="ml-2 text-sm text-gray-700">Alerte nouvelle demande (agent)</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="flex space-x-4">
+                                <button type="submit" name="action" value="save_config" 
+                                        class="btn-corporate-primary px-6 py-3">
+                                    <i class="fas fa-save mr-2"></i>Enregistrer la Configuration
+                                </button>
+                                
+                                <button type="submit" name="action" value="test_email" 
+                                        class="btn-corporate-secondary px-6 py-3">
+                                    <i class="fas fa-paper-plane mr-2"></i>Tester l'Envoi d'Email
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Statistiques et Informations -->
+                <div class="space-y-6">
+                    <!-- Statistiques Email -->
+                    <div class="card-corporate p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">
+                            <i class="fas fa-chart-line mr-2"></i>Statistiques Email
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Emails envoyés aujourd'hui</span>
+                                <span class="font-bold text-2xl text-blue-600">{{ stats.get('today', 0) }}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Cette semaine</span>
+                                <span class="font-bold text-lg text-green-600">{{ stats.get('week', 0) }}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Ce mois</span>
+                                <span class="font-bold text-lg text-purple-600">{{ stats.get('month', 0) }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Informations SendGrid -->
+                    <div class="card-corporate p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">
+                            <i class="fas fa-info-circle mr-2"></i>Guide SendGrid
+                        </h3>
+                        <div class="text-sm text-gray-600 space-y-2">
+                            <p>• Obtenez une clé API SendGrid gratuite sur sendgrid.com</p>
+                            <p>• La clé doit avoir les permissions "Mail Send"</p>
+                            <p>• Configurez l'email expéditeur dans les paramètres SendGrid</p>
+                            <p>• Vérifiez votre domaine pour une meilleure délivrabilité</p>
+                        </div>
+                        
+                        <div class="mt-4 p-4 bg-yellow-50 rounded-lg">
+                            <h4 class="font-medium text-yellow-800">Variables d'environnement</h4>
+                            <p class="text-sm text-yellow-700 mt-1">
+                                SENDGRID_API_KEY={{ 'Configurée' if sendgrid_status else 'Non configurée' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Actions Rapides -->
+                    <div class="card-corporate p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">
+                            <i class="fas fa-bolt mr-2"></i>Actions Rapides
+                        </h3>
+                        <div class="space-y-3">
+                            <a href="{{ url_for('superviseur_dashboard') }}" 
+                               class="w-full btn-corporate-outline px-4 py-3 text-center block">
+                                <i class="fas fa-arrow-left mr-2"></i>Retour Dashboard
+                            </a>
+                            
+                            <a href="{{ url_for('public.track_application') }}" 
+                               class="w-full btn-corporate-outline px-4 py-3 text-center block" 
+                               target="_blank">
+                                <i class="fas fa-external-link-alt mr-2"></i>Test Suivi Public
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Confirmation pour test d'email
+    const testButton = document.querySelector('button[value="test_email"]');
+    if (testButton) {
+        testButton.addEventListener('click', function(e) {
+            const confirmed = confirm('Envoyer un email de test à votre adresse ?');
+            if (!confirmed) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
