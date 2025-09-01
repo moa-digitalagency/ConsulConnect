@@ -243,11 +243,11 @@
                 {% if current_user.role == 'agent' %}
                 <div class="space-y-3">
                     <h4 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Agent</h4>
-                    <a href="{{ url_for('agent_dashboard') }}" class="menu-item">
+                    <a href="/consulate/dashboard" class="menu-item">
                         <i class="fas fa-tachometer-alt w-5"></i>
                         <span>Tableau de Bord</span>
                     </a>
-                    <a href="{{ url_for('agent_my_unit') }}" class="menu-item">
+                    <a href="/agent/my-unit" class="menu-item">
                         <i class="fas fa-building w-5"></i>
                         <span>Mon Unité</span>
                     </a>
@@ -261,7 +261,7 @@
                         <i class="fas fa-tachometer-alt w-5"></i>
                         <span>Mes Demandes</span>
                     </a>
-                    <a href="{{ url_for('nouvelle_demande') }}" class="menu-item">
+                    <a href="{{ url_for('consular_card') }}" class="menu-item">
                         <i class="fas fa-plus w-5"></i>
                         <span>Nouvelle Demande</span>
                     </a>
@@ -270,7 +270,7 @@
 
                 <!-- Actions communes -->
                 <div class="border-t mt-6 pt-6 space-y-3">
-                    <a href="{{ url_for('profile') }}" class="menu-item">
+                    <a href="{{ url_for('user_profile') }}" class="menu-item">
                         <i class="fas fa-user w-5"></i>
                         <span>Mon Profil</span>
                     </a>
@@ -282,15 +282,15 @@
             {% else %}
                 <!-- Utilisateur non connecté -->
                 <div class="space-y-3">
-                    <a href="{{ url_for('login') }}" class="menu-item">
+                    <a href="/login" class="menu-item">
                         <i class="fas fa-user w-5"></i>
                         <span>Connexion Usager</span>
                     </a>
-                    <a href="{{ url_for('admin_login') }}" class="menu-item">
+                    <a href="/admin" class="menu-item">
                         <i class="fas fa-user-tie w-5"></i>
                         <span>Connexion Admin</span>
                     </a>
-                    <a href="{{ url_for('consulate_login') }}" class="menu-item">
+                    <a href="/consulate" class="menu-item">
                         <i class="fas fa-building w-5"></i>
                         <span>Connexion Agent</span>
                     </a>
