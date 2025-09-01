@@ -141,6 +141,10 @@ with app.app_context():
     import models
     import routes
     
+    # Import and register CRUD blueprint
+    from routes_crud import crud_bp
+    app.register_blueprint(crud_bp)
+    
     
     # Create tables
     db.create_all()

@@ -6,31 +6,20 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
 {% endblock %}
 
+{% block page_title %}Gestion des Unités Consulaires{% endblock %}
+{% block page_description %}Administration des ambassades, consulats et missions diplomatiques{% endblock %}
+{% block page_actions %}
+<a href="{{ url_for('superviseur_dashboard') }}" class="btn-corporate-outline px-4 py-2">
+    <i class="fas fa-arrow-left mr-2"></i>Retour
+</a>
+<button onclick="addUnite()" class="btn-corporate-primary px-4 py-2">
+    <i class="fas fa-plus mr-2"></i>Nouvelle Unité
+</button>
+{% endblock %}
+
 {% block content %}
 <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <div class="bg-white shadow">
-        <div class="container mx-auto px-4 py-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Gestion des Unités Consulaires</h1>
-                    <p class="text-gray-600">Administration des ambassades, consulats et missions diplomatiques</p>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <!-- Menu Hamburger -->
-                    <button id="menuToggle" class="glass p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 text-blue-600 hover:bg-blue-50">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
-                    <a href="{{ url_for('superviseur_dashboard') }}" class="btn-corporate-outline px-4 py-2">
-                        <i class="fas fa-arrow-left mr-2"></i>Retour
-                    </a>
-                    <button onclick="addUnite()" class="btn-corporate-primary px-4 py-2">
-                        <i class="fas fa-plus mr-2"></i>Nouvelle Unité
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% include 'includes/page_header.html' %}
 
     <div class="container mx-auto px-4 py-8">
         <!-- Statistiques rapides -->
@@ -122,9 +111,9 @@
                             <a href="/admin/units/{{ unite.id }}" class="text-blue-600 hover:bg-blue-50 p-2 rounded" title="Voir détails">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <button onclick="editUnite({{ unite.id }})" class="text-green-600 hover:bg-green-50 p-2 rounded" title="Modifier">
+                            <a href="/admin/units/{{ unite.id }}" class="text-green-600 hover:bg-green-50 p-2 rounded" title="Modifier">
                                 <i class="fas fa-edit"></i>
-                            </button>
+                            </a>
                             <button onclick="toggleUnite({{ unite.id }})" class="text-yellow-600 hover:bg-yellow-50 p-2 rounded" title="Activer/Désactiver">
                                 <i class="fas fa-toggle-{% if unite.active %}on{% else %}off{% endif %}"></i>
                             </button>
@@ -399,6 +388,11 @@ function toggleUnite(uniteId) {
             alert('Erreur de communication avec le serveur');
         });
     }
+}
+
+function addUnite() {
+    // Ouvrir le formulaire de création d'unité
+    window.location.href = '/admin/units/create';
 }
 
 // Gestion du formulaire

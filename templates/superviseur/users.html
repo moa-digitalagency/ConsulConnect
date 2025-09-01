@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Utilisateurs - Superviseur{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+{% endblock %}
+
+{% block page_title %}Gestion des Utilisateurs{% endblock %}
+{% block page_description %}Administration des comptes utilisateurs et rôles{% endblock %}
+{% block page_actions %}
+<a href="{{ url_for('superviseur_dashboard') }}" class="btn-corporate-outline px-4 py-2">
+    <i class="fas fa-arrow-left mr-2"></i>Retour
+</a>
+<button onclick="addUser()" class="btn-corporate-primary px-4 py-2">
+    <i class="fas fa-plus mr-2"></i>Nouvel Utilisateur
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    {% include 'includes/page_header.html' %}
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Statistiques utilisateurs -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                        <i class="fas fa-users text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-2xl font-bold text-gray-900">{{ users|length }}</p>
+                        <p class="text-gray-600">Total Utilisateurs</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                        <i class="fas fa-user-check text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-2xl font-bold text-gray-900">{{ users|selectattr('active')|list|length }}</p>
+                        <p class="text-gray-600">Actifs</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                        <i class="fas fa-user-tie text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-2xl font-bold text-gray-900">{{ users|selectattr('role', 'equalto', 'agent')|list|length }}</p>
+                        <p class="text-gray-600">Agents</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-orange-100 text-orange-600">
+                        <i class="fas fa-user-shield text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-2xl font-bold text-gray-900">{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</p>
+                        <p class="text-gray-600">Administrateurs</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liste des utilisateurs -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Liste des Utilisateurs</h3>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisateur</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rôle</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unité</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for user in users %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
+                                            <span class="text-white font-medium">{{ user.username[0].upper() }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">{{ user.username }}</div>
+                                        <div class="text-sm text-gray-500">{{ user.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                    {% if user.role == 'superviseur' %}bg-purple-100 text-purple-800
+                                    {% elif user.role == 'admin' %}bg-red-100 text-red-800
+                                    {% elif user.role == 'agent' %}bg-blue-100 text-blue-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ user.role|title }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {% if user.unite_consulaire %}
+                                    {{ user.unite_consulaire.nom }}
+                                {% else %}
+                                    <span class="text-gray-400">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                    {% if user.active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ 'Actif' if user.active else 'Inactif' }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                <a href="{{ url_for('crud.edit_user', user_id=user.id) }}" class="text-blue-600 hover:text-blue-900">
+                                    <i class="fas fa-edit"></i> Modifier
+                                </a>
+                                <button onclick="toggleUser({{ user.id }})" class="text-yellow-600 hover:text-yellow-900">
+                                    <i class="fas fa-toggle-{% if user.active %}on{% else %}off{% endif %}"></i>
+                                </button>
+                                {% if user.role != 'superviseur' %}
+                                <button onclick="deleteUser({{ user.id }})" class="text-red-600 hover:text-red-900">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Création Utilisateur -->
+<div id="userModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg max-w-2xl w-full p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold text-gray-900">Nouvel Utilisateur</h3>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <form action="{{ url_for('register') }}" method="POST" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nom d'utilisateur</label>
+                        <input type="text" name="username" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" name="email" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
+                        <input type="password" name="password" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Rôle</label>
+                        <select name="role" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                            <option value="usager">Usager</option>
+                            <option value="agent">Agent</option>
+                            <option value="admin">Administrateur</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn-corporate-primary px-6 py-2">
+                        <i class="fas fa-save mr-2"></i>Créer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function addUser() {
+    document.getElementById('userModal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('userModal').classList.add('hidden');
+}
+
+function toggleUser(userId) {
+    if (confirm('Voulez-vous changer le statut de cet utilisateur ?')) {
+        fetch(`/superviseur/users/${userId}/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur: ' + (data.error || 'Erreur inconnue'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erreur de communication avec le serveur');
+        });
+    }
+}
+
+function deleteUser(userId) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/superviseur/users/${userId}/delete`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function getCsrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+}
+</script>
+{% endblock %}

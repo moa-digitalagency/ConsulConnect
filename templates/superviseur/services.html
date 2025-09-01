@@ -6,31 +6,20 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
 {% endblock %}
 
+{% block page_title %}Gestion des Services Consulaires{% endblock %}
+{% block page_description %}Administration des services disponibles dans le système{% endblock %}
+{% block page_actions %}
+<a href="{{ url_for('superviseur_dashboard') }}" class="btn-corporate-outline px-4 py-2">
+    <i class="fas fa-arrow-left mr-2"></i>Retour
+</a>
+<button onclick="addService()" class="btn-corporate-primary px-4 py-2">
+    <i class="fas fa-plus mr-2"></i>Nouveau Service
+</button>
+{% endblock %}
+
 {% block content %}
 <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <div class="bg-white shadow">
-        <div class="container mx-auto px-4 py-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Gestion des Services Consulaires</h1>
-                    <p class="text-gray-600">Administration des services disponibles dans le système</p>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <!-- Menu Hamburger -->
-                    <button id="menuToggle" class="glass p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 text-blue-600 hover:bg-blue-50">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
-                    <a href="{{ url_for('superviseur_dashboard') }}" class="btn-corporate-outline px-4 py-2">
-                        <i class="fas fa-arrow-left mr-2"></i>Retour
-                    </a>
-                    <button onclick="addService()" class="btn-corporate-primary px-4 py-2">
-                        <i class="fas fa-plus mr-2"></i>Nouveau Service
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% include 'includes/page_header.html' %}
 
     <div class="container mx-auto px-4 py-8">
         <!-- Services existants -->
