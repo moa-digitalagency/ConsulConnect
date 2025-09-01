@@ -1011,7 +1011,12 @@ def forbidden_error(error):
 
 @app.errorhandler(500)
 def internal_error(error):
-    db.session.rollback()
+    try:
+        db.session.rollback()
+    except Exception as e:
+        app.logger.warning(f'Erreur lors du rollback DB: {e}')
+        # Fermer la session et en créer une nouvelle
+        db.session.close()
     return render_template('errors/500.html'), 500
 
 # Nouvelles routes pour le système hiérarchique des unités consulaires
