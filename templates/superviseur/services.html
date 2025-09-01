@@ -61,10 +61,9 @@
                 <!-- Configurations par unité -->
                 <div class="mt-6 border-t pt-6">
                     <h4 class="font-medium text-gray-900 mb-4">Configurations par Unité Consulaire</h4>
-                    {% set configurations = service.get_configurations() %}
-                    {% if configurations %}
+                    {% if service.unites_proposant %}
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {% for config in configurations %}
+                            {% for config in service.unites_proposant %}
                             <div class="bg-gray-50 p-4 rounded-lg">
                                 <h5 class="font-medium text-gray-800">{{ config.unite_consulaire.nom }}</h5>
                                 <div class="mt-2 space-y-1 text-sm text-gray-600">
