@@ -181,7 +181,7 @@
                                 </span>
                             </td>
                             <td class="px-4 py-2 text-sm text-gray-600">{{ action.details[:50] }}{% if action.details|length > 50 %}...{% endif %}</td>
-                            <td class="px-4 py-2 text-sm text-gray-500">{{ action.timestamp.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td class="px-4 py-2 text-sm text-gray-500">{{ action.created_at.strftime('%d/%m/%Y %H:%M') if action.created_at else 'N/A' }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
