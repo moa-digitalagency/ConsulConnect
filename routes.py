@@ -153,7 +153,7 @@ def user_dashboard():
     
     return render_template('dashboard/user.html', applications=applications, notifications=notifications)
 
-@app.route('/admin')
+@app.route('/admin-dashboard')
 @login_required
 def admin_dashboard():
     if not current_user.is_admin():
@@ -183,10 +183,10 @@ def admin_dashboard():
                          total_units=total_units,
                          total_services=total_services)
 
-@app.route('/admin-dashboard')
+@app.route('/admin')
 @login_required
 def admin_dashboard_redirect():
-    """Redirect ancien lien vers nouveau"""
+    """Redirect from /admin to admin_dashboard"""
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/users')
