@@ -1,14 +1,14 @@
-<!-- Header uniforme pour toutes les pages -->
+<!-- Header uniforme pour toutes les pages avec variables passées -->
 <div class="bg-white shadow">
     <div class="container mx-auto px-4 py-6">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900">{{ self.page_title() }}</h1>
-                <p class="text-gray-600">{{ self.page_description() }}</p>
+                <h1 class="text-3xl font-bold text-gray-900">{{ page_title or 'Titre de la Page' }}</h1>
+                <p class="text-gray-600">{{ page_description or 'Description de la page' }}</p>
             </div>
             <div class="flex items-center space-x-3">
                 <!-- Boutons d'action spécifiques à la page -->
-                {{ self.page_actions() }}
+                {% if page_actions %}{{ page_actions|safe }}{% endif %}
                 
                 <!-- Menu Hamburger Simple à droite -->
                 <button id="menuToggle" class="flex items-center justify-center w-10 h-10 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 border border-gray-200">

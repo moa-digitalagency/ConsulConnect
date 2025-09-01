@@ -147,7 +147,10 @@ def superviseur_unites():
         unite.agents_count = unite.get_agents_count()
         unite.services_count = len(unite.get_services_actifs())
         
-    return render_template('superviseur/unites.html', unites=unites)
+    return render_template('superviseur/unites.html', 
+                         unites=unites,
+                         page_title="Gestion des Unités Consulaires",
+                         page_description="Administration des ambassades, consulats et missions diplomatiques")
 
 @app.route('/superviseur/unites/<int:unite_id>/activer', methods=['POST'])
 @login_required
@@ -195,7 +198,10 @@ def superviseur_services():
     for service in services:
         service.unites_count = len([us for us in service.unites_proposant if us.actif])
         
-    return render_template('superviseur/services.html', services=services)
+    return render_template('superviseur/services.html', 
+                         services=services,
+                         page_title="Gestion des Services Consulaires",
+                         page_description="Administration des services disponibles dans le système")
 
 @app.route('/superviseur/services/<int:service_id>/activer', methods=['POST'])
 @login_required
