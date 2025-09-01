@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Unités Consulaires - Superviseur{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Gestion des Unités Consulaires</h1>
+                    <p class="text-gray-600">Administration des ambassades, consulats et missions diplomatiques</p>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{{ url_for('superviseur_dashboard') }}" class="btn-corporate-outline px-4 py-2">
+                        <i class="fas fa-arrow-left mr-2"></i>Retour
+                    </a>
+                    <button onclick="addUnite()" class="btn-corporate-primary px-4 py-2">
+                        <i class="fas fa-plus mr-2"></i>Nouvelle Unité
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Statistiques rapides -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                        <i class="fas fa-building text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-2xl font-bold text-gray-900">{{ unites|length }}</p>
+                        <p class="text-gray-600">Unités Totales</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                        <i class="fas fa-check-circle text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-2xl font-bold text-gray-900">{{ unites|selectattr('active')|list|length }}</p>
+                        <p class="text-gray-600">Actives</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                        <i class="fas fa-flag text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-2xl font-bold text-gray-900">{{ unites|map(attribute='pays')|unique|list|length }}</p>
+                        <p class="text-gray-600">Pays</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-orange-100 text-orange-600">
+                        <i class="fas fa-users text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-2xl font-bold text-gray-900">{{ unites|sum(attribute='get_agents_count')|default(0) }}</p>
+                        <p class="text-gray-600">Agents Totaux</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liste des unités -->
+        <div class="grid grid-cols-1 gap-6">
+            {% for unite in unites %}
+            <div class="card-corporate p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-red-100 text-red-600 mr-4">
+                            {% if unite.type == 'ambassade' %}
+                            <i class="fas fa-university text-xl"></i>
+                            {% elif unite.type == 'consulat' %}
+                            <i class="fas fa-building text-xl"></i>
+                            {% else %}
+                            <i class="fas fa-landmark text-xl"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-900">{{ unite.nom }}</h3>
+                            <p class="text-gray-600">{{ unite.ville }}, {{ unite.pays }}</p>
+                            <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                                <span class="capitalize">{{ unite.type.replace('_', ' ') }}</span>
+                                <span>•</span>
+                                <span>{{ unite.get_agents_count() }} agents</span>
+                                <span>•</span>
+                                <span>{{ unite.get_services_actifs()|length }} services actifs</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="px-3 py-1 text-sm rounded-full {% if unite.active %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ 'Active' if unite.active else 'Inactive' }}
+                        </span>
+                        <div class="flex space-x-2">
+                            <a href="{{ url_for('admin_unit_detail', unit_id=unite.id) }}" class="text-blue-600 hover:bg-blue-50 p-2 rounded" title="Voir détails">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <button onclick="editUnite({{ unite.id }})" class="text-green-600 hover:bg-green-50 p-2 rounded" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="toggleUnite({{ unite.id }})" class="text-yellow-600 hover:bg-yellow-50 p-2 rounded" title="Activer/Désactiver">
+                                <i class="fas fa-toggle-{% if unite.active %}on{% else %}off{% endif %}"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informations détaillées -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-gray-200">
+                    <div>
+                        <h4 class="font-medium text-gray-900 mb-3">Informations de Contact</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-envelope w-4 mr-3"></i>
+                                <span>{{ unite.email_principal }}</span>
+                            </div>
+                            {% if unite.email_secondaire %}
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-envelope w-4 mr-3 opacity-60"></i>
+                                <span>{{ unite.email_secondaire }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-phone w-4 mr-3"></i>
+                                <span>{{ unite.telephone_principal }}</span>
+                            </div>
+                            {% if unite.telephone_secondaire %}
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-phone w-4 mr-3 opacity-60"></i>
+                                <span>{{ unite.telephone_secondaire }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-medium text-gray-900 mb-3">Chef de Mission</h4>
+                        <div class="space-y-2 text-sm">
+                            {% if unite.chef_nom %}
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-user w-4 mr-3"></i>
+                                <span>{{ unite.chef_nom }}</span>
+                            </div>
+                            {% endif %}
+                            {% if unite.chef_titre %}
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-crown w-4 mr-3"></i>
+                                <span>{{ unite.chef_titre }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-map-marker-alt w-4 mr-3"></i>
+                                <span>
+                                    {% if unite.adresse_rue %}
+                                        {{ unite.adresse_rue }}<br>
+                                        {{ unite.adresse_ville or unite.ville }}
+                                        {% if unite.adresse_code_postal %}, {{ unite.adresse_code_postal }}{% endif %}
+                                    {% else %}
+                                        {{ unite.adresse_complete or 'Adresse non renseignée' }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Services disponibles -->
+                {% set services_actifs = unite.get_services_actifs() %}
+                {% if services_actifs %}
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h4 class="font-medium text-gray-900 mb-3">Services Disponibles</h4>
+                    <div class="flex flex-wrap gap-2">
+                        {% for service_config in services_actifs %}
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                            {{ service_config.service.nom }}
+                            <span class="font-medium">{{ service_config.tarif_personnalise }} {{ service_config.devise }}</span>
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <i class="fas fa-building text-6xl text-gray-300 mb-4"></i>
+                <h3 class="text-xl text-gray-500 mb-2">Aucune unité consulaire</h3>
+                <p class="text-gray-400">Commencez par créer une première unité consulaire</p>
+                <button onclick="addUnite()" class="mt-4 btn-corporate-primary px-6 py-3">
+                    <i class="fas fa-plus mr-2"></i>Créer la Première Unité
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ajout/Édition Unité -->
+<div id="uniteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg max-w-4xl w-full max-h-screen overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 id="modalTitle" class="text-lg font-bold text-gray-900">Nouvelle Unité Consulaire</h3>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <form id="uniteForm" class="space-y-6">
+                    <!-- Informations générales -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nom de l'Unité *</label>
+                            <input type="text" id="uniteName" name="nom" required
+                                   placeholder="Ex: Ambassade de RD Congo au Maroc"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Type *</label>
+                            <select id="uniteType" name="type" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                                <option value="ambassade">Ambassade</option>
+                                <option value="consulat">Consulat</option>
+                                <option value="mission_diplomatique">Mission Diplomatique</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Ville *</label>
+                            <input type="text" id="uniteVille" name="ville" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Pays *</label>
+                            <input type="text" id="unitePays" name="pays" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+                    </div>
+
+                    <!-- Chef de mission -->
+                    <div class="border-t pt-6">
+                        <h4 class="font-medium text-gray-900 mb-4">Chef de Mission</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Nom du Chef</label>
+                                <input type="text" id="chefNom" name="chef_nom"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Titre</label>
+                                <input type="text" id="chefTitre" name="chef_titre" placeholder="Ex: Ambassadeur, Consul Général"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contacts -->
+                    <div class="border-t pt-6">
+                        <h4 class="font-medium text-gray-900 mb-4">Informations de Contact</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email Principal *</label>
+                                <input type="email" id="emailPrincipal" name="email_principal" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email Secondaire</label>
+                                <input type="email" id="emailSecondaire" name="email_secondaire"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Téléphone Principal *</label>
+                                <input type="tel" id="telephonePrincipal" name="telephone_principal" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Téléphone Secondaire</label>
+                                <input type="tel" id="telephoneSecondaire" name="telephone_secondaire"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Adresse -->
+                    <div class="border-t pt-6">
+                        <h4 class="font-medium text-gray-900 mb-4">Adresse</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Rue</label>
+                                <input type="text" id="adresseRue" name="adresse_rue"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Code Postal</label>
+                                <input type="text" id="adresseCodePostal" name="adresse_code_postal"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Complément d'Adresse</label>
+                            <input type="text" id="adresseComplement" name="adresse_complement" placeholder="Étage, bureau, etc."
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center pt-4">
+                        <input type="checkbox" id="uniteActive" name="active" checked
+                               class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                        <label for="uniteActive" class="ml-2 text-sm text-gray-700">Unité active</label>
+                    </div>
+
+                    <div class="flex justify-end space-x-3 pt-6 border-t">
+                        <button type="button" onclick="closeModal()" class="px-6 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">
+                            Annuler
+                        </button>
+                        <button type="submit" class="btn-corporate-primary px-6 py-2">
+                            <i class="fas fa-save mr-2"></i>Enregistrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let editingUniteId = null;
+
+function addUnite() {
+    editingUniteId = null;
+    document.getElementById('modalTitle').textContent = 'Nouvelle Unité Consulaire';
+    document.getElementById('uniteForm').reset();
+    document.getElementById('uniteModal').classList.remove('hidden');
+}
+
+function editUnite(uniteId) {
+    editingUniteId = uniteId;
+    document.getElementById('modalTitle').textContent = 'Modifier l\'Unité Consulaire';
+    document.getElementById('uniteModal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('uniteModal').classList.add('hidden');
+    editingUniteId = null;
+}
+
+function toggleUnite(uniteId) {
+    if (confirm('Voulez-vous changer le statut de cette unité consulaire ?')) {
+        fetch(`/superviseur/unites/${uniteId}/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur lors du changement de statut: ' + (data.error || 'Erreur inconnue'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erreur de communication avec le serveur');
+        });
+    }
+}
+
+// Gestion du formulaire
+document.getElementById('uniteForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+    
+    const url = editingUniteId ? 
+        `/superviseur/unites/${editingUniteId}` : 
+        '/superviseur/unites';
+    
+    const method = editingUniteId ? 'PUT' : 'POST';
+    
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Erreur: ' + (data.error || 'Erreur inconnue'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur de communication avec le serveur');
+    });
+});
+
+function getCsrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+}
+</script>
+{% endblock %}
