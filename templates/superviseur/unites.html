@@ -16,7 +16,11 @@
                     <h1 class="text-3xl font-bold text-gray-900">Gestion des Unités Consulaires</h1>
                     <p class="text-gray-600">Administration des ambassades, consulats et missions diplomatiques</p>
                 </div>
-                <div class="flex space-x-3">
+                <div class="flex items-center space-x-3">
+                    <!-- Menu Hamburger -->
+                    <button id="menuToggle" class="glass p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 text-blue-600 hover:bg-blue-50">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
                     <a href="{{ url_for('superviseur_dashboard') }}" class="btn-corporate-outline px-4 py-2">
                         <i class="fas fa-arrow-left mr-2"></i>Retour
                     </a>
@@ -115,7 +119,7 @@
                             {{ 'Active' if unite.active else 'Inactive' }}
                         </span>
                         <div class="flex space-x-2">
-                            <a href="{{ url_for('admin_unit_detail', unit_id=unite.id) }}" class="text-blue-600 hover:bg-blue-50 p-2 rounded" title="Voir détails">
+                            <a href="/admin/units/{{ unite.id }}" class="text-blue-600 hover:bg-blue-50 p-2 rounded" title="Voir détails">
                                 <i class="fas fa-eye"></i>
                             </a>
                             <button onclick="editUnite({{ unite.id }})" class="text-green-600 hover:bg-green-50 p-2 rounded" title="Modifier">

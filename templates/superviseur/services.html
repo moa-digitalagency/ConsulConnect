@@ -16,7 +16,11 @@
                     <h1 class="text-3xl font-bold text-gray-900">Gestion des Services Consulaires</h1>
                     <p class="text-gray-600">Administration des services disponibles dans le système</p>
                 </div>
-                <div class="flex space-x-3">
+                <div class="flex items-center space-x-3">
+                    <!-- Menu Hamburger -->
+                    <button id="menuToggle" class="glass p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 text-blue-600 hover:bg-blue-50">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
                     <a href="{{ url_for('superviseur_dashboard') }}" class="btn-corporate-outline px-4 py-2">
                         <i class="fas fa-arrow-left mr-2"></i>Retour
                     </a>
