@@ -7,6 +7,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from app import app, db, mail
 from models import User, Application, Document, StatusHistory, AuditLog, Notification, UniteConsulaire, Service, UniteConsulaire_Service
+from notification_service import NotificationService
 from sqlalchemy import func
 from forms import (LoginForm, RegisterForm, ConsularCardForm, CareAttestationForm, 
                    LegalizationsForm, PassportForm, OtherDocumentsForm, ApplicationStatusForm,
@@ -127,6 +128,15 @@ def register():
 # Register the auth blueprint
 app.register_blueprint(auth)
 
+# Import superviseur routes
+import routes_superviseur
+
+# Import admin routes  
+import routes_admin
+
+# Import agent routes
+import routes_agent
+
 @app.route('/logout')
 @login_required
 def logout():
@@ -155,7 +165,7 @@ def user_dashboard():
 
 @app.route('/admin-dashboard')
 @login_required
-def admin_dashboard():
+def admin_dashboard_legacy():
     if not current_user.is_admin():
         abort(403)
     
@@ -336,6 +346,9 @@ def consular_card():
         db.session.add(status_history)
         
         db.session.commit()
+        
+        # Déclencher les notifications pour les agents de l'unité consulaire
+        NotificationService.notify_new_application(application)
         
         log_audit(current_user.id, 'create_application', 'application', application.id, 'Consular card application submitted')
         

@@ -252,9 +252,12 @@ class UniteConsulaire_Service(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     unite_consulaire_id = db.Column(db.Integer, db.ForeignKey('unite_consulaire.id'), nullable=False)
     service_id = db.Column(db.Integer, db.ForeignKey('service.id'), nullable=False)
-    tarif_personnalise = db.Column(db.Float, nullable=False)  # Le tarif défini par l'agent
-    actif = db.Column(db.Boolean, default=True)  # L'agent peut désactiver un service
+    tarif_personnalise = db.Column(db.Float, nullable=False)  # Le tarif défini par l'admin
+    devise = db.Column(db.String(3), default='USD')  # USD, EUR, MAD, etc.
+    actif = db.Column(db.Boolean, default=True)  # L'admin peut désactiver un service
     configuration = db.Column(db.Text)  # JSON pour des configurations spéciales
+    delai_personnalise = db.Column(db.Integer)  # Délai spécifique à cette unité (jours)
+    notes_admin = db.Column(db.Text)  # Notes de l'admin pour ce service
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     configured_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -263,3 +266,7 @@ class UniteConsulaire_Service(db.Model):
     configurateur = db.relationship('User', foreign_keys=[configured_by], backref='services_configures')
     
     __table_args__ = (db.UniqueConstraint('unite_consulaire_id', 'service_id', name='uq_unite_service'),)
+    
+    def get_tarif_avec_devise(self):
+        """Retourne le tarif formaté avec la devise"""
+        return f"{self.tarif_personnalise} {self.devise}"
