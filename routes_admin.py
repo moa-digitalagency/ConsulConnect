@@ -25,7 +25,7 @@ def admin_unit_access_required(f):
     def decorated_function(*args, **kwargs):
         if not current_user.unite_consulaire_id:
             flash('Aucune unité consulaire assignée. Contactez votre superviseur.', 'error')
-            return redirect(url_for('admin_dashboard'))
+            return redirect('/admin/hierarchy')
         return f(*args, **kwargs)
     return decorated_function
 

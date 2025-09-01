@@ -259,7 +259,7 @@ def superviseur_dashboard():
         roles_stats[role] = User.query.filter_by(role=role).count()
     
     # Dernières actions (audit logs)
-    recent_actions = AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(10).all()
+    recent_actions = AuditLog.query.order_by(AuditLog.created_at.desc()).limit(10).all()
     
     return render_template('superviseur/dashboard.html', 
                          stats=stats, 

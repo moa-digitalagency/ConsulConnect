@@ -29,7 +29,14 @@ def user_login():
     if current_user.is_authenticated:
         if current_user.role == 'usager':
             return redirect(url_for('user_dashboard'))
-        return redirect(url_for('admin_unit_dashboard'))
+        # Rediriger selon le rôle spécifique
+        if current_user.role == 'superviseur':
+            return redirect('/superviseur/dashboard')
+        elif current_user.role == 'admin':
+            return redirect('/admin/hierarchy') 
+        elif current_user.role == 'agent':
+            return redirect('/agent/my-unit')
+        return redirect('/admin/hierarchy')
     
     form = LoginForm()
     if form.validate_on_submit():
@@ -52,8 +59,13 @@ def user_login():
 @auth.route('/admin', methods=['GET', 'POST'])
 def admin_login():
     if current_user.is_authenticated:
-        if current_user.role in ['admin', 'agent', 'superviseur']:
-            return redirect(url_for('admin_unit_dashboard'))
+        # Rediriger selon le rôle spécifique
+        if current_user.role == 'superviseur':
+            return redirect('/superviseur/dashboard')
+        elif current_user.role == 'admin':
+            return redirect('/admin/hierarchy') 
+        elif current_user.role == 'agent':
+            return redirect('/agent/my-unit')
         return redirect(url_for('user_dashboard'))
     
     form = LoginForm()
@@ -66,7 +78,15 @@ def admin_login():
                 db.session.commit()
                 
                 log_audit(user.id, 'admin_login', 'user', user.id, 'Admin logged in')
-                return redirect(url_for('admin_unit_dashboard'))
+                
+                # Rediriger selon le rôle spécifique
+                if user.role == 'superviseur':
+                    return redirect('/superviseur/dashboard')
+                elif user.role == 'admin':
+                    return redirect('/admin/hierarchy') 
+                elif user.role == 'agent':
+                    return redirect('/agent/my-unit')
+                    
             else:
                 flash('Accès administrateur non autorisé.', 'error')
         else:
@@ -79,7 +99,7 @@ def consulate_login():
     if current_user.is_authenticated:
         if current_user.role == 'agent':
             return redirect(url_for('consulate_dashboard'))
-        return redirect(url_for('admin_unit_dashboard'))
+        return redirect('/admin/hierarchy')
     
     form = LoginForm()
     if form.validate_on_submit():
@@ -174,7 +194,7 @@ def logout():
 def user_dashboard():
     if current_user.role != 'usager':
         if current_user.role in ['admin', 'agent', 'superviseur']:
-            return redirect(url_for('admin_unit_dashboard'))
+            return redirect('/admin/hierarchy')
         abort(403)
     
     # Check if profile is complete
@@ -1083,7 +1103,7 @@ def agent_unit_dashboard():
     
     if not current_user.unite_consulaire_id:
         flash('Vous n\'êtes pas encore assigné à une unité consulaire.', 'warning')
-        return redirect(url_for('admin_unit_dashboard'))
+        return redirect('/admin/hierarchy')
     
     unit = current_user.unite_consulaire
     configured_services = unit.get_services_actifs()
