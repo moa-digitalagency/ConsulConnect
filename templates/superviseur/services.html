@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Services - Superviseur{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Gestion des Services Consulaires</h1>
+                    <p class="text-gray-600">Administration des services disponibles dans le système</p>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{{ url_for('superviseur_dashboard') }}" class="btn-corporate-outline px-4 py-2">
+                        <i class="fas fa-arrow-left mr-2"></i>Retour
+                    </a>
+                    <button onclick="addService()" class="btn-corporate-primary px-4 py-2">
+                        <i class="fas fa-plus mr-2"></i>Nouveau Service
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Services existants -->
+        <div class="grid grid-cols-1 gap-6">
+            {% for service in services %}
+            <div class="card-corporate p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-900">{{ service.nom }}</h3>
+                        <p class="text-gray-600 mt-2">{{ service.description }}</p>
+                        <div class="flex items-center space-x-4 mt-4 text-sm text-gray-500">
+                            <span><i class="fas fa-dollar-sign mr-1"></i>Tarif de base: {{ service.tarif_de_base }} USD</span>
+                            <span><i class="fas fa-clock mr-1"></i>Délai: {{ service.delai_traitement }} jours</span>
+                            <span><i class="fas fa-code mr-1"></i>Code: {{ service.code }}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="px-3 py-1 text-sm rounded-full {% if service.actif %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ 'Actif' if service.actif else 'Inactif' }}
+                        </span>
+                        <div class="flex space-x-2">
+                            <button onclick="editService({{ service.id }})" class="text-blue-600 hover:bg-blue-50 p-2 rounded">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="toggleService({{ service.id }})" class="text-yellow-600 hover:bg-yellow-50 p-2 rounded">
+                                <i class="fas fa-toggle-{% if service.actif %}on{% else %}off{% endif %}"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configurations par unité -->
+                <div class="mt-6 border-t pt-6">
+                    <h4 class="font-medium text-gray-900 mb-4">Configurations par Unité Consulaire</h4>
+                    {% set configurations = service.get_configurations() %}
+                    {% if configurations %}
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {% for config in configurations %}
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h5 class="font-medium text-gray-800">{{ config.unite_consulaire.nom }}</h5>
+                                <div class="mt-2 space-y-1 text-sm text-gray-600">
+                                    <p><span class="font-medium">Tarif:</span> {{ config.tarif_personnalise or service.tarif_de_base }} {{ config.devise or 'USD' }}</p>
+                                    {% if config.delai_personnalise %}
+                                    <p><span class="font-medium">Délai:</span> {{ config.delai_personnalise }} jours</p>
+                                    {% endif %}
+                                    <p><span class="font-medium">Statut:</span> 
+                                        <span class="px-2 py-1 text-xs rounded {% if config.actif %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                                            {{ 'Actif' if config.actif else 'Inactif' }}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-500 italic">Aucune configuration spécifique par unité</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <i class="fas fa-file-contract text-6xl text-gray-300 mb-4"></i>
+                <h3 class="text-xl text-gray-500 mb-2">Aucun service configuré</h3>
+                <p class="text-gray-400">Commencez par ajouter un nouveau service consulaire</p>
+                <button onclick="addService()" class="mt-4 btn-corporate-primary px-6 py-3">
+                    <i class="fas fa-plus mr-2"></i>Créer le Premier Service
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ajout/Édition Service -->
+<div id="serviceModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg max-w-2xl w-full p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modalTitle" class="text-lg font-bold text-gray-900">Nouveau Service</h3>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <form id="serviceForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Code du Service</label>
+                        <input type="text" id="serviceCode" name="code" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nom du Service</label>
+                        <input type="text" id="serviceName" name="nom" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <textarea id="serviceDescription" name="description" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tarif de Base (USD)</label>
+                        <input type="number" id="serviceTarif" name="tarif_de_base" step="0.01" min="0" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Délai de Traitement (jours)</label>
+                        <input type="number" id="serviceDelai" name="delai_traitement" min="1" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Documents Requis</label>
+                    <textarea id="serviceDocuments" name="documents_requis" rows="2" placeholder="Ex: passeport, photo, justificatif_residence"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"></textarea>
+                </div>
+
+                <div class="flex items-center">
+                    <input type="checkbox" id="serviceActif" name="actif" checked
+                           class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                    <label for="serviceActif" class="ml-2 text-sm text-gray-700">Service actif</label>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn-corporate-primary px-6 py-2">
+                        <i class="fas fa-save mr-2"></i>Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let editingServiceId = null;
+
+function addService() {
+    editingServiceId = null;
+    document.getElementById('modalTitle').textContent = 'Nouveau Service';
+    document.getElementById('serviceForm').reset();
+    document.getElementById('serviceModal').classList.remove('hidden');
+}
+
+function editService(serviceId) {
+    editingServiceId = serviceId;
+    document.getElementById('modalTitle').textContent = 'Modifier le Service';
+    
+    // Ici, vous pourriez faire un appel AJAX pour récupérer les données du service
+    // Pour l'instant, nous ouvrons juste le modal
+    document.getElementById('serviceModal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('serviceModal').classList.add('hidden');
+    editingServiceId = null;
+}
+
+function toggleService(serviceId) {
+    if (confirm('Voulez-vous changer le statut de ce service ?')) {
+        fetch(`/superviseur/services/${serviceId}/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur lors du changement de statut: ' + (data.error || 'Erreur inconnue'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erreur de communication avec le serveur');
+        });
+    }
+}
+
+// Gestion du formulaire
+document.getElementById('serviceForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+    
+    // Convertir les documents requis en tableau JSON
+    if (data.documents_requis) {
+        data.documents_requis = data.documents_requis.split(',').map(doc => doc.trim());
+    }
+    
+    const url = editingServiceId ? 
+        `/superviseur/services/${editingServiceId}` : 
+        '/superviseur/services';
+    
+    const method = editingServiceId ? 'PUT' : 'POST';
+    
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Erreur: ' + (data.error || 'Erreur inconnue'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur de communication avec le serveur');
+    });
+});
+
+function getCsrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+}
+</script>
+{% endblock %}
