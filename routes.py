@@ -978,7 +978,7 @@ def list_consular_units():
             'applications_count': len(unit.applications) if unit.applications else 0
         })
     
-    return render_template('admin/units_list.html', units_data=units_data)
+    return render_template('dashboard/admin_units.html', units_data=units_data)
 
 @app.route('/admin/units/<int:unit_id>/services')
 @login_required
