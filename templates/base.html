@@ -170,7 +170,7 @@
 <body class="min-h-screen {% block body_class %}corporate-bg-white{% endblock %}">
 
     <!-- Menu déroulant -->
-    <div id="menuDropdown" class="fixed top-20 right-4 z-40 w-80 glass rounded-lg shadow-xl transform translate-x-full opacity-0 transition-all duration-300 ease-in-out">
+    <div id="menuDropdown" class="fixed top-20 right-4 z-50 w-80 bg-white rounded-lg shadow-xl border border-gray-200 transform translate-x-full opacity-0 transition-all duration-300 ease-in-out">
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-lg font-bold text-gray-900">Navigation</h3>
@@ -212,6 +212,14 @@
                     <a href="{{ url_for('superviseur_unites') }}" class="menu-item">
                         <i class="fas fa-building w-5"></i>
                         <span>Unités Consulaires</span>
+                    </a>
+                    <a href="{{ url_for('crud.manage_users') }}" class="menu-item">
+                        <i class="fas fa-users w-5"></i>
+                        <span>Utilisateurs</span>
+                    </a>
+                    <a href="{{ url_for('crud.settings') }}" class="menu-item">
+                        <i class="fas fa-cog w-5"></i>
+                        <span>Paramètres</span>
                     </a>
                 </div>
                 {% endif %}

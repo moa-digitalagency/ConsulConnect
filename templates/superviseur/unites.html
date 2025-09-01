@@ -111,11 +111,14 @@
                             <a href="/admin/units/{{ unite.id }}" class="text-blue-600 hover:bg-blue-50 p-2 rounded" title="Voir détails">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="/admin/units/{{ unite.id }}" class="text-green-600 hover:bg-green-50 p-2 rounded" title="Modifier">
+                            <a href="{{ url_for('crud.edit_unite', unite_id=unite.id) }}" class="text-green-600 hover:bg-green-50 p-2 rounded" title="Modifier">
                                 <i class="fas fa-edit"></i>
                             </a>
                             <button onclick="toggleUnite({{ unite.id }})" class="text-yellow-600 hover:bg-yellow-50 p-2 rounded" title="Activer/Désactiver">
                                 <i class="fas fa-toggle-{% if unite.active %}on{% else %}off{% endif %}"></i>
+                            </button>
+                            <button onclick="deleteUnite({{ unite.id }})" class="text-red-600 hover:bg-red-50 p-2 rounded" title="Supprimer">
+                                <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     </div>
@@ -393,6 +396,16 @@ function toggleUnite(uniteId) {
 function addUnite() {
     // Ouvrir le formulaire de création d'unité
     window.location.href = '/admin/units/create';
+}
+
+function deleteUnite(uniteId) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette unité consulaire ? Cette action est irréversible.')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/superviseur/unites/${uniteId}/delete`;
+        document.body.appendChild(form);
+        form.submit();
+    }
 }
 
 // Gestion du formulaire

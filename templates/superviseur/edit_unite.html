@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier Unité Consulaire{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+{% endblock %}
+
+{% block page_title %}Modifier l'Unité Consulaire{% endblock %}
+{% block page_description %}Édition des informations de {{ unite.nom }}{% endblock %}
+{% block page_actions %}
+<a href="{{ url_for('superviseur_unites') }}" class="btn-corporate-outline px-4 py-2">
+    <i class="fas fa-arrow-left mr-2"></i>Retour
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    {% include 'includes/page_header.html' %}
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Informations de l'Unité Consulaire</h3>
+                </div>
+
+                <form action="{{ url_for('crud.update_unite', unite_id=unite.id) }}" method="POST" class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Informations de base -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nom de l'unité *</label>
+                            <input type="text" name="nom" value="{{ unite.nom }}" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Type *</label>
+                            <select name="type" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                                <option value="ambassade" {% if unite.type == 'ambassade' %}selected{% endif %}>Ambassade</option>
+                                <option value="consulat" {% if unite.type == 'consulat' %}selected{% endif %}>Consulat</option>
+                                <option value="consulat_general" {% if unite.type == 'consulat_general' %}selected{% endif %}>Consulat Général</option>
+                                <option value="mission_diplomatique" {% if unite.type == 'mission_diplomatique' %}selected{% endif %}>Mission Diplomatique</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Ville *</label>
+                            <input type="text" name="ville" value="{{ unite.ville }}" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Pays *</label>
+                            <input type="text" name="pays" value="{{ unite.pays }}" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+
+                        <!-- Chef d'unité -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nom du chef</label>
+                            <input type="text" name="chef_nom" value="{{ unite.chef_nom or '' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Titre du chef</label>
+                            <input type="text" name="chef_titre" value="{{ unite.chef_titre or '' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+
+                        <!-- Contacts -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email principal</label>
+                            <input type="email" name="email_principal" value="{{ unite.email_principal or '' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email secondaire</label>
+                            <input type="email" name="email_secondaire" value="{{ unite.email_secondaire or '' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Téléphone principal</label>
+                            <input type="tel" name="telephone_principal" value="{{ unite.telephone_principal or '' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Téléphone secondaire</label>
+                            <input type="tel" name="telephone_secondaire" value="{{ unite.telephone_secondaire or '' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+
+                        <!-- Adresse -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Rue</label>
+                            <input type="text" name="adresse_rue" value="{{ unite.adresse_rue or '' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Ville (adresse)</label>
+                            <input type="text" name="adresse_ville" value="{{ unite.adresse_ville or '' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Code postal</label>
+                            <input type="text" name="adresse_code_postal" value="{{ unite.adresse_code_postal or '' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Complément d'adresse</label>
+                            <textarea name="adresse_complement" rows="2"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">{{ unite.adresse_complement or '' }}</textarea>
+                        </div>
+
+                        <!-- Statut -->
+                        <div class="md:col-span-2">
+                            <div class="flex items-center">
+                                <input type="checkbox" name="active" id="active" {% if unite.active %}checked{% endif %}
+                                       class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded">
+                                <label for="active" class="ml-2 block text-sm text-gray-900">
+                                    Unité active
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex justify-end space-x-3 mt-8 pt-6 border-t">
+                        <a href="{{ url_for('superviseur_unites') }}" class="px-6 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">
+                            Annuler
+                        </a>
+                        <button type="submit" class="btn-corporate-primary px-6 py-2">
+                            <i class="fas fa-save mr-2"></i>Sauvegarder
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Informations supplémentaires -->
+            <div class="mt-6 bg-white rounded-lg shadow overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Statistiques de l'Unité</h3>
+                </div>
+                <div class="p-6">
+                    <dl class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Agents assignés</dt>
+                            <dd class="text-2xl font-bold text-gray-900">{{ unite.agents|length }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Services configurés</dt>
+                            <dd class="text-2xl font-bold text-gray-900">{{ unite.services|length }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Date de création</dt>
+                            <dd class="text-sm text-gray-900">{{ unite.created_at.strftime('%d/%m/%Y') if unite.created_at else 'Non disponible' }}</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

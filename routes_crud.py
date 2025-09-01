@@ -111,6 +111,14 @@ def toggle_user_status(user_id):
 
 # =================== CRUD UNITÉS CONSULAIRES ===================
 
+@crud_bp.route('/superviseur/unites/<int:unite_id>/edit', methods=['GET'])
+@login_required
+@superviseur_required
+def edit_unite(unite_id):
+    """Formulaire d'édition d'unité consulaire"""
+    unite = UniteConsulaire.query.get_or_404(unite_id)
+    return render_template('superviseur/edit_unite.html', unite=unite)
+
 @crud_bp.route('/superviseur/unites/<int:unite_id>/update', methods=['POST'])
 @login_required
 @superviseur_required
@@ -196,6 +204,29 @@ def toggle_unite_status(unite_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)})
+
+@crud_bp.route('/superviseur/unites/<int:unite_id>/delete', methods=['POST'])
+@login_required
+@superviseur_required
+def delete_unite(unite_id):
+    """Suppression d'une unité consulaire"""
+    try:
+        unite = UniteConsulaire.query.get_or_404(unite_id)
+        
+        # Vérifier qu'il n'y a pas d'agents assignés
+        if unite.agents:
+            flash('Impossible de supprimer une unité avec des agents assignés!', 'error')
+            return redirect(url_for('superviseur_unites'))
+            
+        db.session.delete(unite)
+        db.session.commit()
+        flash('Unité consulaire supprimée avec succès!', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erreur lors de la suppression: {str(e)}', 'error')
+        
+    return redirect(url_for('superviseur_unites'))
 
 # =================== CRUD SERVICES ===================
 
