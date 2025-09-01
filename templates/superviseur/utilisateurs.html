@@ -6,33 +6,20 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
 {% endblock %}
 
+{% block page_title %}Gestion des Utilisateurs{% endblock %}
+{% block page_description %}Administration des comptes système{% endblock %}
+{% block page_actions %}
+<a href="{{ url_for('superviseur_dashboard') }}" class="btn-corporate-secondary px-4 py-2 text-sm">
+    <i class="fas fa-arrow-left mr-2"></i>Retour Dashboard
+</a>
+<a href="{{ url_for('superviseur_ajouter_utilisateur') }}" class="btn-corporate-primary px-4 py-2 text-sm">
+    <i class="fas fa-user-plus mr-2"></i>Nouvel Utilisateur
+</a>
+{% endblock %}
+
 {% block content %}
 <div class="min-h-screen pattern-overlay">
-    <!-- Header Corporate -->
-    <header class="bg-white shadow-sm border-b-4 border-red-600">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <div class="logo-corporate w-14 h-14">
-                        <i class="fas fa-users-cog text-2xl text-white"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
-                        <p class="text-sm text-gray-600">Administration des comptes système</p>
-                    </div>
-                </div>
-                
-                <div class="flex items-center space-x-4">
-                    <a href="{{ url_for('superviseur_dashboard') }}" class="btn-corporate-secondary px-4 py-2 text-sm">
-                        <i class="fas fa-arrow-left mr-2"></i>Retour Dashboard
-                    </a>
-                    <a href="{{ url_for('superviseur_ajouter_utilisateur') }}" class="btn-corporate-primary px-4 py-2 text-sm">
-                        <i class="fas fa-user-plus mr-2"></i>Nouvel Utilisateur
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
+    {% include 'includes/page_header.html' with context %}
 
     <!-- Contenu Principal -->
     <div class="container mx-auto px-4 py-8">

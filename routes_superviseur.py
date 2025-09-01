@@ -40,7 +40,11 @@ def superviseur_utilisateurs():
         'actifs': len([u for u in users if u.active])
     }
     
-    return render_template('superviseur/utilisateurs.html', users=users, stats=stats)
+    return render_template('superviseur/utilisateurs.html', 
+                         users=users, 
+                         stats=stats,
+                         page_title="Gestion des Utilisateurs",
+                         page_description="Administration des comptes système")
 
 @app.route('/superviseur/utilisateurs/ajouter', methods=['GET', 'POST'])
 @login_required
