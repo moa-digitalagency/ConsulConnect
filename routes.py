@@ -1505,3 +1505,7 @@ def system_overview():
         })
     
     return render_template('public/system_overview.html', stats=stats, units=units_data)
+
+# Logout route already exists elsewhere
+
+# Auth blueprint already registered in app.py
