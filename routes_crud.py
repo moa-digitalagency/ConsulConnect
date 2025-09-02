@@ -305,4 +305,49 @@ def toggle_service_status(service_id):
 @superviseur_required
 def settings():
     """Page des paramètres système"""
-    return render_template('superviseur/settings.html')
+    import os
+    sendgrid_enabled = bool(os.environ.get('SENDGRID_API_KEY'))
+    return render_template('superviseur/settings.html', sendgrid_enabled=sendgrid_enabled)
+
+@crud_bp.route('/superviseur/test-sendgrid', methods=['POST'])
+@login_required
+@superviseur_required
+def test_sendgrid():
+    """Test de la configuration SendGrid"""
+    try:
+        from email_service import EmailService
+        
+        email_service = EmailService()
+        if not email_service.enabled:
+            return jsonify({
+                'success': False, 
+                'message': 'SendGrid non configuré. Ajoutez SENDGRID_API_KEY dans les secrets.'
+            })
+        
+        # Envoi d'un email de test
+        test_email = current_user.email or 'test@econsulaire-rdc.com'
+        success = email_service.send_email(
+            to_email=test_email,
+            subject="Test SendGrid - e-Consulaire RDC",
+            html_content="""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #dc2626, #b91c1c); padding: 20px; text-align: center;">
+                    <h1 style="color: white; margin: 0;">Test SendGrid</h1>
+                    <p style="color: #fecaca; margin: 5px 0;">e-Consulaire RDC</p>
+                </div>
+                <div style="padding: 30px; background: #f9fafb;">
+                    <p>Ceci est un email de test pour vérifier la configuration SendGrid.</p>
+                    <p>Si vous recevez cet email, la configuration est correcte !</p>
+                    <p><strong>Envoyé le:</strong> {datetime}</p>
+                </div>
+            </div>
+            """.format(datetime=datetime.now().strftime('%d/%m/%Y à %H:%M'))
+        )
+        
+        if success:
+            return jsonify({'success': True, 'message': f'Email de test envoyé à {test_email}'})
+        else:
+            return jsonify({'success': False, 'message': 'Erreur lors de l\'envoi de l\'email'})
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
