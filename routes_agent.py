@@ -5,7 +5,7 @@ from flask import render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
 from functools import wraps
 from app import app, db
-from models import User, UniteConsulaire, Application, StatusHistory, Notification, AuditLog
+from backend.models import User, UniteConsulaire, Application, StatusHistory, Notification, AuditLog
 from datetime import datetime
 
 def agent_required(f):

@@ -135,7 +135,6 @@ def create_default_services():
 
 with app.app_context():
     from backend.models import User
-    import models
     import routes
     
     from routes_crud import crud_bp
@@ -162,5 +161,5 @@ with app.app_context():
 
 @login_manager.user_loader
 def load_user(user_id):
-    from models import User
+    from backend.models import User
     return User.query.get(int(user_id))

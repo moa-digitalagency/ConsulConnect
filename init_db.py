@@ -7,7 +7,7 @@ import os
 import sys
 from datetime import datetime
 from app import app, db
-from models import (
+from backend.models import (
     User, Application, Document, StatusHistory, AuditLog, 
     Notification, UniteConsulaire, Service, UniteConsulaire_Service
 )

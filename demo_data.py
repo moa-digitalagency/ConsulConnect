@@ -6,7 +6,7 @@ Creates sample data for testing and demonstration
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash
 from app import app, db
-from models import (
+from backend.models import (
     User, Application, Document, StatusHistory, AuditLog,
     Notification, UniteConsulaire, Service, UniteConsulaire_Service
 )

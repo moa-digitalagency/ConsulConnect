@@ -6,14 +6,13 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from app import app, db, mail
-from models import User, Application, Document, StatusHistory, AuditLog, Notification, UniteConsulaire, Service, UniteConsulaire_Service
-from notification_service import NotificationService
-from email_service import email_service
+from backend.models import User, Application, Document, StatusHistory, AuditLog, Notification, UniteConsulaire, Service, UniteConsulaire_Service
+from backend.services import NotificationService, email_service
 from sqlalchemy import func
 from forms import (LoginForm, RegisterForm, ConsularCardForm, CareAttestationForm, 
                    LegalizationsForm, PassportForm, OtherDocumentsForm, ApplicationStatusForm,
                    EmergencyPassForm, CivilStatusForm, PowerAttorneyForm)
-from utils import generate_pdf_document, send_notification_email, log_audit
+from backend.utils import generate_pdf_document, send_notification_email, log_audit
 
 # Redirect root to user login by default
 @app.route('/')

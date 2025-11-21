@@ -5,7 +5,7 @@ from flask import render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
 from functools import wraps
 from app import app, db
-from models import User, UniteConsulaire, Service, UniteConsulaire_Service, AuditLog
+from backend.models import User, UniteConsulaire, Service, UniteConsulaire_Service, AuditLog
 from werkzeug.security import generate_password_hash
 import json
 from datetime import datetime
