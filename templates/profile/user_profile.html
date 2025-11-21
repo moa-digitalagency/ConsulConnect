@@ -136,18 +136,11 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Pays <span class="text-red-500">*</span>
                         </label>
-                        <select name="ambassade_pays" class="form-input-corporate w-full" required>
+                        <select id="ambassade_pays" name="ambassade_pays" 
+                               class="form-input-corporate w-full" 
+                               data-initial="{{ current_user.ambassade_pays or '' }}"
+                               required>
                             <option value="">Sélectionner un pays</option>
-                            <option value="France" {% if current_user.ambassade_pays == 'France' %}selected{% endif %}>France</option>
-                            <option value="Belgique" {% if current_user.ambassade_pays == 'Belgique' %}selected{% endif %}>Belgique</option>
-                            <option value="États-Unis" {% if current_user.ambassade_pays == 'États-Unis' %}selected{% endif %}>États-Unis</option>
-                            <option value="Canada" {% if current_user.ambassade_pays == 'Canada' %}selected{% endif %}>Canada</option>
-                            <option value="Royaume-Uni" {% if current_user.ambassade_pays == 'Royaume-Uni' %}selected{% endif %}>Royaume-Uni</option>
-                            <option value="Allemagne" {% if current_user.ambassade_pays == 'Allemagne' %}selected{% endif %}>Allemagne</option>
-                            <option value="Suisse" {% if current_user.ambassade_pays == 'Suisse' %}selected{% endif %}>Suisse</option>
-                            <option value="Afrique du Sud" {% if current_user.ambassade_pays == 'Afrique du Sud' %}selected{% endif %}>Afrique du Sud</option>
-                            <option value="Angola" {% if current_user.ambassade_pays == 'Angola' %}selected{% endif %}>Angola</option>
-                            <option value="Kenya" {% if current_user.ambassade_pays == 'Kenya' %}selected{% endif %}>Kenya</option>
                         </select>
                     </div>
                     
@@ -155,8 +148,12 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Ville <span class="text-red-500">*</span>
                         </label>
-                        <input type="text" name="ambassade_ville" value="{{ current_user.ambassade_ville or '' }}" 
-                               class="form-input-corporate w-full" placeholder="Ex: Paris, Bruxelles, Washington" required>
+                        <select id="ambassade_ville" name="ambassade_ville" 
+                               class="form-input-corporate w-full" 
+                               data-initial="{{ current_user.ambassade_ville or '' }}"
+                               required>
+                            <option value="">Sélectionner une ville</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -428,6 +425,10 @@
     </footer>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/countries_cities.js') }}"></script>
 <script>
 function togglePasswordSection() {
     const section = document.getElementById('passwordSection');
@@ -444,6 +445,19 @@ document.querySelector('input[name="photo"]').addEventListener('change', functio
             photoDiv.innerHTML = `<img src="${e.target.result}" alt="Photo de profil">`;
         };
         reader.readAsDataURL(file);
+    }
+});
+
+// Initialize country/city dropdowns
+document.addEventListener('DOMContentLoaded', function() {
+    const countrySelect = document.getElementById('ambassade_pays');
+    const citySelect = document.getElementById('ambassade_ville');
+    
+    if (countrySelect && citySelect) {
+        const initialCountry = countrySelect.dataset.initial || '';
+        const initialCity = citySelect.dataset.initial || '';
+        
+        setupCountryCitySelects('ambassade_pays', 'ambassade_ville', initialCountry, initialCity);
     }
 });
 </script>
