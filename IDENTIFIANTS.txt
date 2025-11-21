@@ -1,0 +1,52 @@
+═══════════════════════════════════════════════════════════════
+  IDENTIFIANTS DE CONNEXION - e-Consulaire RDC
+═══════════════════════════════════════════════════════════════
+
+🔐 IMPORTANT : Il y a DEUX portails de connexion différents !
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👨‍👩‍👧‍👦 PORTAIL CITOYENS (Usagers)
+URL : /login
+
+1. COMPTE TEST CITOYEN 1
+   Email    : citoyen@test.cd
+   Password : citoyen123
+
+2. COMPTE TEST CITOYEN 2
+   Email    : usager@test.cd
+   Password : usager123
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👨‍💼 PORTAIL ADMINISTRATIF
+URL : /admin
+
+1. SUPERVISEUR SYSTÈME (Accès complet)
+   Email    : admin@diplomatie.gouv.cd
+   Password : admin123
+
+2. SUPERVISEUR TEST
+   Email    : superviseur@test.cd
+   Password : superviseur123
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚡ DÉMARRAGE RAPIDE :
+
+Pour tester comme CITOYEN :
+  1. Aller sur : /login
+  2. Email : citoyen@test.cd
+  3. Password : citoyen123
+
+Pour tester comme ADMIN :
+  1. Aller sur : /admin
+  2. Email : admin@diplomatie.gouv.cd
+  3. Password : admin123
+
+═══════════════════════════════════════════════════════════════
+
+⚠️  NOTE : Tous ces comptes sont créés AUTOMATIQUEMENT au démarrage
+    de l'application. Vous pouvez maintenant vous connecter !
+
+═══════════════════════════════════════════════════════════════

@@ -133,6 +133,75 @@ def create_default_services():
     
     db.session.commit()
 
+def create_demo_users_and_data():
+    """Initialise les utilisateurs de démonstration et données de test"""
+    from werkzeug.security import generate_password_hash
+    from backend.models import User, UniteConsulaire
+    
+    # Liste des utilisateurs de démonstration
+    demo_users = [
+        # Superviseurs
+        {
+            'username': 'admin',
+            'email': 'admin@diplomatie.gouv.cd',
+            'password': 'admin123',
+            'role': 'superviseur',
+            'first_name': 'Administrateur',
+            'last_name': 'Système',
+            'active': True
+        },
+        {
+            'username': 'superviseur',
+            'email': 'superviseur@test.cd',
+            'password': 'superviseur123',
+            'role': 'superviseur',
+            'first_name': 'Paul',
+            'last_name': 'Kabila',
+            'active': True
+        },
+        # Citoyens/Usagers
+        {
+            'username': 'citoyen',
+            'email': 'citoyen@test.cd',
+            'password': 'citoyen123',
+            'role': 'usager',
+            'first_name': 'Jean',
+            'last_name': 'Mukendi',
+            'active': True,
+            'phone': '+243 900 000 001'
+        },
+        {
+            'username': 'usager',
+            'email': 'usager@test.cd',
+            'password': 'usager123',
+            'role': 'usager',
+            'first_name': 'Marie',
+            'last_name': 'Kalala',
+            'active': True,
+            'phone': '+243 900 000 002'
+        }
+    ]
+    
+    # Créer les utilisateurs
+    for user_data in demo_users:
+        existing = User.query.filter_by(email=user_data['email']).first()
+        if not existing:
+            user = User()
+            user.username = user_data['username']
+            user.email = user_data['email']
+            user.password_hash = generate_password_hash(user_data['password'])
+            user.role = user_data['role']
+            user.first_name = user_data['first_name']
+            user.last_name = user_data['last_name']
+            user.active = user_data.get('active', True)
+            if 'phone' in user_data:
+                user.phone = user_data['phone']
+            db.session.add(user)
+            logging.info(f"User created: {user.email} (role: {user.role})")
+    
+    db.session.commit()
+    logging.info("Demo users initialization completed")
+
 with app.app_context():
     from backend.models import User
     from backend.routes import routes
@@ -142,22 +211,7 @@ with app.app_context():
     
     db.create_all()
     create_default_services()
-    
-    from werkzeug.security import generate_password_hash
-    
-    admin = User.query.filter_by(email='admin@diplomatie.gouv.cd').first()
-    if not admin:
-        admin_user = User()
-        admin_user.username = 'admin'
-        admin_user.email = 'admin@diplomatie.gouv.cd'
-        admin_user.password_hash = generate_password_hash('admin123')
-        admin_user.role = 'superviseur'
-        admin_user.active = True
-        admin_user.first_name = 'Administrateur'
-        admin_user.last_name = 'Système'
-        db.session.add(admin_user)
-        db.session.commit()
-        logging.info("Default admin user created")
+    create_demo_users_and_data()
 
 @login_manager.user_loader
 def load_user(user_id):
