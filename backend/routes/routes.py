@@ -123,7 +123,14 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('user_dashboard'))
     
+    from backend.models import UniteConsulaire
+    
     form = RegisterForm()
+    
+    # Peupler la liste des unités consulaires
+    unites = UniteConsulaire.query.filter_by(active=True).order_by(UniteConsulaire.pays, UniteConsulaire.ville).all()
+    form.unite_consulaire_id.choices = [(u.id, f"{u.nom} - {u.ville}, {u.pays}") for u in unites]
+    
     if form.validate_on_submit():
         user = User()
         user.username = form.username.data
@@ -131,6 +138,9 @@ def register():
         user.first_name = form.first_name.data
         user.last_name = form.last_name.data
         user.phone = form.phone.data
+        user.country = form.country.data
+        user.city = form.city.data
+        user.unite_consulaire_id = form.unite_consulaire_id.data
         user.password_hash = generate_password_hash(form.password.data)
         user.language = form.language.data
         user.role = 'usager'  # Default role for new users

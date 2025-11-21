@@ -23,15 +23,31 @@
                 <span class="font-medium">Demandes en attente</span>
             </a>
 
-            <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+            <a href="{{ url_for('agent_my_applications') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
                 <i class="fas fa-tasks w-5"></i>
                 <span class="font-medium">Mes traitements</span>
             </a>
 
-            <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                <i class="fas fa-check-circle w-5"></i>
-                <span class="font-medium">Demandes traitées</span>
-            </a>
+            <div class="pt-4 mt-4 border-t border-gray-200">
+                <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Configuration</p>
+                
+                {% if current_user.role in ['admin', 'superviseur'] %}
+                <a href="{{ url_for('admin_unit_services') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                    <i class="fas fa-cogs w-5"></i>
+                    <span class="font-medium">Services & Tarifs</span>
+                </a>
+
+                <a href="{{ url_for('admin_unit_personnel') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                    <i class="fas fa-users-cog w-5"></i>
+                    <span class="font-medium">Personnel</span>
+                </a>
+
+                <a href="{{ url_for('admin_unit_info') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                    <i class="fas fa-building w-5"></i>
+                    <span class="font-medium">Mon Unité</span>
+                </a>
+                {% endif %}
+            </div>
 
             <div class="pt-4 mt-4 border-t border-gray-200">
                 <a href="{{ url_for('user_profile') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
