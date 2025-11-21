@@ -2,48 +2,52 @@
 
 {% block title %}Inscription - e-Consulaire RDC{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-lg">
-        <!-- Logo and Title -->
-        <div class="text-center mb-8 animate-fade-in">
-            <div class="glass rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+<div class="min-h-screen flex items-center justify-center p-6 pattern-overlay">
+    <div class="w-full max-w-2xl">
+        <!-- Header Corporate -->
+        <div class="text-center mb-8 fade-in-corporate">
+            <div class="logo-corporate mx-auto mb-6">
                 <i class="fas fa-user-plus text-4xl text-white"></i>
             </div>
-            <h1 class="text-3xl font-bold text-white mb-2">Créer un Compte</h1>
-            <p class="text-white/80">Accédez aux services consulaires en ligne</p>
+            <h1 class="title-corporate">Créer un Compte</h1>
+            <p class="subtitle-corporate">Accédez aux services consulaires en ligne</p>
         </div>
 
         <!-- Registration Form -->
-        <div class="glass-strong rounded-2xl p-8 animate-slide-up">
+        <div class="card-corporate panel-user p-8 slide-up-corporate">
             <form method="POST" class="space-y-6">
                 {{ form.hidden_tag() }}
                 
                 <!-- Name Fields -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="space-y-2">
-                        <label for="first_name" class="block text-sm font-semibold text-white/90">
-                            <i class="fas fa-user mr-2"></i>Prénom
+                        <label for="first_name" class="label-corporate">
+                            <i class="fas fa-user mr-2 icon-rdc-blue"></i>Prénom
                         </label>
-                        {{ form.first_name(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="Jean") }}
+                        {{ form.first_name(class="input-corporate w-full", placeholder="Jean") }}
                         {% if form.first_name.errors %}
-                            <div class="text-red-400 text-xs mt-1">
+                            <div class="alert-corporate-error">
                                 {% for error in form.first_name.errors %}
-                                    <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>{{ error }}
                                 {% endfor %}
                             </div>
                         {% endif %}
                     </div>
                     
                     <div class="space-y-2">
-                        <label for="last_name" class="block text-sm font-semibold text-white/90">
-                            <i class="fas fa-user mr-2"></i>Nom
+                        <label for="last_name" class="label-corporate">
+                            <i class="fas fa-user mr-2 icon-rdc-blue"></i>Nom
                         </label>
-                        {{ form.last_name(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="Mukendi") }}
+                        {{ form.last_name(class="input-corporate w-full", placeholder="Mukendi") }}
                         {% if form.last_name.errors %}
-                            <div class="text-red-400 text-xs mt-1">
+                            <div class="alert-corporate-error">
                                 {% for error in form.last_name.errors %}
-                                    <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>{{ error }}
                                 {% endfor %}
                             </div>
                         {% endif %}
@@ -52,14 +56,14 @@
 
                 <!-- Username Field -->
                 <div class="space-y-2">
-                    <label for="username" class="block text-sm font-semibold text-white/90">
-                        <i class="fas fa-at mr-2"></i>Nom d'utilisateur
+                    <label for="username" class="label-corporate">
+                        <i class="fas fa-at mr-2 icon-rdc-blue"></i>Nom d'utilisateur
                     </label>
-                    {{ form.username(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="jean.mukendi") }}
+                    {{ form.username(class="input-corporate w-full", placeholder="jean.mukendi") }}
                     {% if form.username.errors %}
-                        <div class="text-red-400 text-xs mt-1">
+                        <div class="alert-corporate-error">
                             {% for error in form.username.errors %}
-                                <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                <i class="fas fa-exclamation-triangle mr-2"></i>{{ error }}
                             {% endfor %}
                         </div>
                     {% endif %}
@@ -67,14 +71,14 @@
 
                 <!-- Email Field -->
                 <div class="space-y-2">
-                    <label for="email" class="block text-sm font-semibold text-white/90">
-                        <i class="fas fa-envelope mr-2"></i>Adresse Email
+                    <label for="email" class="label-corporate">
+                        <i class="fas fa-envelope mr-2 icon-rdc-blue"></i>Adresse Email
                     </label>
-                    {{ form.email(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="jean.mukendi@exemple.com") }}
+                    {{ form.email(class="input-corporate w-full", placeholder="jean.mukendi@exemple.com") }}
                     {% if form.email.errors %}
-                        <div class="text-red-400 text-xs mt-1">
+                        <div class="alert-corporate-error">
                             {% for error in form.email.errors %}
-                                <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                <i class="fas fa-exclamation-triangle mr-2"></i>{{ error }}
                             {% endfor %}
                         </div>
                     {% endif %}
@@ -82,14 +86,14 @@
 
                 <!-- Phone Field -->
                 <div class="space-y-2">
-                    <label for="phone" class="block text-sm font-semibold text-white/90">
-                        <i class="fas fa-phone mr-2"></i>Numéro de Téléphone
+                    <label for="phone" class="label-corporate">
+                        <i class="fas fa-phone mr-2 icon-rdc-blue"></i>Numéro de Téléphone
                     </label>
-                    {{ form.phone(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="+243 XX XXX XXXX") }}
+                    {{ form.phone(id="phone", class="input-corporate w-full", placeholder="+243 XX XXX XXXX") }}
                     {% if form.phone.errors %}
-                        <div class="text-red-400 text-xs mt-1">
+                        <div class="alert-corporate-error">
                             {% for error in form.phone.errors %}
-                                <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                <i class="fas fa-exclamation-triangle mr-2"></i>{{ error }}
                             {% endfor %}
                         </div>
                     {% endif %}
@@ -98,38 +102,38 @@
                 <!-- Password Fields -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="space-y-2">
-                        <label for="password" class="block text-sm font-semibold text-white/90">
-                            <i class="fas fa-lock mr-2"></i>Mot de Passe
+                        <label for="password" class="label-corporate">
+                            <i class="fas fa-lock mr-2 icon-rdc-blue"></i>Mot de Passe
                         </label>
                         <div class="relative">
-                            {{ form.password(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="••••••••") }}
-                            <button type="button" onclick="togglePassword('password')" class="absolute right-3 top-3 text-white/60 hover:text-white">
+                            {{ form.password(id="password", class="input-corporate w-full pr-12", placeholder="••••••••") }}
+                            <button type="button" onclick="togglePassword('password')" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
                                 <i class="fas fa-eye" id="password-eye"></i>
                             </button>
                         </div>
                         {% if form.password.errors %}
-                            <div class="text-red-400 text-xs mt-1">
+                            <div class="alert-corporate-error">
                                 {% for error in form.password.errors %}
-                                    <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>{{ error }}
                                 {% endfor %}
                             </div>
                         {% endif %}
                     </div>
 
                     <div class="space-y-2">
-                        <label for="password2" class="block text-sm font-semibold text-white/90">
-                            <i class="fas fa-lock mr-2"></i>Confirmer
+                        <label for="password2" class="label-corporate">
+                            <i class="fas fa-lock mr-2 icon-rdc-blue"></i>Confirmer
                         </label>
                         <div class="relative">
-                            {{ form.password2(class="input-glass w-full px-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none", placeholder="••••••••") }}
-                            <button type="button" onclick="togglePassword('password2')" class="absolute right-3 top-3 text-white/60 hover:text-white">
+                            {{ form.password2(id="password2", class="input-corporate w-full pr-12", placeholder="••••••••") }}
+                            <button type="button" onclick="togglePassword('password2')" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
                                 <i class="fas fa-eye" id="password2-eye"></i>
                             </button>
                         </div>
                         {% if form.password2.errors %}
-                            <div class="text-red-400 text-xs mt-1">
+                            <div class="alert-corporate-error">
                                 {% for error in form.password2.errors %}
-                                    <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>{{ error }}
                                 {% endfor %}
                             </div>
                         {% endif %}
@@ -138,14 +142,14 @@
 
                 <!-- Language Field -->
                 <div class="space-y-2">
-                    <label for="language" class="block text-sm font-semibold text-white/90">
-                        <i class="fas fa-globe mr-2"></i>Langue Préférée
+                    <label for="language" class="label-corporate">
+                        <i class="fas fa-globe mr-2 icon-rdc-blue"></i>Langue Préférée
                     </label>
-                    {{ form.language(class="input-glass w-full px-4 py-3 rounded-xl text-white focus:outline-none bg-white/10") }}
+                    {{ form.language(class="input-corporate w-full") }}
                     {% if form.language.errors %}
-                        <div class="text-red-400 text-xs mt-1">
+                        <div class="alert-corporate-error">
                             {% for error in form.language.errors %}
-                                <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                <i class="fas fa-exclamation-triangle mr-2"></i>{{ error }}
                             {% endfor %}
                         </div>
                     {% endif %}
@@ -153,26 +157,26 @@
 
                 <!-- Terms and Conditions -->
                 <div class="flex items-start space-x-3 pt-2">
-                    <input type="checkbox" id="terms" name="terms" required class="w-4 h-4 text-primary-600 bg-white/10 border-white/20 rounded focus:ring-primary-500 focus:ring-2 mt-1">
-                    <label for="terms" class="text-sm text-white/80">
-                        J'accepte les <a href="#" class="text-white underline hover:text-white/80">conditions d'utilisation</a> 
-                        et la <a href="#" class="text-white underline hover:text-white/80">politique de confidentialité</a>
+                    <input type="checkbox" id="terms" name="terms" required class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 mt-1">
+                    <label for="terms" class="text-sm text-gray-600">
+                        J'accepte les <a href="#" class="text-blue-600 hover:text-blue-500 underline">conditions d'utilisation</a> 
+                        et la <a href="#" class="text-blue-600 hover:text-blue-500 underline">politique de confidentialité</a>
                     </label>
                 </div>
 
                 <!-- Submit Button -->
-                <button type="submit" class="btn-glass w-full py-3 rounded-xl text-white font-semibold text-lg hover:shadow-lg transform transition-all duration-300 hover:-translate-y-1">
+                <button type="submit" class="btn-corporate-primary w-full">
                     <i class="fas fa-user-plus mr-2"></i>Créer mon Compte
                 </button>
             </form>
 
             <!-- Security Information -->
-            <div class="mt-6 p-4 glass rounded-lg">
+            <div class="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
                 <div class="flex items-start space-x-3">
-                    <i class="fas fa-shield-alt text-green-400 mt-1"></i>
+                    <i class="fas fa-shield-alt text-green-600 mt-1"></i>
                     <div>
-                        <h4 class="text-white font-semibold text-sm">Sécurité et Confidentialité</h4>
-                        <div class="text-white/70 text-xs mt-1 space-y-1">
+                        <h4 class="text-green-800 font-semibold text-sm">Sécurité et Confidentialité</h4>
+                        <div class="text-green-700 text-xs mt-1 space-y-1">
                             <p>• Vos données sont chiffrées et sécurisées</p>
                             <p>• Aucune information ne sera partagée sans votre consentement</p>
                             <p>• Conformité avec les standards internationaux de sécurité</p>
@@ -183,15 +187,15 @@
 
             <!-- Login Link -->
             <div class="mt-6 text-center">
-                <p class="text-white/80 text-sm mb-3">Vous avez déjà un compte ?</p>
-                <a href="{{ url_for('auth.user_login') }}" class="text-white font-medium hover:text-white/80 underline">
+                <p class="text-sm text-gray-600 mb-3">Vous avez déjà un compte ?</p>
+                <a href="{{ url_for('auth.user_login') }}" class="btn-corporate-secondary">
                     <i class="fas fa-sign-in-alt mr-1"></i>Se Connecter
                 </a>
             </div>
         </div>
 
         <!-- Footer -->
-        <div class="text-center mt-8 text-white/60 text-xs">
+        <div class="text-center mt-8 text-gray-500 text-xs">
             <p>&copy; 2025 République Démocratique du Congo</p>
             <p>Ministère des Affaires Étrangères - Services Consulaires</p>
         </div>
