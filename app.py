@@ -133,14 +133,94 @@ def create_default_services():
     
     db.session.commit()
 
+def create_consular_units():
+    """Créer les unités consulaires de démonstration"""
+    from backend.models import UniteConsulaire, User
+    
+    # Get first superviseur as creator (should already exist from demo users)
+    creator = User.query.filter_by(role='superviseur').first()
+    if not creator:
+        # If no supervisor exists yet, skip unit creation - will be called again later
+        logging.warning("No supervisor found, skipping consular units creation for now")
+        return
+    
+    # Clean up old units with long names to avoid duplicates
+    old_units = UniteConsulaire.query.filter(
+        UniteConsulaire.nom.like('Ambassade de la RD Congo%') |
+        UniteConsulaire.nom.like('Consulat Général%')
+    ).all()
+    for old_unit in old_units:
+        logging.info(f"Removing old unit: {old_unit.nom}")
+        db.session.delete(old_unit)
+    db.session.commit()
+    
+    consular_units = [
+        {
+            'nom': 'Ambassade RDC Maroc',
+            'type': 'ambassade',
+            'pays': 'Maroc',
+            'ville': 'Rabat',
+            'chef_nom': 'Amb. Jean Mbongo',
+            'chef_titre': 'Ambassadeur',
+            'adresse_complete': 'Avenue Moulay Hassan, Rabat, Maroc',
+            'adresse_rue': 'Avenue Moulay Hassan',
+            'email_principal': 'ambassade@maroc.diplomatie.cd',
+            'telephone_principal': '+212-537-123456',
+            'code_pays': 'MAR',
+            'active': True,
+            'created_by': creator.id
+        },
+        {
+            'nom': 'Consulat RDC France',
+            'type': 'consulat',
+            'pays': 'France',
+            'ville': 'Paris',
+            'chef_nom': 'Cons. Pierre Lukele',
+            'chef_titre': 'Consul Général',
+            'adresse_complete': 'Rue de la République, Paris, France',
+            'adresse_rue': 'Rue de la République',
+            'email_principal': 'consulat@paris.diplomatie.cd',
+            'telephone_principal': '+33-1-45678901',
+            'code_pays': 'FRA',
+            'active': True,
+            'created_by': creator.id
+        },
+        {
+            'nom': 'Ambassade RDC Belgique',
+            'type': 'ambassade',
+            'pays': 'Belgique',
+            'ville': 'Bruxelles',
+            'chef_nom': 'Amb. Anne Kasongo',
+            'chef_titre': 'Ambassadeur',
+            'adresse_complete': 'Avenue Louise, Bruxelles, Belgique',
+            'adresse_rue': 'Avenue Louise',
+            'email_principal': 'ambassade@belgique.diplomatie.cd',
+            'telephone_principal': '+32-2-12345678',
+            'code_pays': 'BEL',
+            'active': True,
+            'created_by': creator.id
+        }
+    ]
+    
+    for unit_data in consular_units:
+        existing = UniteConsulaire.query.filter_by(
+            nom=unit_data['nom'],
+            ville=unit_data['ville']
+        ).first()
+        if not existing:
+            unit = UniteConsulaire(**unit_data)
+            db.session.add(unit)
+            logging.info(f"Consular unit created: {unit_data['nom']} ({unit_data['ville']}, {unit_data['pays']})")
+    
+    db.session.commit()
+
 def create_demo_users_and_data():
     """Initialise les utilisateurs de démonstration et données de test"""
     from werkzeug.security import generate_password_hash
     from backend.models import User, UniteConsulaire
     
-    # Liste des utilisateurs de démonstration
-    demo_users = [
-        # Superviseurs
+    # Créer d'abord les superviseurs (nécessaires pour created_by des unités)
+    superviseurs_data = [
         {
             'username': 'admin',
             'email': 'admin@diplomatie.gouv.cd',
@@ -157,7 +237,91 @@ def create_demo_users_and_data():
             'role': 'superviseur',
             'first_name': 'Paul',
             'last_name': 'Kabila',
-            'active': True
+            'active': True,
+            'phone': '+243 99 111 2233'
+        }
+    ]
+    
+    for user_data in superviseurs_data:
+        existing = User.query.filter_by(email=user_data['email']).first()
+        if not existing:
+            user = User()
+            user.username = user_data['username']
+            user.email = user_data['email']
+            user.password_hash = generate_password_hash(user_data['password'])
+            user.role = user_data['role']
+            user.first_name = user_data['first_name']
+            user.last_name = user_data['last_name']
+            user.active = user_data.get('active', True)
+            if 'phone' in user_data:
+                user.phone = user_data['phone']
+            db.session.add(user)
+            logging.info(f"Supervisor created: {user.email}")
+    
+    db.session.commit()
+    
+    # Maintenant créer les unités consulaires
+    create_consular_units()
+    
+    # Récupérer les unités pour assignation
+    unite_rabat = UniteConsulaire.query.filter_by(ville='Rabat').first()
+    unite_paris = UniteConsulaire.query.filter_by(ville='Paris').first()
+    
+    # Liste des autres utilisateurs de démonstration (superviseurs déjà créés)
+    demo_users = [
+        # Agents Administratifs
+        {
+            'username': 'agent_rabat',
+            'email': 'agent.rabat@diplomatie.cd',
+            'password': 'agent123',
+            'role': 'agent',
+            'first_name': 'Ahmed',
+            'last_name': 'Benali',
+            'active': True,
+            'phone': '+212 600 111 222',
+            'unite_consulaire_id': unite_rabat.id if unite_rabat else None
+        },
+        {
+            'username': 'agent_paris',
+            'email': 'agent.paris@diplomatie.cd',
+            'password': 'agent123',
+            'role': 'agent',
+            'first_name': 'François',
+            'last_name': 'Dubois',
+            'active': True,
+            'phone': '+33 6 12 34 56 78',
+            'unite_consulaire_id': unite_paris.id if unite_paris else None
+        },
+        {
+            'username': 'agent_test',
+            'email': 'agent@test.cd',
+            'password': 'agent123',
+            'role': 'agent',
+            'first_name': 'Celine',
+            'last_name': 'Tshisekedi',
+            'active': True,
+            'phone': '+243 99 222 3344'
+        },
+        # Personnel Consulaire
+        {
+            'username': 'consul',
+            'email': 'consul@test.cd',
+            'password': 'consul123',
+            'role': 'agent',
+            'first_name': 'Dr. Michel',
+            'last_name': 'Mbuyu',
+            'active': True,
+            'phone': '+243 99 333 4455'
+        },
+        {
+            'username': 'attache',
+            'email': 'attache@test.cd',
+            'password': 'attache123',
+            'role': 'agent',
+            'first_name': 'Sandrine',
+            'last_name': 'Kasongo',
+            'active': True,
+            'phone': '+243 99 444 5566'
         },
         # Citoyens/Usagers
         {
@@ -168,7 +332,7 @@ def create_demo_users_and_data():
             'first_name': 'Jean',
             'last_name': 'Mukendi',
             'active': True,
-            'phone': '+243 900 000 001'
+            'phone': '+243 81 234 5678'
         },
         {
             'username': 'usager',
@@ -178,7 +342,29 @@ def create_demo_users_and_data():
             'first_name': 'Marie',
             'last_name': 'Kalala',
             'active': True,
-            'phone': '+243 900 000 002'
+            'phone': '+243 82 345 6789'
+        },
+        {
+            'username': 'demo_user1',
+            'email': 'demo.user1@example.com',
+            'password': 'user123',
+            'role': 'usager',
+            'first_name': 'Jean',
+            'last_name': 'Mugambi',
+            'active': True,
+            'phone': '+212 600 987 654',
+            'unite_consulaire_id': unite_rabat.id if unite_rabat else None
+        },
+        {
+            'username': 'demo_user2',
+            'email': 'demo.user2@example.com',
+            'password': 'user123',
+            'role': 'usager',
+            'first_name': 'Marie',
+            'last_name': 'Kalomba',
+            'active': True,
+            'phone': '+33 6 98 76 54 32',
+            'unite_consulaire_id': unite_paris.id if unite_paris else None
         }
     ]
     
@@ -196,11 +382,13 @@ def create_demo_users_and_data():
             user.active = user_data.get('active', True)
             if 'phone' in user_data:
                 user.phone = user_data['phone']
+            if 'unite_consulaire_id' in user_data and user_data['unite_consulaire_id']:
+                user.unite_consulaire_id = user_data['unite_consulaire_id']
             db.session.add(user)
             logging.info(f"User created: {user.email} (role: {user.role})")
     
     db.session.commit()
-    logging.info("Demo users initialization completed")
+    logging.info("Demo users and consular units initialization completed")
 
 with app.app_context():
     from backend.models import User
