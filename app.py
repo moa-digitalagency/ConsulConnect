@@ -37,7 +37,7 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 
 # Configure file uploads
 app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max file size for multiple documents
 
 # Configure Flask-Mail
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
@@ -163,3 +163,11 @@ with app.app_context():
 def load_user(user_id):
     from backend.models import User
     return User.query.get(int(user_id))
+
+# Error handler for file size limit exceeded
+@app.errorhandler(413)
+def request_entity_too_large(error):
+    from flask import flash, redirect, request
+    flash('La taille totale des fichiers dépasse la limite autorisée de 100 MB. Veuillez réduire la taille des fichiers ou en soumettre moins à la fois.', 'error')
+    # Redirect back to the referring page or home
+    return redirect(request.referrer or '/')

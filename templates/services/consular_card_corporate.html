@@ -496,16 +496,17 @@ function selectCardType(type) {
     }
 }
 
-// Preview des fichiers uploadés
+// Preview des fichiers uploadés (validation de taille gérée par le script global)
 document.querySelectorAll('input[type="file"]').forEach(input => {
     input.addEventListener('change', function() {
         const fileName = this.files[0]?.name;
-        if (fileName) {
+        const fileSize = this.files[0]?.size;
+        if (fileName && fileSize) {
             const label = this.previousElementSibling;
             if (label && label.tagName === 'LABEL') {
                 const existingCheck = label.querySelector('.text-green-600');
                 if (!existingCheck) {
-                    label.innerHTML += ` <span class="text-green-600">✓ ${fileName}</span>`;
+                    label.innerHTML += ` <span class="text-green-600">✓ ${fileName} (${(fileSize / 1024 / 1024).toFixed(2)} MB)</span>`;
                 }
             }
         }
