@@ -1,27 +1,31 @@
 // Données des pays et villes chargées dynamiquement depuis les unités consulaires actives
 
 let COUNTRIES_CITIES = {};
-let isDataLoaded = false;
+let loadPromise = null;
 
 async function loadCountriesCities() {
-    if (isDataLoaded) {
-        return COUNTRIES_CITIES;
+    if (loadPromise) {
+        return loadPromise;
     }
     
-    try {
-        const response = await fetch('/api/countries-cities');
-        if (!response.ok) {
-            throw new Error('Erreur lors du chargement des pays et villes');
+    loadPromise = (async () => {
+        try {
+            const response = await fetch('/api/countries-cities');
+            if (!response.ok) {
+                throw new Error('Erreur lors du chargement des pays et villes');
+            }
+            
+            COUNTRIES_CITIES = await response.json();
+            return COUNTRIES_CITIES;
+        } catch (error) {
+            console.error('Erreur lors du chargement des pays et villes:', error);
+            loadPromise = null;
+            COUNTRIES_CITIES = {};
+            return COUNTRIES_CITIES;
         }
-        
-        COUNTRIES_CITIES = await response.json();
-        isDataLoaded = true;
-        return COUNTRIES_CITIES;
-    } catch (error) {
-        console.error('Erreur lors du chargement des pays et villes:', error);
-        COUNTRIES_CITIES = {};
-        return COUNTRIES_CITIES;
-    }
+    })();
+    
+    return loadPromise;
 }
 
 function populateCountrySelect(selectElement, selectedCountry = null) {
@@ -83,24 +87,92 @@ function setupCountryCitySelects(countrySelectId, citySelectId, initialCountry =
     });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    const countrySelect = document.getElementById('country') || document.getElementById('pays');
-    const citySelect = document.getElementById('city') || document.getElementById('ville');
-    
-    if (countrySelect && citySelect) {
-        const initialCountry = countrySelect.dataset.initial || null;
-        const initialCity = citySelect.dataset.initial || null;
+function findCitySelectForCountry(countrySelect, processedSelects) {
+    if (countrySelect.id) {
+        const possibleCityPatterns = [
+            countrySelect.id.replace(/country/i, 'city'),
+            countrySelect.id.replace(/pays/i, 'ville'),
+            countrySelect.id.replace(/Country/i, 'City'),
+            countrySelect.id.replace(/Pays/i, 'Ville')
+        ];
         
-        loadCountriesCities().then(() => {
-            populateCountrySelect(countrySelect, initialCountry);
-            
-            if (initialCountry) {
-                populateCitySelect(citySelect, initialCountry, initialCity);
+        for (let pattern of possibleCityPatterns) {
+            const citySelect = document.getElementById(pattern);
+            if (citySelect && citySelect.tagName === 'SELECT' && !processedSelects.has(citySelect)) {
+                return citySelect;
             }
-            
-            countrySelect.addEventListener('change', function() {
-                populateCitySelect(citySelect, this.value);
-            });
-        });
+        }
     }
+    
+    const immediateParent = countrySelect.closest('.grid, .flex, .form-group, [class*="col"]');
+    if (immediateParent) {
+        const siblingSelects = immediateParent.querySelectorAll('select');
+        for (let select of siblingSelects) {
+            if (select !== countrySelect && !processedSelects.has(select)) {
+                const selectId = (select.id || '').toLowerCase();
+                const selectName = (select.name || '').toLowerCase();
+                if (selectId.includes('city') || selectId.includes('ville') ||
+                    selectName.includes('city') || selectName.includes('ville')) {
+                    return select;
+                }
+            }
+        }
+    }
+    
+    const formRow = countrySelect.parentElement;
+    if (formRow) {
+        const nextSibling = formRow.nextElementSibling;
+        if (nextSibling) {
+            const citySelect = nextSibling.querySelector('select');
+            if (citySelect && !processedSelects.has(citySelect)) {
+                const selectId = (citySelect.id || '').toLowerCase();
+                const selectName = (citySelect.name || '').toLowerCase();
+                if (selectId.includes('city') || selectId.includes('ville') ||
+                    selectName.includes('city') || selectName.includes('ville')) {
+                    return citySelect;
+                }
+            }
+        }
+    }
+    
+    return null;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const allSelects = document.querySelectorAll('select');
+    const processedSelects = new WeakSet();
+    
+    allSelects.forEach(function(select) {
+        const selectId = (select.id || '').toLowerCase();
+        const selectName = (select.name || '').toLowerCase();
+        
+        if ((selectId.includes('country') || selectId.includes('pays') ||
+             selectName.includes('country') || selectName.includes('pays')) &&
+            !processedSelects.has(select)) {
+            
+            const citySelect = findCitySelectForCountry(select, processedSelects);
+            
+            if (citySelect && !processedSelects.has(citySelect)) {
+                processedSelects.add(select);
+                processedSelects.add(citySelect);
+                
+                const initialCountry = select.dataset.initial || '';
+                const initialCity = citySelect.dataset.initial || '';
+                
+                loadCountriesCities().then(() => {
+                    populateCountrySelect(select, initialCountry);
+                    
+                    if (initialCountry) {
+                        populateCitySelect(citySelect, initialCountry, initialCity);
+                    }
+                    
+                    select.addEventListener('change', function() {
+                        populateCitySelect(citySelect, this.value);
+                    });
+                }).catch(error => {
+                    console.error('Erreur lors de l\'initialisation des dropdowns:', error);
+                });
+            }
+        }
+    });
 });

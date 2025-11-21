@@ -513,21 +513,11 @@ document.querySelectorAll('input[type="file"]').forEach(input => {
     });
 });
 
-// Initialize country/city dropdowns
+// Auto-select card type if coming from dashboard
 document.addEventListener('DOMContentLoaded', function() {
     const firstOption = document.querySelector('.card-type-option');
     if (firstOption) {
         firstOption.click();
-    }
-    
-    const countrySelect = document.getElementById('embassy_country');
-    const citySelect = document.getElementById('embassy_city');
-    
-    if (countrySelect && citySelect) {
-        const initialCountry = countrySelect.dataset.initial || '';
-        const initialCity = citySelect.dataset.initial || '';
-        
-        setupCountryCitySelects('embassy_country', 'embassy_city', initialCountry, initialCity);
     }
 });
 </script>

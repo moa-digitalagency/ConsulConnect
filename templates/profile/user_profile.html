@@ -447,18 +447,5 @@ document.querySelector('input[name="photo"]').addEventListener('change', functio
         reader.readAsDataURL(file);
     }
 });
-
-// Initialize country/city dropdowns
-document.addEventListener('DOMContentLoaded', function() {
-    const countrySelect = document.getElementById('ambassade_pays');
-    const citySelect = document.getElementById('ambassade_ville');
-    
-    if (countrySelect && citySelect) {
-        const initialCountry = countrySelect.dataset.initial || '';
-        const initialCity = citySelect.dataset.initial || '';
-        
-        setupCountryCitySelects('ambassade_pays', 'ambassade_ville', initialCountry, initialCity);
-    }
-});
 </script>
 {% endblock %}
