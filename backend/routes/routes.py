@@ -283,6 +283,35 @@ def consulate_dashboard():
                          rejected_applications=rejected_applications,
                          recent_applications=recent_applications)
 
+@app.route('/api/countries-cities')
+def get_countries_cities():
+    """API endpoint to get countries and cities with active consular units"""
+    try:
+        # Query active consular units
+        units = UniteConsulaire.query.filter_by(active=True).all()
+        
+        # Group by country and collect cities
+        countries_cities = {}
+        for unit in units:
+            country = unit.pays
+            city = unit.ville
+            
+            if country not in countries_cities:
+                countries_cities[country] = []
+            
+            if city not in countries_cities[country]:
+                countries_cities[country].append(city)
+        
+        # Sort countries and cities
+        result = {}
+        for country in sorted(countries_cities.keys()):
+            result[country] = sorted(countries_cities[country])
+        
+        return jsonify(result)
+    except Exception as e:
+        app.logger.error(f"Error in get_countries_cities: {str(e)}")
+        return jsonify({}), 500
+
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def user_profile():
