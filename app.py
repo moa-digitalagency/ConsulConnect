@@ -134,7 +134,7 @@ def create_default_services():
     db.session.commit()
 
 def create_consular_units():
-    """Créer les unités consulaires de démonstration"""
+    """Créer ou mettre à jour les unités consulaires de démonstration (idempotent)"""
     from backend.models import UniteConsulaire, User
     
     # Get first superviseur as creator (should already exist from demo users)
@@ -144,16 +144,7 @@ def create_consular_units():
         logging.warning("No supervisor found, skipping consular units creation for now")
         return
     
-    # Clean up old units with long names to avoid duplicates
-    old_units = UniteConsulaire.query.filter(
-        UniteConsulaire.nom.like('Ambassade de la RD Congo%') |
-        UniteConsulaire.nom.like('Consulat Général%')
-    ).all()
-    for old_unit in old_units:
-        logging.info(f"Removing old unit: {old_unit.nom}")
-        db.session.delete(old_unit)
-    db.session.commit()
-    
+    # Define the target consular units - using stable key (pays + ville + type)
     consular_units = [
         {
             'nom': 'Ambassade RDC Maroc',
@@ -202,12 +193,23 @@ def create_consular_units():
         }
     ]
     
+    # Upsert pattern: use stable composite key (pays + ville + type) to avoid duplicates
     for unit_data in consular_units:
+        # Check if unit exists using stable key
         existing = UniteConsulaire.query.filter_by(
-            nom=unit_data['nom'],
-            ville=unit_data['ville']
+            pays=unit_data['pays'],
+            ville=unit_data['ville'],
+            type=unit_data['type']
         ).first()
-        if not existing:
+        
+        if existing:
+            # Update existing unit to match current spec (handles renamed units)
+            for key, value in unit_data.items():
+                if key != 'created_by':  # Don't change the creator
+                    setattr(existing, key, value)
+            logging.info(f"Consular unit updated: {unit_data['nom']} ({unit_data['ville']}, {unit_data['pays']})")
+        else:
+            # Create new unit
             unit = UniteConsulaire(**unit_data)
             db.session.add(unit)
             logging.info(f"Consular unit created: {unit_data['nom']} ({unit_data['ville']}, {unit_data['pays']})")
