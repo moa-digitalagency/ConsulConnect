@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Demandes en Attente - Agent{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/corporate.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    {% include 'includes/agent_sidebar.html' %}
+    
+    <div class="lg:ml-64">
+        <div class="p-8">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900">Demandes en Attente</h1>
+                <p class="text-gray-600">{{ unit.nom }}</p>
+            </div>
+
+            {% if applications %}
+            <div class="card-corporate overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Référence
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Service
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Demandeur
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Email
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Date de soumission
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for app in applications %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                            <i class="fas fa-file-alt text-blue-600 text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">{{ app.reference_number }}</div>
+                                            <div class="text-xs text-gray-500">{{ app.created_at.strftime('%H:%M') if app.created_at else 'N/A' }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ app.get_service_display() }}</div>
+                                    {% if app.payment_amount %}
+                                    <div class="text-xs text-gray-500">Montant: {{ app.payment_amount }} USD</div>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ app.user.get_full_name() }}</div>
+                                    <div class="text-xs text-gray-500">ID: #{{ app.user.id }}</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">{{ app.user.email }}</div>
+                                    {% if app.user.phone %}
+                                    <div class="text-xs text-gray-500">{{ app.user.phone }}</div>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ app.created_at.strftime('%d/%m/%Y') if app.created_at else 'N/A' }}</div>
+                                    <div class="text-xs text-gray-500">{{ app.created_at.strftime('%H:%M') if app.created_at else '' }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <form method="POST" action="{{ url_for('agent_take_application', app_id=app.id) }}" class="inline">
+                                        <button type="submit" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                            <i class="fas fa-hand-pointer mr-2"></i>Prendre en charge
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mt-4 text-sm text-gray-600">
+                <p>Total: <strong>{{ applications|length }}</strong> demande(s) en attente</p>
+            </div>
+            {% else %}
+            <div class="card-corporate p-12">
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-inbox text-4xl text-gray-400"></i>
+                    </div>
+                    <h3 class="text-xl font-medium text-gray-900 mb-2">Aucune demande en attente</h3>
+                    <p class="text-gray-500">Toutes les demandes ont été prises en charge</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="mt-8">
+                <a href="{{ url_for('agent_dashboard') }}" class="inline-flex items-center text-blue-600 hover:text-blue-700">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour au tableau de bord
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const now = new Date();
+</script>
+{% endblock %}
