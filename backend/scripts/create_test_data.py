@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 """
 Script utilitaire pour créer les données de test du système e-consulaire hiérarchique
 """

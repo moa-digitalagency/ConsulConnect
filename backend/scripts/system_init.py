@@ -1,4 +1,8 @@
 # Initialisation des services de sécurité, sauvegarde et mise à jour
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 from app import app
 from backend.services.security_service import security_service
 from backend.services.backup_service import backup_service

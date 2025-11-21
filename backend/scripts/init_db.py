@@ -5,6 +5,10 @@ Creates all necessary database tables and initializes the database
 """
 import os
 import sys
+
+# Add parent directory to path to import app
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 from datetime import datetime
 from app import app, db
 from backend.models import (

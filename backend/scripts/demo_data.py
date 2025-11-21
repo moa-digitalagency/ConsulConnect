@@ -3,6 +3,12 @@
 Demo data generator for e-Consulaire RDC
 Creates sample data for testing and demonstration
 """
+import os
+import sys
+
+# Add parent directory to path to import app
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash
 from app import app, db
