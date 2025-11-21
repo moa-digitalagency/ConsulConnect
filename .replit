@@ -43,3 +43,8 @@ externalPort = 3001
 
 [agent]
 integrations = ["python_sendgrid==1.0.0"]
+
+[userenv]
+
+[userenv.shared]
+ENCRYPTION_KEY = "VmgL1CF_68hG3GNSN47hqPSM9MHBSBqOPnJRky1zYeY"

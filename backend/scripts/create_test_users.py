@@ -15,7 +15,7 @@ from datetime import datetime
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from app import app, db
-from models import User
+from backend.models import User
 
 def create_test_users():
     """Créer des utilisateurs de test pour chaque panneau de connexion"""
@@ -128,9 +128,7 @@ def create_test_users():
                 language=user_data['language'],
                 active=True,
                 created_at=datetime.utcnow(),
-                last_login=None,
-                email_verified=True,  # Pré-vérifiés pour les tests
-                mfa_enabled=False     # MFA désactivé pour simplifier les tests
+                last_login=None
             )
             
             db.session.add(user)
