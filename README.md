@@ -104,9 +104,14 @@ cp .env.example .env
 # Éditer .env avec vos paramètres
 
 # Initialiser la base de données
-python init_db.py
+python backend/scripts/init_db.py
+
+# (Optionnel) Créer des données de démonstration
+python backend/scripts/demo_data.py
 
 # Démarrer l'application
+python main.py
+# Ou en production:
 gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app
 ```
 
