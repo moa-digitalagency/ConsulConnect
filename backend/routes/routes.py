@@ -124,12 +124,33 @@ def register():
         return redirect(url_for('user_dashboard'))
     
     from backend.models import UniteConsulaire
+    import json
     
     form = RegisterForm()
     
-    # Peupler la liste des unités consulaires
+    # Récupérer les unités consulaires actives
     unites = UniteConsulaire.query.filter_by(active=True).order_by(UniteConsulaire.pays, UniteConsulaire.ville).all()
-    form.unite_consulaire_id.choices = [(u.id, f"{u.nom} - {u.ville}, {u.pays}") for u in unites]
+    
+    # Créer les listes de choix pour pays, villes et unités
+    pays_list = sorted(list(set([u.pays for u in unites])))
+    form.country.choices = [('', '-- Sélectionnez votre pays de résidence --')] + [(p, p) for p in pays_list]
+    
+    # Créer un mapping dynamique pour villes et unités
+    villes_par_pays = {}
+    unites_par_ville = {}
+    for u in unites:
+        if u.pays not in villes_par_pays:
+            villes_par_pays[u.pays] = []
+        if u.ville not in villes_par_pays[u.pays]:
+            villes_par_pays[u.pays].append(u.ville)
+        
+        key = f"{u.pays}|{u.ville}"
+        if key not in unites_par_ville:
+            unites_par_ville[key] = []
+        unites_par_ville[key].append({'id': u.id, 'nom': u.nom})
+    
+    form.city.choices = [('', '-- Sélectionnez d\'abord un pays --')]
+    form.unite_consulaire_id.choices = [('', '-- Sélectionnez d\'abord une ville --')]
     
     if form.validate_on_submit():
         user = User()
@@ -153,7 +174,9 @@ def register():
         flash('Inscription réussie! Vous pouvez maintenant vous connecter.', 'success')
         return redirect(url_for('auth.user_login'))
     
-    return render_template('auth/register.html', form=form)
+    return render_template('auth/register.html', form=form, 
+                         villes_par_pays=json.dumps(villes_par_pays),
+                         unites_par_ville=json.dumps(unites_par_ville))
 
 # Register the auth blueprint
 app.register_blueprint(auth)
