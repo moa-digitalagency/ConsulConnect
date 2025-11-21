@@ -7,7 +7,6 @@ from flask_mail import Mail
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-# Set up logging
 logging.basicConfig(level=logging.DEBUG)
 
 class Base(DeclarativeBase):
@@ -17,13 +16,11 @@ db = SQLAlchemy(model_class=Base)
 login_manager = LoginManager()
 mail = Mail()
 
-# Create the app
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
 app.config['SECRET_KEY'] = app.secret_key
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# Configure the database
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///econsular.db")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
@@ -65,7 +62,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Create services data function
 def create_default_services():
-    from models import Service
+    from backend.models import Service
     import json
     
     default_services = [
@@ -137,23 +134,16 @@ def create_default_services():
     db.session.commit()
 
 with app.app_context():
-    # Import models and routes
+    from backend.models import User
     import models
     import routes
     
-    # Import and register CRUD blueprint
     from routes_crud import crud_bp
     app.register_blueprint(crud_bp)
     
-    
-    # Create tables
     db.create_all()
-    
-    # Create default services
     create_default_services()
     
-    # Create default admin user if not exists
-    from models import User
     from werkzeug.security import generate_password_hash
     
     admin = User.query.filter_by(email='admin@diplomatie.gouv.cd').first()
