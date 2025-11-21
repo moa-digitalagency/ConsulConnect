@@ -21,12 +21,7 @@ def init_db():
     with app.app_context():
         print("🔄 Initializing database...")
         
-        # Drop all tables if they exist (only in development)
-        if os.environ.get('ENVIRONMENT') != 'production':
-            print("  → Dropping existing tables...")
-            db.drop_all()
-        
-        # Create all tables
+        # Create all tables (without dropping to avoid circular dependency issues)
         print("  → Creating tables...")
         db.create_all()
         
