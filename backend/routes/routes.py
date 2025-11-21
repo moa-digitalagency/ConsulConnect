@@ -12,7 +12,7 @@ from sqlalchemy import func
 from backend.forms import (LoginForm, RegisterForm, ConsularCardForm, CareAttestationForm, 
                    LegalizationsForm, PassportForm, OtherDocumentsForm, ApplicationStatusForm,
                    EmergencyPassForm, CivilStatusForm, PowerAttorneyForm)
-from backend.utils import generate_pdf_document, send_notification_email, log_audit
+from backend.utils import generate_pdf_document, send_notification_email, log_audit, get_user_consular_unit
 
 # Redirect root to user login by default
 @app.route('/')
@@ -332,9 +332,16 @@ def user_profile():
 def consular_card():
     form = ConsularCardForm()
     if form.validate_on_submit():
+        # Determine consular unit for the user
+        unit = get_user_consular_unit(current_user)
+        if not unit:
+            flash('Impossible de déterminer votre unité consulaire. Veuillez mettre à jour votre profil avec votre pays et ville de résidence.', 'error')
+            return redirect(url_for('user_profile'))
+        
         # Create application
         application = Application(
             user_id=current_user.id,
+            unite_consulaire_id=unit.id,
             service_type='carte_consulaire',
             form_data=json.dumps({
                 'first_name': form.first_name.data,
@@ -412,8 +419,15 @@ def consular_card():
 def care_attestation():
     form = CareAttestationForm()
     if form.validate_on_submit():
+        # Determine consular unit for the user
+        unit = get_user_consular_unit(current_user)
+        if not unit:
+            flash('Impossible de déterminer votre unité consulaire. Veuillez mettre à jour votre profil avec votre pays et ville de résidence.', 'error')
+            return redirect(url_for('user_profile'))
+        
         application = Application(
             user_id=current_user.id,
+            unite_consulaire_id=unit.id,
             service_type='attestation_prise_charge',
             form_data=json.dumps({
                 'beneficiary_first_name': form.beneficiary_first_name.data,
@@ -477,8 +491,15 @@ def care_attestation():
 def legalizations():
     form = LegalizationsForm()
     if form.validate_on_submit():
+        # Determine consular unit for the user
+        unit = get_user_consular_unit(current_user)
+        if not unit:
+            flash('Impossible de déterminer votre unité consulaire. Veuillez mettre à jour votre profil avec votre pays et ville de résidence.', 'error')
+            return redirect(url_for('user_profile'))
+        
         application = Application(
             user_id=current_user.id,
+            unite_consulaire_id=unit.id,
             service_type='legalisations',
             form_data=json.dumps({
                 'document_type': form.document_type.data,
@@ -534,8 +555,15 @@ def legalizations():
 def passport():
     form = PassportForm()
     if form.validate_on_submit():
+        # Determine consular unit for the user
+        unit = get_user_consular_unit(current_user)
+        if not unit:
+            flash('Impossible de déterminer votre unité consulaire. Veuillez mettre à jour votre profil avec votre pays et ville de résidence.', 'error')
+            return redirect(url_for('user_profile'))
+        
         application = Application(
             user_id=current_user.id,
+            unite_consulaire_id=unit.id,
             service_type='passeport',
             form_data=json.dumps({
                 'request_type': form.request_type.data,
@@ -597,8 +625,15 @@ def passport():
 def other_documents():
     form = OtherDocumentsForm()
     if form.validate_on_submit():
+        # Determine consular unit for the user
+        unit = get_user_consular_unit(current_user)
+        if not unit:
+            flash('Impossible de déterminer votre unité consulaire. Veuillez mettre à jour votre profil avec votre pays et ville de résidence.', 'error')
+            return redirect(url_for('user_profile'))
+        
         application = Application(
             user_id=current_user.id,
+            unite_consulaire_id=unit.id,
             service_type='autres_documents',
             form_data=json.dumps({
                 'document_type': form.document_type.data,
@@ -649,9 +684,16 @@ def other_documents():
 def emergency_pass():
     form = EmergencyPassForm()
     if form.validate_on_submit():
+        # Determine consular unit for the user
+        unit = get_user_consular_unit(current_user)
+        if not unit:
+            flash('Impossible de déterminer votre unité consulaire. Veuillez mettre à jour votre profil avec votre pays et ville de résidence.', 'error')
+            return redirect(url_for('user_profile'))
+        
         # Create application
         application = Application(
             user_id=current_user.id,
+            unite_consulaire_id=unit.id,
             service_type='laissez_passer',
             form_data=json.dumps({
                 'emergency_reason': request.form.get('emergency_reason'),
@@ -728,9 +770,16 @@ def emergency_pass():
 def civil_status():
     form = CivilStatusForm()
     if form.validate_on_submit():
+        # Determine consular unit for the user
+        unit = get_user_consular_unit(current_user)
+        if not unit:
+            flash('Impossible de déterminer votre unité consulaire. Veuillez mettre à jour votre profil avec votre pays et ville de résidence.', 'error')
+            return redirect(url_for('user_profile'))
+        
         # Create application
         application = Application(
             user_id=current_user.id,
+            unite_consulaire_id=unit.id,
             service_type='etat_civil',
             form_data=json.dumps({
                 'document_type': request.form.get('document_type'),
@@ -807,9 +856,16 @@ def civil_status():
 def power_attorney():
     form = PowerAttorneyForm()
     if form.validate_on_submit():
+        # Determine consular unit for the user
+        unit = get_user_consular_unit(current_user)
+        if not unit:
+            flash('Impossible de déterminer votre unité consulaire. Veuillez mettre à jour votre profil avec votre pays et ville de résidence.', 'error')
+            return redirect(url_for('user_profile'))
+        
         # Create application
         application = Application(
             user_id=current_user.id,
+            unite_consulaire_id=unit.id,
             service_type='procuration',
             form_data=json.dumps({
                 'power_type': request.form.get('power_type'),

@@ -109,6 +109,16 @@ def create_demo_units():
 
 def create_demo_users():
     """Create demo users with different roles"""
+    # Get consular units for assignment (with safety check)
+    rabat_unit = UniteConsulaire.query.filter_by(ville='Rabat').first()
+    paris_unit = UniteConsulaire.query.filter_by(ville='Paris').first()
+    
+    # Log warning if units are missing
+    if not rabat_unit:
+        print("    ⚠ Warning: Rabat consular unit not found, agent will not be assigned")
+    if not paris_unit:
+        print("    ⚠ Warning: Paris consular unit not found, agent will not be assigned")
+    
     users_data = [
         {
             'username': 'agent_rabat',
@@ -117,7 +127,8 @@ def create_demo_users():
             'last_name': 'Hamdaoui',
             'role': 'agent',
             'phone': '+212-612345678',
-            'password': 'agent123'
+            'password': 'agent123',
+            'unite_consulaire_id': rabat_unit.id if rabat_unit else None
         },
         {
             'username': 'agent_paris',
@@ -126,7 +137,8 @@ def create_demo_users():
             'last_name': 'Dupont',
             'role': 'agent',
             'phone': '+33-612345678',
-            'password': 'agent123'
+            'password': 'agent123',
+            'unite_consulaire_id': paris_unit.id if paris_unit else None
         },
         {
             'username': 'user_demo1',
@@ -140,8 +152,8 @@ def create_demo_users():
             'genre': 'M',
             'date_naissance': datetime(1985, 5, 15).date(),
             'lieu_naissance': 'Kinshasa',
-            'adresse_ville': 'Kinshasa',
-            'adresse_pays': 'Congo (RDC)'
+            'adresse_ville': 'Rabat',
+            'adresse_pays': 'Maroc'
         },
         {
             'username': 'user_demo2',

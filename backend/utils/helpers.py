@@ -155,3 +155,94 @@ def get_file_size_mb(file_path):
         return round(size_bytes / (1024 * 1024), 2)
     except:
         return 0
+
+def get_user_consular_unit(user):
+    """
+    Determine the appropriate consular unit for a user based on their profile.
+    Priority:
+    1. User's assigned unite_consulaire_id
+    2. Unit based on user's location (country and city)
+    3. None if no unit can be determined (caller should handle error)
+    
+    Returns:
+        UniteConsulaire object or None
+    """
+    from backend.models import UniteConsulaire
+    import unicodedata
+    
+    def normalize_string(s):
+        """Normalize string for comparison: strip, lowercase, remove accents"""
+        if not s:
+            return ''
+        # Remove accents/diacritics
+        nfd = unicodedata.normalize('NFD', s)
+        without_accents = ''.join(c for c in nfd if unicodedata.category(c) != 'Mn')
+        # Strip and lowercase
+        return without_accents.strip().lower()
+    
+    if user.unite_consulaire_id:
+        unit = UniteConsulaire.query.get(user.unite_consulaire_id)
+        if unit and unit.active:
+            return unit
+    
+    if user.adresse_pays:
+        normalized_country = normalize_string(user.adresse_pays)
+        
+        # Country mapping for common variations
+        country_mappings = {
+            'maroc': 'Maroc',
+            'morocco': 'Maroc',
+            'france': 'France',
+            'belgique': 'Belgique',
+            'belgium': 'Belgique',
+            'congo': 'Congo (RDC)',
+            'rdc': 'Congo (RDC)',
+            'republique democratique du congo': 'Congo (RDC)'
+        }
+        
+        matched_country = country_mappings.get(normalized_country, user.adresse_pays)
+        
+        # Try exact match first
+        query = UniteConsulaire.query.filter_by(active=True, pays=matched_country)
+        
+        if user.adresse_ville:
+            normalized_city = normalize_string(user.adresse_ville)
+            
+            # City mapping for common variations
+            city_mappings = {
+                'rabat': 'Rabat',
+                'paris': 'Paris',
+                'bruxelles': 'Bruxelles',
+                'brussels': 'Bruxelles',
+                'kinshasa': 'Kinshasa'
+            }
+            
+            matched_city = city_mappings.get(normalized_city, user.adresse_ville)
+            
+            # Try exact match first
+            city_match = query.filter_by(ville=matched_city).first()
+            if city_match:
+                return city_match
+            
+            # Fallback to fuzzy match
+            city_match = query.filter(UniteConsulaire.ville.ilike(f'%{user.adresse_ville}%')).first()
+            if city_match:
+                return city_match
+        
+        # Try country exact match
+        country_match = query.first()
+        if country_match:
+            return country_match
+        
+        # Fallback to fuzzy country match
+        query_fuzzy = UniteConsulaire.query.filter_by(active=True).filter(
+            UniteConsulaire.pays.ilike(f'%{user.adresse_pays}%')
+        )
+        country_match = query_fuzzy.first()
+        if country_match:
+            return country_match
+    
+    # Log failure for debugging
+    app.logger.warning(f"Could not determine consular unit for user {user.id}. Country: {user.adresse_pays}, City: {user.adresse_ville}")
+    
+    return None
