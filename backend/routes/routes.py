@@ -9,7 +9,7 @@ from app import app, db, mail
 from backend.models import User, Application, Document, StatusHistory, AuditLog, Notification, UniteConsulaire, Service, UniteConsulaire_Service
 from backend.services import NotificationService, email_service
 from sqlalchemy import func
-from forms import (LoginForm, RegisterForm, ConsularCardForm, CareAttestationForm, 
+from backend.forms import (LoginForm, RegisterForm, ConsularCardForm, CareAttestationForm, 
                    LegalizationsForm, PassportForm, OtherDocumentsForm, ApplicationStatusForm,
                    EmergencyPassForm, CivilStatusForm, PowerAttorneyForm)
 from backend.utils import generate_pdf_document, send_notification_email, log_audit
@@ -149,13 +149,13 @@ def register():
 app.register_blueprint(auth)
 
 # Import superviseur routes
-import routes_superviseur
+from backend.routes import routes_superviseur
 
 # Import admin routes  
-import routes_admin
+from backend.routes import routes_admin
 
 # Import agent routes
-import routes_agent
+from backend.routes import routes_agent
 
 # Route publique pour le suivi de demande
 @app.route('/track', methods=['GET', 'POST'])

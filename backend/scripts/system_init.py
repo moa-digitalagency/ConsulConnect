@@ -1,8 +1,8 @@
 # Initialisation des services de sécurité, sauvegarde et mise à jour
 from app import app
-from security_service import security_service
-from backup_service import backup_service
-from update_service import update_service
+from backend.services.security_service import security_service
+from backend.services.backup_service import backup_service
+from backend.services.update_service import update_service
 import schedule
 import threading
 import time

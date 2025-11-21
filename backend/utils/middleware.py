@@ -2,7 +2,7 @@
 from flask import request, session, abort, g
 from functools import wraps
 import time
-from security_service import security_service
+from backend.services.security_service import security_service
 from app import app
 
 # Cache pour le rate limiting

@@ -135,9 +135,9 @@ def create_default_services():
 
 with app.app_context():
     from backend.models import User
-    import routes
+    from backend.routes import routes
     
-    from routes_crud import crud_bp
+    from backend.routes.routes_crud import crud_bp
     app.register_blueprint(crud_bp)
     
     db.create_all()
