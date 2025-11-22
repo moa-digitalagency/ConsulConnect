@@ -230,7 +230,205 @@ def create_demo_data():
             db.session.commit()
             logger.info("✓ Unités consulaires de démonstration créées")
             
+            # Créer les agents consulaires
+            logger.info("Création des agents consulaires...")
+            unite_rabat = UniteConsulaire.query.filter_by(ville='Rabat').first()
+            unite_paris = UniteConsulaire.query.filter_by(ville='Paris').first()
+            unite_bruxelles = UniteConsulaire.query.filter_by(ville='Bruxelles').first()
+            
+            agents_data = [
+                {
+                    'username': 'agent_rabat',
+                    'email': 'agent.rabat@diplomatie.cd',
+                    'password': 'agent123',
+                    'role': 'agent',
+                    'first_name': 'Ahmed',
+                    'last_name': 'Benali',
+                    'active': True,
+                    'phone': '+212 600 111 222',
+                    'unite_consulaire_id': unite_rabat.id if unite_rabat else None
+                },
+                {
+                    'username': 'agent_paris',
+                    'email': 'agent.paris@diplomatie.cd',
+                    'password': 'agent123',
+                    'role': 'agent',
+                    'first_name': 'François',
+                    'last_name': 'Dubois',
+                    'active': True,
+                    'phone': '+33 6 12 34 56 78',
+                    'unite_consulaire_id': unite_paris.id if unite_paris else None
+                },
+                {
+                    'username': 'agent_bruxelles',
+                    'email': 'agent.bruxelles@diplomatie.cd',
+                    'password': 'agent123',
+                    'role': 'agent',
+                    'first_name': 'Sophie',
+                    'last_name': 'Lemoine',
+                    'active': True,
+                    'phone': '+32 470 12 34 56',
+                    'unite_consulaire_id': unite_bruxelles.id if unite_bruxelles else None
+                }
+            ]
+            
+            for user_data in agents_data:
+                existing = User.query.filter_by(email=user_data['email']).first()
+                if not existing:
+                    user = User()
+                    user.username = user_data['username']
+                    user.email = user_data['email']
+                    user.password_hash = generate_password_hash(user_data['password'])
+                    user.role = user_data['role']
+                    user.first_name = user_data['first_name']
+                    user.last_name = user_data['last_name']
+                    user.active = user_data.get('active', True)
+                    if 'phone' in user_data:
+                        user.phone = user_data['phone']
+                    if 'unite_consulaire_id' in user_data and user_data['unite_consulaire_id']:
+                        user.unite_consulaire_id = user_data['unite_consulaire_id']
+                    db.session.add(user)
+                    logger.info(f"  ✓ Agent créé: {user.email}")
+            
+            db.session.commit()
+            
+            # Configurer les services pour les unités
+            logger.info("Configuration des services pour les unités consulaires...")
+            from backend.models import UniteConsulaire_Service, Service
+            
+            unites = UniteConsulaire.query.filter_by(active=True).all()
+            services = Service.query.filter_by(actif=True).all()
+            admin = User.query.filter_by(role='superviseur').first()
+            
+            if unites and services and admin:
+                for unite in unites:
+                    for service in services:
+                        existing = UniteConsulaire_Service.query.filter_by(
+                            unite_consulaire_id=unite.id,
+                            service_id=service.id
+                        ).first()
+                        
+                        if not existing:
+                            config = UniteConsulaire_Service(
+                                unite_consulaire_id=unite.id,
+                                service_id=service.id,
+                                tarif_personnalise=service.tarif_de_base,
+                                devise='EUR' if unite.pays in ['France', 'Belgique'] else 'USD',
+                                actif=True,
+                                delai_personnalise=service.delai_traitement,
+                                configured_by=admin.id
+                            )
+                            db.session.add(config)
+                            logger.info(f"  ✓ Service {service.nom} configuré pour {unite.nom}")
+                
+                db.session.commit()
+            
+            # Créer des citoyens de démonstration
+            logger.info("Création des citoyens de démonstration...")
+            citizens_data = [
+                {
+                    'username': 'citoyen_rabat',
+                    'email': 'citoyen.rabat@example.com',
+                    'password': 'citoyen123',
+                    'role': 'usager',
+                    'first_name': 'Jean',
+                    'last_name': 'Mukendi',
+                    'active': True,
+                    'phone': '+212 600 987 654',
+                    'country': 'Maroc',
+                    'city': 'Rabat',
+                    'unite_consulaire_id': unite_rabat.id if unite_rabat else None
+                },
+                {
+                    'username': 'citoyen_paris',
+                    'email': 'citoyen.paris@example.com',
+                    'password': 'citoyen123',
+                    'role': 'usager',
+                    'first_name': 'Marie',
+                    'last_name': 'Kalomba',
+                    'active': True,
+                    'phone': '+33 6 98 76 54 32',
+                    'country': 'France',
+                    'city': 'Paris',
+                    'unite_consulaire_id': unite_paris.id if unite_paris else None
+                },
+                {
+                    'username': 'citoyen_bruxelles',
+                    'email': 'citoyen.bruxelles@example.com',
+                    'password': 'citoyen123',
+                    'role': 'usager',
+                    'first_name': 'Pierre',
+                    'last_name': 'Tshikala',
+                    'active': True,
+                    'phone': '+32 470 98 76 54',
+                    'country': 'Belgique',
+                    'city': 'Bruxelles',
+                    'unite_consulaire_id': unite_bruxelles.id if unite_bruxelles else None
+                }
+            ]
+            
+            for user_data in citizens_data:
+                existing = User.query.filter_by(email=user_data['email']).first()
+                if not existing:
+                    user = User()
+                    user.username = user_data['username']
+                    user.email = user_data['email']
+                    user.password_hash = generate_password_hash(user_data['password'])
+                    user.role = user_data['role']
+                    user.first_name = user_data['first_name']
+                    user.last_name = user_data['last_name']
+                    user.active = user_data.get('active', True)
+                    if 'phone' in user_data:
+                        user.phone = user_data['phone']
+                    if 'country' in user_data:
+                        user.country = user_data['country']
+                    if 'city' in user_data:
+                        user.city = user_data['city']
+                    if 'unite_consulaire_id' in user_data and user_data['unite_consulaire_id']:
+                        user.unite_consulaire_id = user_data['unite_consulaire_id']
+                    db.session.add(user)
+                    logger.info(f"  ✓ Citoyen créé: {user.email}")
+            
+            db.session.commit()
+            
+            # Créer des demandes de démonstration
+            logger.info("Création des demandes de démonstration...")
+            citizens = User.query.filter_by(role='usager').all()
+            services_list = Service.query.filter_by(actif=True).all()
+            statuses = ['soumise', 'en_traitement', 'validee', 'documents_requis', 'pret_pour_retrait']
+            
+            for citizen in citizens:
+                existing_apps = Application.query.filter_by(user_id=citizen.id).count()
+                if existing_apps > 0:
+                    continue
+                
+                num_apps = random.randint(2, 4)
+                for i in range(num_apps):
+                    service = random.choice(services_list)
+                    status = random.choice(statuses)
+                    
+                    ref_num = f"DC{datetime.now().year}{citizen.unite_consulaire_id or 1:02d}{random.randint(1000, 9999)}"
+                    
+                    app_demo = Application(
+                        user_id=citizen.id,
+                        unite_consulaire_id=citizen.unite_consulaire_id,
+                        service_type=service.code,
+                        reference_number=ref_num,
+                        status=status,
+                        created_at=datetime.now() - timedelta(days=random.randint(1, 30)),
+                        updated_at=datetime.now() - timedelta(days=random.randint(0, 5))
+                    )
+                    db.session.add(app_demo)
+                    logger.info(f"  ✓ Demande créée: {ref_num} pour {citizen.email}")
+            
+            db.session.commit()
+            
             logger.info("✓ Données de démonstration créées avec succès")
+            logger.info("Comptes créés:")
+            logger.info("  - Agent (Rabat): agent.rabat@diplomatie.cd / agent123")
+            logger.info("  - Agent (Paris): agent.paris@diplomatie.cd / agent123")
+            logger.info("  - Citoyen (Rabat): citoyen.rabat@example.com / citoyen123")
+            logger.info("  - Citoyen (Paris): citoyen.paris@example.com / citoyen123")
             return True
             
     except Exception as e:
