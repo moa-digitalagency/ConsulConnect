@@ -17,7 +17,30 @@ login_manager = LoginManager()
 mail = Mail()
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
+
+# Security: Critical environment variables required in production
+is_production = os.environ.get("FLASK_ENV") == "production"
+
+if is_production:
+    missing_vars = []
+    if not os.environ.get("SESSION_SECRET"):
+        missing_vars.append("SESSION_SECRET")
+    if not os.environ.get("ADMIN_PASSWORD"):
+        missing_vars.append("ADMIN_PASSWORD")
+    
+    if missing_vars:
+        raise RuntimeError(
+            f"Production deployment missing required environment variables: {', '.join(missing_vars)}. "
+            "These must be set for secure operation."
+        )
+
+# Session secret configuration
+if not os.environ.get("SESSION_SECRET"):
+    app.secret_key = "dev-secret-key-change-in-production"
+    logging.warning("Using default secret key for development. DO NOT USE IN PRODUCTION!")
+else:
+    app.secret_key = os.environ.get("SESSION_SECRET")
+
 app.config['SECRET_KEY'] = app.secret_key
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
@@ -43,9 +66,19 @@ app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max file size for 
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
 app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', 'noreply@diplomatie.gouv.cd')
-app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', 'default_password')
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@diplomatie.gouv.cd')
+
+# Mail credentials - require in production
+if os.environ.get("FLASK_ENV") == "production":
+    if not os.environ.get('MAIL_USERNAME') or not os.environ.get('MAIL_PASSWORD'):
+        raise RuntimeError("MAIL_USERNAME and MAIL_PASSWORD must be set in production")
+    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+else:
+    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', 'noreply@diplomatie.gouv.cd')
+    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+    if not os.environ.get('MAIL_PASSWORD'):
+        logging.warning("MAIL_PASSWORD not set. Email functionality may not work.")
 
 # Configure Flask-Login
 login_manager.init_app(app)
@@ -217,7 +250,12 @@ def create_consular_units():
     db.session.commit()
 
 def create_demo_users_and_data():
-    """Initialise les utilisateurs de démonstration et données de test"""
+    """Initialise les utilisateurs de démonstration et données de test
+    
+    WARNING: This function creates users with WEAK DEFAULT PASSWORDS.
+    Only use in development/testing environments.
+    In production, set strong passwords using environment variables.
+    """
     from werkzeug.security import generate_password_hash
     from backend.models import User, UniteConsulaire
     
@@ -504,11 +542,28 @@ with app.app_context():
     from backend.routes.routes_crud import crud_bp
     app.register_blueprint(crud_bp)
     
+    # Always create database schema and default services
     db.create_all()
     create_default_services()
-    create_demo_users_and_data()
-    configure_demo_services()
-    create_demo_applications()
+    
+    # Only create demo data in development or when explicitly requested
+    # NEVER create demo users with weak passwords in production
+    create_demo = os.environ.get('CREATE_DEMO_DATA', '').lower() in ['true', '1', 'yes']
+    is_production = os.environ.get('FLASK_ENV') == 'production'
+    
+    if create_demo or not is_production:
+        if is_production:
+            logging.warning("=" * 80)
+            logging.warning("WARNING: Creating demo data in production environment!")
+            logging.warning("Demo users have weak passwords. Change them immediately!")
+            logging.warning("=" * 80)
+        
+        create_demo_users_and_data()
+        configure_demo_services()
+        create_demo_applications()
+        logging.info("Demo data creation completed")
+    else:
+        logging.info("Skipping demo data creation (production mode)")
 
 @login_manager.user_loader
 def load_user(user_id):

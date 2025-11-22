@@ -109,7 +109,16 @@ def init_database():
             # Créer un super utilisateur administrateur si non existant
             logger.info("Création du compte administrateur principal...")
             admin_email = os.environ.get('ADMIN_EMAIL', 'admin@diplomatie.gouv.cd')
-            admin_password = os.environ.get('ADMIN_PASSWORD', 'admin123')
+            
+            # Require admin password in production
+            if os.environ.get('FLASK_ENV') == 'production':
+                if not os.environ.get('ADMIN_PASSWORD'):
+                    raise RuntimeError("ADMIN_PASSWORD environment variable must be set in production")
+                admin_password = os.environ.get('ADMIN_PASSWORD')
+            else:
+                admin_password = os.environ.get('ADMIN_PASSWORD', 'admin123')
+                if admin_password == 'admin123':
+                    logger.warning("Using default admin password for development. CHANGE THIS IN PRODUCTION!")
             
             admin = User.query.filter_by(email=admin_email).first()
             if not admin:
