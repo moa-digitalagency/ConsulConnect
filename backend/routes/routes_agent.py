@@ -35,9 +35,12 @@ def agent_unit_access_required(f):
 @app.route('/agent/dashboard')
 @login_required
 @agent_required
-@agent_unit_access_required
 def agent_dashboard():
     """Tableau de bord de l'agent"""
+    if not current_user.unite_consulaire_id:
+        flash('Aucune unité consulaire assignée à votre compte. Veuillez contacter l\'administrateur système pour obtenir une affectation.', 'warning')
+        return render_template('errors/403.html'), 403
+    
     unit = current_user.unite_consulaire
     
     # Applications à traiter (nouvelles et en cours)

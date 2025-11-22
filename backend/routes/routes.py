@@ -97,7 +97,7 @@ def admin_login():
 def consulate_login():
     if current_user.is_authenticated:
         if current_user.role == 'agent':
-            return redirect(url_for('consulate_dashboard'))
+            return redirect('/agent/dashboard')
         return redirect('/admin/hierarchy')
     
     form = LoginForm()
@@ -110,7 +110,7 @@ def consulate_login():
                 db.session.commit()
                 
                 log_audit(user.id, 'consulate_login', 'user', user.id, 'Consulate staff logged in')
-                return redirect(url_for('consulate_dashboard'))
+                return redirect('/agent/dashboard')
             else:
                 flash('Accès consulaire non autorisé.', 'error')
         else:
