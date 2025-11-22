@@ -448,6 +448,55 @@ def create_demo_applications():
     db.session.commit()
     logging.info("Demo applications created successfully")
 
+def configure_demo_services():
+    """Configure les services pour les unités consulaires de démo"""
+    from backend.models import UniteConsulaire, Service, UniteConsulaire_Service, User
+    
+    # Récupérer toutes les unités actives
+    unites = UniteConsulaire.query.filter_by(active=True).all()
+    services = Service.query.filter_by(actif=True).all()
+    
+    if not unites or not services:
+        logging.warning("No units or services found for configuration")
+        return
+    
+    # Récupérer un admin pour configured_by
+    admin = User.query.filter_by(role='superviseur').first()
+    if not admin:
+        admin = User.query.filter_by(role='admin').first()
+    
+    if not admin:
+        logging.warning("No admin found to configure services")
+        return
+    
+    # Configurer tous les services pour chaque unité
+    for unite in unites:
+        for service in services:
+            # Vérifier si déjà configuré
+            existing = UniteConsulaire_Service.query.filter_by(
+                unite_consulaire_id=unite.id,
+                service_id=service.id
+            ).first()
+            
+            if existing:
+                continue
+            
+            # Créer la configuration
+            config = UniteConsulaire_Service(
+                unite_consulaire_id=unite.id,
+                service_id=service.id,
+                tarif_personnalise=service.tarif_de_base,
+                devise='USD' if unite.pays == 'Maroc' else 'EUR',
+                actif=True,
+                delai_personnalise=service.delai_traitement,
+                configured_by=admin.id
+            )
+            db.session.add(config)
+            logging.info(f"Service {service.nom} configured for {unite.nom}")
+    
+    db.session.commit()
+    logging.info("Demo services configured successfully")
+
 with app.app_context():
     from backend.models import User
     from backend.routes import routes
@@ -458,6 +507,7 @@ with app.app_context():
     db.create_all()
     create_default_services()
     create_demo_users_and_data()
+    configure_demo_services()
     create_demo_applications()
 
 @login_manager.user_loader

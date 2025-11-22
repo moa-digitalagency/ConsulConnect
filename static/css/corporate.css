@@ -481,3 +481,150 @@ body {
 .panel-consulate {
     border-top: 4px solid var(--rdc-yellow-dark);
 }
+
+/* Améliorations Responsive Mobiles */
+@media (max-width: 640px) {
+    /* Espacement mobile */
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    /* Navigation mobile */
+    .lg\:ml-64 {
+        margin-left: 0 !important;
+    }
+    
+    /* Tables responsive */
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Cards mobile */
+    .card-corporate {
+        margin-bottom: 1rem;
+    }
+    
+    /* Grid responsive */
+    .grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .md\:grid-cols-2,
+    .md\:grid-cols-3,
+    .md\:grid-cols-4,
+    .lg\:grid-cols-2,
+    .lg\:grid-cols-3,
+    .lg\:grid-cols-4 {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Formulaires mobile */
+    .input-corporate,
+    select,
+    textarea {
+        width: 100%;
+        font-size: 16px !important;
+    }
+    
+    /* Boutons mobile */
+    .btn-corporate-primary,
+    .btn-corporate-secondary {
+        width: 100%;
+        padding: 1rem;
+        font-size: 14px;
+    }
+    
+    /* Textes mobile */
+    h1 {
+        font-size: 1.75rem !important;
+    }
+    
+    h2 {
+        font-size: 1.5rem !important;
+    }
+    
+    h3 {
+        font-size: 1.25rem !important;
+    }
+    
+    /* Padding mobile */
+    .p-8 {
+        padding: 1rem !important;
+    }
+    
+    .p-6 {
+        padding: 1rem !important;
+    }
+    
+    /* Flex mobile */
+    .flex {
+        flex-wrap: wrap;
+    }
+    
+    .justify-between {
+        justify-content: flex-start;
+    }
+    
+    /* Sidebar mobile */
+    .lg\:col-span-2 {
+        grid-column: span 1 !important;
+    }
+    
+    /* Logo et header */
+    .logo-corporate {
+        width: 60px;
+        height: 60px;
+    }
+    
+    /* Stats cards */
+    .bg-white.rounded-lg.shadow-md {
+        margin-bottom: 0.75rem;
+    }
+}
+
+/* Tablettes */
+@media (min-width: 641px) and (max-width: 1024px) {
+    .md\:grid-cols-2 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .lg\:ml-64 {
+        margin-left: 0 !important;
+    }
+    
+    .container {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+    
+    /* Tables */
+    table {
+        font-size: 0.9rem;
+    }
+    
+    td, th {
+        padding: 0.5rem !important;
+    }
+}
+
+/* Touch-friendly elements */
+@media (hover: none) and (pointer: coarse) {
+    button,
+    a,
+    input,
+    select,
+    textarea {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Augmenter les zones tactiles */
+    .btn-corporate-primary,
+    .btn-corporate-secondary {
+        padding: 1rem 1.5rem;
+    }
+}
