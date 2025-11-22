@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de Bord - {{ unit.nom }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">
+            <i class="fas fa-building mr-3"></i>{{ unit.nom }}
+        </h1>
+        <p class="text-gray-600">{{ unit.type|title }} - {{ unit.ville }}, {{ unit.pays }}</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 text-sm">Agents</p>
+                    <p class="text-3xl font-bold text-blue-600">{{ stats.agents_count }}</p>
+                </div>
+                <i class="fas fa-users text-4xl text-blue-200"></i>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 text-sm">Services Actifs</p>
+                    <p class="text-3xl font-bold text-green-600">{{ stats.services_count }}</p>
+                </div>
+                <i class="fas fa-briefcase text-4xl text-green-200"></i>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 text-sm">Demandes Totales</p>
+                    <p class="text-3xl font-bold text-purple-600">{{ stats.total_applications }}</p>
+                </div>
+                <i class="fas fa-file-alt text-4xl text-purple-200"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold mb-4">
+                <i class="fas fa-chart-bar mr-2"></i>Statistiques par Service
+            </h2>
+            <div class="space-y-4">
+                {% for service_name, stats_data in stats.services_stats.items() %}
+                <div class="border-l-4 border-blue-500 pl-4">
+                    <h3 class="font-semibold">{{ service_name }}</h3>
+                    <div class="text-sm text-gray-600">
+                        <p>Demandes: {{ stats_data.applications }}</p>
+                        <p>Tarif: {{ stats_data.tarif }}</p>
+                        <span class="inline-block px-2 py-1 rounded text-xs {{ 'bg-green-100 text-green-800' if stats_data.actif else 'bg-red-100 text-red-800' }}">
+                            {{ 'Actif' if stats_data.actif else 'Inactif' }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold mb-4">
+                <i class="fas fa-clock mr-2"></i>Demandes Récentes
+            </h2>
+            <div class="space-y-3">
+                {% for app in recent_applications %}
+                <div class="border-b pb-3">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-semibold">{{ app.reference_number }}</p>
+                            <p class="text-sm text-gray-600">{{ app.service_type }}</p>
+                        </div>
+                        <span class="px-2 py-1 rounded text-xs
+                            {% if app.status == 'validee' %}bg-green-100 text-green-800
+                            {% elif app.status == 'en_traitement' %}bg-yellow-100 text-yellow-800
+                            {% elif app.status == 'rejetee' %}bg-red-100 text-red-800
+                            {% else %}bg-blue-100 text-blue-800{% endif %}">
+                            {{ app.status|replace('_', ' ')|title }}
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">{{ app.created_at.strftime('%d/%m/%Y') }}</p>
+                </div>
+                {% else %}
+                <p class="text-gray-500 text-center py-4">Aucune demande récente</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <a href="{{ url_for('admin_unit_services') }}" class="bg-blue-500 hover:bg-blue-600 text-white rounded-lg p-6 text-center transition">
+            <i class="fas fa-cog text-3xl mb-2"></i>
+            <p class="font-semibold">Gérer les Services</p>
+        </a>
+        
+        <a href="{{ url_for('admin_unit_personnel') }}" class="bg-green-500 hover:bg-green-600 text-white rounded-lg p-6 text-center transition">
+            <i class="fas fa-users-cog text-3xl mb-2"></i>
+            <p class="font-semibold">Personnel</p>
+        </a>
+        
+        <a href="{{ url_for('admin_unit_info') }}" class="bg-purple-500 hover:bg-purple-600 text-white rounded-lg p-6 text-center transition">
+            <i class="fas fa-info-circle text-3xl mb-2"></i>
+            <p class="font-semibold">Informations</p>
+        </a>
+        
+        <a href="{{ url_for('agent_dashboard') }}" class="bg-gray-500 hover:bg-gray-600 text-white rounded-lg p-6 text-center transition">
+            <i class="fas fa-file-alt text-3xl mb-2"></i>
+            <p class="font-semibold">Traiter Demandes</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -392,6 +392,62 @@ def create_demo_users_and_data():
     db.session.commit()
     logging.info("Demo users and consular units initialization completed")
 
+def create_demo_applications():
+    """Créer des demandes de démonstration pour les comptes citoyens"""
+    from backend.models import Application, User, UniteConsulaire, Service
+    from datetime import datetime, timedelta
+    import random
+    
+    # Récupérer les citoyens démo
+    citizens = User.query.filter_by(role='usager').all()
+    if not citizens:
+        logging.warning("No citizens found for demo applications")
+        return
+    
+    # Récupérer les unités et services
+    unites = UniteConsulaire.query.filter_by(active=True).all()
+    services = Service.query.filter_by(actif=True).all()
+    
+    if not unites or not services:
+        logging.warning("No units or services found for demo applications")
+        return
+    
+    # Statuts possibles
+    statuses = ['soumise', 'en_traitement', 'validee', 'documents_requis', 'pret_pour_retrait']
+    
+    # Créer des demandes pour chaque citoyen
+    for citizen in citizens[:4]:
+        # Vérifier si l'utilisateur a déjà des demandes
+        existing_apps = Application.query.filter_by(user_id=citizen.id).count()
+        if existing_apps > 0:
+            continue
+        
+        # Créer 2-3 demandes par citoyen
+        num_apps = random.randint(2, 3)
+        for i in range(num_apps):
+            service = random.choice(services)
+            unite = citizen.unite_consulaire if citizen.unite_consulaire else random.choice(unites)
+            status = random.choice(statuses)
+            
+            # Générer un numéro de référence unique
+            ref_num = f"DC{datetime.now().year}{unite.id:02d}{random.randint(1000, 9999)}"
+            
+            # Créer l'application
+            app_demo = Application(
+                user_id=citizen.id,
+                unite_consulaire_id=unite.id,
+                service_type=service.code,
+                reference_number=ref_num,
+                status=status,
+                created_at=datetime.now() - timedelta(days=random.randint(1, 30)),
+                updated_at=datetime.now() - timedelta(days=random.randint(0, 5))
+            )
+            db.session.add(app_demo)
+            logging.info(f"Demo application created: {ref_num} for {citizen.email}")
+    
+    db.session.commit()
+    logging.info("Demo applications created successfully")
+
 with app.app_context():
     from backend.models import User
     from backend.routes import routes
@@ -402,6 +458,7 @@ with app.app_context():
     db.create_all()
     create_default_services()
     create_demo_users_and_data()
+    create_demo_applications()
 
 @login_manager.user_loader
 def load_user(user_id):

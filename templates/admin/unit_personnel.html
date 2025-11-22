@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Personnel - {{ unit.nom }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                    <i class="fas fa-users-cog mr-3"></i>Gestion du Personnel
+                </h1>
+                <p class="text-gray-600">{{ unit.nom }} - {{ unit.ville }}, {{ unit.pays }}</p>
+            </div>
+            <a href="{{ url_for('admin_unit_dashboard') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                <i class="fas fa-arrow-left mr-2"></i>Retour au Tableau de Bord
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold mb-4">
+                <i class="fas fa-user-tie mr-2"></i>Administrateurs ({{ admins|length }})
+            </h2>
+            <div class="space-y-4">
+                {% for admin in admins %}
+                <div class="border-l-4 border-blue-500 pl-4 py-2">
+                    <p class="font-semibold">{{ admin.first_name }} {{ admin.last_name }}</p>
+                    <p class="text-sm text-gray-600">{{ admin.email }}</p>
+                    {% if admin.phone %}
+                    <p class="text-sm text-gray-600">
+                        <i class="fas fa-phone text-xs mr-1"></i>{{ admin.phone }}
+                    </p>
+                    {% endif %}
+                </div>
+                {% else %}
+                <p class="text-gray-500 text-center py-4">Aucun administrateur assigné</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold mb-4">
+                <i class="fas fa-user-friends mr-2"></i>Agents Consulaires ({{ agents|length }})
+            </h2>
+            <div class="space-y-4">
+                {% for agent in agents %}
+                <div class="border-l-4 border-green-500 pl-4 py-2">
+                    <p class="font-semibold">{{ agent.first_name }} {{ agent.last_name }}</p>
+                    <p class="text-sm text-gray-600">{{ agent.email }}</p>
+                    {% if agent.phone %}
+                    <p class="text-sm text-gray-600">
+                        <i class="fas fa-phone text-xs mr-1"></i>{{ agent.phone }}
+                    </p>
+                    {% endif %}
+                </div>
+                {% else %}
+                <p class="text-gray-500 text-center py-4">Aucun agent assigné</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h3 class="font-semibold text-blue-900 mb-2">
+            <i class="fas fa-info-circle mr-2"></i>Information
+        </h3>
+        <p class="text-sm text-blue-800">
+            Pour ajouter ou modifier du personnel, veuillez contacter un superviseur système ou utiliser le panneau de gestion des utilisateurs.
+        </p>
+    </div>
+</div>
+{% endblock %}
